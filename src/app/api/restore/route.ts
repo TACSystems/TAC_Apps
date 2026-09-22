@@ -1,9 +1,12 @@
+import { lockedResponse } from "@/lib/api-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { restoreBackup } from "@/lib/backup";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  const locked = await lockedResponse();
+  if (locked) return locked;
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File) || file.size === 0) {

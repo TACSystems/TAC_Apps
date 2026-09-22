@@ -30,6 +30,7 @@ export function normalizeSettings(raw: Partial<AppSettings> & Record<string, unk
       raw.deductManualRoundsByDefault === undefined ? d.deductManualRoundsByDefault : Boolean(raw.deductManualRoundsByDefault),
     lowAmmoPercent: clampNum(raw.lowAmmoPercent, 1, 100, d.lowAmmoPercent),
     currencySymbol: str(raw.currencySymbol, d.currencySymbol, 4) || d.currencySymbol,
+    autoLockMinutes: [0, 5, 10, 15, 30, 60].includes(Number(raw.autoLockMinutes)) ? Number(raw.autoLockMinutes) : 0,
   };
 }
 

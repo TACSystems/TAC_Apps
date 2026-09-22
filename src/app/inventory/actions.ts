@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db";
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { deleteAttachmentsFor } from "@/lib/attachments";
 
 function s(formData: FormData, key: string) {
   const v = formData.get(key);
@@ -88,25 +89,20 @@ export async function updateFirearm(id: string, formData: FormData) {
 
 export async function deleteFirearm(id: string) {
   const db = getDb();
-  db.prepare(`delete from firearms where id = ?`).run(id);
+  const today = new Date().toISOString().slice(0, 10);
+  db.transaction(() => {
+    db.prepare(`update accessory_mounts set to_date = coalesce(to_date, ?) where firearm_id = ?`).run(today, id);
+    db.prepare(`delete from firearms where id = ?`).run(id);
+  })();
+  deleteAttachmentsFor(db, "firearm", id);
   revalidatePath("/inventory");
   redirect("/inventory");
 }
 
-export async function createAccessory(formData: FormData) {
-  const db = getDb();
-  const firearmId = s(formData, "firearm_id");
-
-  db.prepare(
-    `insert into accessories
-      (id, firearm_id, make_model, type, platform, serial_number, acquisition_date,
-       purchase_value, purchase_location, receipt)
-     values (@id, @firearm_id, @make_model, @type, @platform, @serial_number, @acquisition_date,
-       @purchase_value, @purchase_location, @receipt)`
-  ).run({
-    id: randomUUID(),
-    firearm_id: firearmId,
-    make_model: String(formData.get("make_model")),
+function accessoryParams(formData: FormData) {
+  return {
+    firearm_id: s(formData, "firearm_id"),
+    make_model: String(formData.get("make_model") ?? "").trim() || "Unnamed accessory",
     type: s(formData, "type"),
     platform: s(formData, "platform"),
     serial_number: s(formData, "serial_number"),
@@ -114,16 +110,96 @@ export async function createAccessory(formData: FormData) {
     purchase_value: n(formData, "purchase_value"),
     purchase_location: s(formData, "purchase_location"),
     receipt: s(formData, "receipt"),
-  });
+  };
+}
+
+function firearmLabel(id: string | null) {
+  if (!id) return null;
+  const row = getDb().prepare(`select make_model from firearms where id = ?`).get(id) as
+    | { make_model: string }
+    | undefined;
+  return row?.make_model ?? null;
+}
+
+export async function createAccessory(formData: FormData) {
+  const db = getDb();
+  const params = accessoryParams(formData);
+  const id = randomUUID();
+  db.transaction(() => {
+    db.prepare(
+      `insert into accessories
+        (id, firearm_id, make_model, type, platform, serial_number, acquisition_date,
+         purchase_value, purchase_location, receipt)
+       values (@id, @firearm_id, @make_model, @type, @platform, @serial_number, @acquisition_date,
+         @purchase_value, @purchase_location, @receipt)`
+    ).run({ id, ...params });
+    if (params.firearm_id) {
+      db.prepare(
+        `insert into accessory_mounts (id, accessory_id, firearm_id, firearm_label, from_date) values (?, ?, ?, ?, ?)`
+      ).run(
+        randomUUID(),
+        id,
+        params.firearm_id,
+        firearmLabel(params.firearm_id),
+        params.acquisition_date ?? new Date().toISOString().slice(0, 10)
+      );
+    }
+  })();
 
   revalidatePath("/inventory/accessories");
-  if (firearmId) revalidatePath(`/inventory/${firearmId}`);
-  redirect("/inventory/accessories");
+  if (params.firearm_id) revalidatePath(`/inventory/${params.firearm_id}`);
+  redirect(`/inventory/accessories/${id}`);
+}
+
+export async function updateAccessory(id: string, formData: FormData) {
+  const db = getDb();
+  const before = db.prepare(`select firearm_id from accessories where id = ?`).get(id) as
+    | { firearm_id: string | null }
+    | undefined;
+  if (!before) redirect("/inventory/accessories");
+  const params = accessoryParams(formData);
+  const moveDate = s(formData, "move_date") ?? new Date().toISOString().slice(0, 10);
+  const moveNote = s(formData, "move_note");
+
+  db.transaction(() => {
+    db.prepare(
+      `update accessories set firearm_id = @firearm_id, make_model = @make_model, type = @type, platform = @platform,
+         serial_number = @serial_number, acquisition_date = @acquisition_date, purchase_value = @purchase_value,
+         purchase_location = @purchase_location, receipt = @receipt
+       where id = @id`
+    ).run({ id, ...params });
+
+    if (before.firearm_id !== params.firearm_id) {
+      db.prepare(`update accessory_mounts set to_date = ? where accessory_id = ? and to_date is null`).run(moveDate, id);
+      if (params.firearm_id) {
+        db.prepare(
+          `insert into accessory_mounts (id, accessory_id, firearm_id, firearm_label, from_date, notes)
+           values (?, ?, ?, ?, ?, ?)`
+        ).run(randomUUID(), id, params.firearm_id, firearmLabel(params.firearm_id), moveDate, moveNote);
+      }
+    }
+  })();
+
+  revalidatePath("/inventory/accessories");
+  revalidatePath(`/inventory/accessories/${id}`);
+  if (before.firearm_id) revalidatePath(`/inventory/${before.firearm_id}`);
+  if (params.firearm_id) revalidatePath(`/inventory/${params.firearm_id}`);
+  redirect(`/inventory/accessories/${id}?saved=1`);
+}
+
+export async function deleteMountEntry(accessoryId: string, mountId: string) {
+  getDb().prepare(`delete from accessory_mounts where id = ? and accessory_id = ?`).run(mountId, accessoryId);
+  revalidatePath(`/inventory/accessories/${accessoryId}`);
 }
 
 export async function deleteAccessory(id: string) {
   const db = getDb();
+  const row = db.prepare(`select firearm_id from accessories where id = ?`).get(id) as
+    | { firearm_id: string | null }
+    | undefined;
   db.prepare(`delete from accessories where id = ?`).run(id);
+  deleteAttachmentsFor(db, "accessory", id);
   revalidatePath("/inventory/accessories");
+  if (row?.firearm_id) revalidatePath(`/inventory/${row.firearm_id}`);
   redirect("/inventory/accessories");
 }

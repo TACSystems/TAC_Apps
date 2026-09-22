@@ -24,12 +24,29 @@ create table if not exists firearms (
   date_of_entry text not null default (datetime('now'))
 );
 
-create table if not exists receipt_images (
+create table if not exists attachments (
   id text primary key,
-  firearm_id text not null references firearms(id) on delete cascade,
+  owner_type text not null check (owner_type in ('firearm','accessory')),
+  owner_id text not null,
+  kind text not null default 'receipt' check (kind in ('receipt','photo','bill_of_sale','document')),
   file_path text not null,
   original_name text,
   uploaded_at text not null default (datetime('now'))
+);
+
+create index if not exists attachments_owner on attachments(owner_type, owner_id);
+
+create table if not exists firearm_dispositions (
+  id text primary key,
+  firearm_id text not null references firearms(id) on delete cascade,
+  date text not null,
+  type text not null default 'Sold',
+  recipient_name text,
+  recipient_ffl text,
+  recipient_address text,
+  price real,
+  notes text,
+  created_at text not null default (datetime('now'))
 );
 
 create table if not exists accessories (
@@ -44,6 +61,17 @@ create table if not exists accessories (
   purchase_location text,
   receipt text,
   date_of_entry text not null default (datetime('now'))
+);
+
+create table if not exists accessory_mounts (
+  id text primary key,
+  accessory_id text not null references accessories(id) on delete cascade,
+  firearm_id text references firearms(id) on delete set null,
+  firearm_label text,
+  from_date text,
+  to_date text,
+  notes text,
+  created_at text not null default (datetime('now'))
 );
 
 create table if not exists maintenance_log (

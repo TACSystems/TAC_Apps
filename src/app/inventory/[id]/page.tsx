@@ -7,13 +7,21 @@ import {
   deleteRoundsFired,
   logMalfunction,
   logZeroRecord,
-  uploadReceiptImage,
-  deleteReceiptImage,
+  recordDisposition,
 } from "./log-actions";
+import { listAttachments } from "@/lib/attachments";
+import AttachmentGallery from "@/components/AttachmentGallery";
+import {
+  DispositionEntry,
+  DispositionFields,
+  MaintenanceEntry,
+  MalfunctionEntry,
+  ZeroEntry,
+  type Disposition,
+} from "@/components/FirearmLogEntries";
 
 export const dynamic = "force-dynamic";
 import FirearmForm from "@/components/FirearmForm";
-import ReceiptUploadForm from "@/components/ReceiptUploadForm";
 import { maintenanceInfo } from "@/lib/maintenance";
 import { getSettings, money } from "@/lib/settings";
 import { getMaintenanceTypes } from "@/lib/db/dropdown-options";
@@ -29,7 +37,6 @@ import type {
   MaintenanceLogEntry,
   MalfunctionLogEntry,
   ZeroRecord,
-  ReceiptImage,
 } from "@/lib/db/types";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -74,9 +81,19 @@ export default async function FirearmDetailPage({
     .prepare(`select * from zero_records where firearm_id = ? order by date desc`)
     .all(id) as ZeroRecord[];
 
-  const receiptImages = db
-    .prepare(`select * from receipt_images where firearm_id = ? order by uploaded_at desc`)
-    .all(id) as ReceiptImage[];
+  const photos = listAttachments(db, "firearm", id, ["photo"]);
+  const receipts = listAttachments(db, "firearm", id, ["receipt", "document"]);
+  const billsOfSale = listAttachments(db, "firearm", id, ["bill_of_sale"]);
+  const dispositions = db
+    .prepare(`select * from firearm_dispositions where firearm_id = ? order by date desc, created_at desc`)
+    .all(id) as Disposition[];
+  const pastMounts = db
+    .prepare(
+      `select m.id, m.from_date, m.to_date, a.id as accessory_id, a.make_model
+       from accessory_mounts m join accessories a on a.id = m.accessory_id
+       where m.firearm_id = ? and m.to_date is not null order by m.to_date desc`
+    )
+    .all(id) as { id: string; from_date: string | null; to_date: string; accessory_id: string; make_model: string }[];
 
   const accessoriesInvestment = accessories.reduce((sum, a) => sum + (a.purchase_value ?? 0), 0);
   const totalInvestment = (firearm.purchase_value ?? 0) + accessoriesInvestment;
@@ -110,18 +127,20 @@ export default async function FirearmDetailPage({
   const maintenanceAction = logMaintenance.bind(null, id);
   const malfunctionAction = logMalfunction.bind(null, id);
   const zeroAction = logZeroRecord.bind(null, id);
-  const uploadReceiptAction = uploadReceiptImage.bind(null, id);
   const platformOptions = getDropdownOptions(db, "platform");
   const caliberOptions = getDropdownOptions(db, "caliber");
 
   return (
     <div className="flex flex-col gap-8">
       <div>
+        <Link href="/inventory" className="text-xs text-blue-400 hover:text-blue-300">
+          ← Armory
+        </Link>
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold">{firearm.make_model}</h1>
           <form action={deleteWithId}>
             <ConfirmSubmitButton
-              confirmMessage={`Delete ${firearm.make_model}? This also removes its accessories, receipts, maintenance, malfunction, and zero log entries. Its range log history stays on file but will no longer show a linked firearm. This cannot be undone.`}
+              confirmMessage={`Delete ${firearm.make_model}? This also removes its photos, receipts, sale records, maintenance, malfunction, and zero log entries. Its accessories and range log history stay on file but will no longer show a linked firearm. This cannot be undone.`}
               className="border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200 hover:bg-red-900"
             >
               Delete
@@ -258,15 +277,17 @@ export default async function FirearmDetailPage({
         <h2 className="mb-2 font-medium text-neutral-200">Accessories</h2>
         <div className="flex flex-col gap-2">
           {accessories.map((a) => (
-            <div
+            <Link
               key={a.id}
-              className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm"
+              href={`/inventory/accessories/${a.id}`}
+              className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm hover:border-neutral-600"
             >
               {a.make_model} {a.type ? `· ${a.type}` : ""}
+              {a.serial_number ? <span className="text-neutral-500"> · SN {a.serial_number}</span> : null}
               {a.purchase_value != null ? (
                 <span className="text-neutral-500"> · {money(a.purchase_value, settings.currencySymbol)}</span>
               ) : null}
-            </div>
+            </Link>
           ))}
           {accessories.length === 0 && (
             <p className="text-sm text-neutral-500">No accessories linked to this firearm.</p>
@@ -278,54 +299,47 @@ export default async function FirearmDetailPage({
         >
           + Add accessory
         </Link>
+        {pastMounts.length > 0 && (
+          <div className="mt-3 text-sm">
+            <div className="mb-1 text-xs text-neutral-500">Previously mounted</div>
+            {pastMounts.map((m) => (
+              <div key={m.id} className="text-neutral-400">
+                <Link href={`/inventory/accessories/${m.accessory_id}`} className="text-blue-400 hover:text-blue-300">
+                  {m.make_model}
+                </Link>{" "}
+                · {m.from_date ?? "?"} → {m.to_date}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">Receipts</h2>
-        <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {receiptImages.map((r) => {
-            const isImage = /\.(jpe?g|png|webp|gif)$/i.test(r.file_path);
-            const url = `/api/receipts/${r.file_path}`;
-            return (
-              <div key={r.id} className="border border-neutral-800 bg-neutral-900 p-2 text-xs">
-                <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-                  {isImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={url} alt={r.original_name ?? "Receipt"} className="h-24 w-full object-cover" />
-                  ) : (
-                    <div className="flex h-24 w-full items-center justify-center bg-neutral-950 text-neutral-500">
-                      PDF
-                    </div>
-                  )}
-                </a>
-                <div className="mt-1 truncate text-neutral-400">{r.original_name}</div>
-                <form action={deleteReceiptImage.bind(null, id, r.id, r.file_path)}>
-                  <ConfirmSubmitButton
-                    confirmMessage={`Delete receipt "${r.original_name ?? "this file"}"?`}
-                    className="text-red-400 hover:text-red-300"
-                  >
-                    Delete
-                  </ConfirmSubmitButton>
-                </form>
-              </div>
-            );
-          })}
-          {receiptImages.length === 0 && (
-            <p className="col-span-full text-sm text-neutral-500">No receipt images uploaded yet.</p>
-          )}
-        </div>
-        <ReceiptUploadForm action={uploadReceiptAction} />
-      </section>
+      <AttachmentGallery
+        id="photos"
+        title="Photos"
+        items={photos}
+        ownerType="firearm"
+        ownerId={id}
+        kind="photo"
+        imagesOnly
+        emptyText="No photos yet. Photos of each side and the serial number help with insurance claims."
+      />
+
+      <AttachmentGallery
+        id="receipts"
+        title="Receipts & Documents"
+        items={receipts}
+        ownerType="firearm"
+        ownerId={id}
+        kind="receipt"
+        emptyText="No receipts uploaded yet."
+      />
 
       <section>
         <h2 className="mb-2 font-medium text-neutral-200">Maintenance / Cleaning</h2>
         <div className="mb-3 flex flex-col gap-2">
           {maintenanceLog.map((m) => (
-            <div key={m.id} className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm">
-              {m.date} · {m.type}
-              {m.shots_fired_at_time != null ? ` · at ${m.shots_fired_at_time} rounds` : ""}
-              {m.notes ? <div className="text-neutral-500">{m.notes}</div> : null}
-            </div>
+            <MaintenanceEntry key={JSON.stringify(m)} firearmId={id} entry={m} types={maintenanceTypes} />
           ))}
           {maintenanceLog.length === 0 && (
             <p className="text-sm text-neutral-500">No maintenance logged yet.</p>
@@ -363,12 +377,7 @@ export default async function FirearmDetailPage({
         <h2 className="mb-2 font-medium text-neutral-200">Malfunction History</h2>
         <div className="mb-3 flex flex-col gap-2">
           {malfunctionLog.map((m) => (
-            <div key={m.id} className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm">
-              {m.date} · {m.malfunction_type ?? "Unspecified"}
-              {m.round_count_at_failure != null ? ` · at ${m.round_count_at_failure} rounds` : ""}
-              {m.cause ? <div className="text-neutral-500">Cause: {m.cause}</div> : null}
-              {m.notes ? <div className="text-neutral-500">{m.notes}</div> : null}
-            </div>
+            <MalfunctionEntry key={JSON.stringify(m)} firearmId={id} entry={m} types={malfunctionTypes} />
           ))}
           {malfunctionLog.length === 0 && (
             <p className="text-sm text-neutral-500">No malfunctions logged yet.</p>
@@ -416,12 +425,7 @@ export default async function FirearmDetailPage({
         <h2 className="mb-2 font-medium text-neutral-200">Zero Log</h2>
         <div className="mb-3 flex flex-col gap-2">
           {zeroRecords.map((z) => (
-            <div key={z.id} className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm">
-              {z.date} · {z.distance ?? "—"} · {z.optic ?? "—"}
-              {z.ammo_description ? <div className="text-neutral-500">Ammo: {z.ammo_description}</div> : null}
-              {z.adjustment ? <div className="text-neutral-500">Adjustment: {z.adjustment}</div> : null}
-              {z.notes ? <div className="text-neutral-500">{z.notes}</div> : null}
-            </div>
+            <ZeroEntry key={JSON.stringify(z)} firearmId={id} entry={z} distances={zeroDistances} />
           ))}
           {zeroRecords.length === 0 && (
             <p className="text-sm text-neutral-500">No zero data logged yet.</p>
@@ -467,6 +471,47 @@ export default async function FirearmDetailPage({
             Log Zero
           </SubmitButton>
         </form>
+      </section>
+
+      <section id="disposition">
+        <h2 className="mb-1 font-medium text-neutral-200">Sale / Transfer Record</h2>
+        <p className="mb-3 text-sm text-neutral-400">
+          Record when this firearm leaves your possession: sold, transferred, traded, lost, or stolen.
+        </p>
+        {dispositions.length > 0 && (
+          <div className="mb-3 flex flex-col gap-2">
+            {dispositions.map((d) => (
+              <DispositionEntry key={JSON.stringify(d)} firearmId={id} entry={d} currency={settings.currencySymbol} />
+            ))}
+          </div>
+        )}
+        <details className="border border-neutral-800 bg-neutral-900/50" open={dispositions.length === 0 && firearm.status === "sold"}>
+          <summary className="cursor-pointer px-3 py-2 text-sm text-blue-400">
+            {dispositions.length ? "+ Add another record" : "+ Record a sale or transfer"}
+          </summary>
+          <form action={recordDisposition.bind(null, id)} className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2">
+            <DispositionFields />
+            <label className="flex items-center gap-2 text-xs normal-case sm:col-span-2">
+              <input type="checkbox" name="mark_disposed" defaultChecked={firearm.status !== "sold"} />
+              Set this firearm&apos;s status to Sold (removes it from the maintenance schedule and active lists)
+            </label>
+            <SubmitButton className="w-fit bg-blue-600 px-3 py-2 text-sm font-medium hover:bg-blue-500">
+              Save Record
+            </SubmitButton>
+          </form>
+        </details>
+        {(dispositions.length > 0 || billsOfSale.length > 0) && (
+          <div className="mt-4">
+            <AttachmentGallery
+              title="Bill of Sale / Transfer Paperwork"
+              items={billsOfSale}
+              ownerType="firearm"
+              ownerId={id}
+              kind="bill_of_sale"
+              emptyText="No paperwork uploaded yet."
+            />
+          </div>
+        )}
       </section>
 
       <section>

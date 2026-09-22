@@ -1,6 +1,7 @@
 import Link from "next/link";
+import LockButton from "@/components/LockButton";
 
-export default function NavBar() {
+export default function NavBar({ showLock = false }: { showLock?: boolean }) {
   return (
     <header className="border-b border-neutral-700 bg-neutral-900">
       <div className="h-1 bg-blue-600" />
@@ -38,6 +39,7 @@ export default function NavBar() {
           <Link href="/settings" className="hover:text-neutral-100">
             Settings
           </Link>
+          {showLock && <LockButton />}
         </div>
       </div>
     </header>

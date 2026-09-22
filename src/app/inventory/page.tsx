@@ -18,6 +18,12 @@ export default async function InventoryPage() {
         <h1 className="text-xl font-semibold">Armory</h1>
         <div className="flex gap-3">
           <Link
+            href="/reports/inventory"
+            className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700"
+          >
+            Inventory Report
+          </Link>
+          <Link
             href="/inventory/accessories"
             className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700"
           >

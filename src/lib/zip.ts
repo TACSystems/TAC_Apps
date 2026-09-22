@@ -1,3 +1,5 @@
+import { inflateRawSync } from "zlib";
+
 const CRC_TABLE = (() => {
   const t = new Uint32Array(256);
   for (let n = 0; n < 256; n++) {
@@ -93,7 +95,8 @@ export function readZip(buf: Buffer): ZipEntry[] {
     if (buf.readUInt32LE(p) !== 0x02014b50) throw new Error("Backup file is damaged.");
     const method = buf.readUInt16LE(p + 10);
     const crc = buf.readUInt32LE(p + 16);
-    const size = buf.readUInt32LE(p + 20);
+    const compSize = buf.readUInt32LE(p + 20);
+    const size = buf.readUInt32LE(p + 24);
     const nameLen = buf.readUInt16LE(p + 28);
     const extraLen = buf.readUInt16LE(p + 30);
     const commentLen = buf.readUInt16LE(p + 32);
@@ -102,13 +105,14 @@ export function readZip(buf: Buffer): ZipEntry[] {
     p += 46 + nameLen + extraLen + commentLen;
 
     if (name.endsWith("/")) continue;
-    if (method !== 0) throw new Error("This backup uses compression TAC-LOG can't read. Use a TAC-LOG backup file.");
+    if (method !== 0 && method !== 8) throw new Error("This file uses a zip compression method TAC-LOG can't read.");
 
     const lNameLen = buf.readUInt16LE(localOffset + 26);
     const lExtraLen = buf.readUInt16LE(localOffset + 28);
     const start = localOffset + 30 + lNameLen + lExtraLen;
-    const data = buf.subarray(start, start + size);
-    if (crc32(data) !== crc) throw new Error(`Backup file is damaged (${name} failed its checksum).`);
+    const raw = buf.subarray(start, start + compSize);
+    const data = method === 8 ? inflateRawSync(raw) : raw;
+    if (data.length !== size || crc32(data) !== crc) throw new Error(`File is damaged (${name} failed its checksum).`);
     out.push({ name, data: Buffer.from(data) });
   }
   return out;

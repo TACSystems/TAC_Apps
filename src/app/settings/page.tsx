@@ -6,6 +6,9 @@ import ImportCofForm from "@/components/ImportCofForm";
 import RestoreForm from "@/components/RestoreForm";
 import { saveSettingsForm } from "./actions";
 import SubmitButton from "@/components/SubmitButton";
+import PinSettings from "@/components/PinSettings";
+import SpreadsheetImport from "@/components/SpreadsheetImport";
+import { pinIsSet } from "@/lib/lock";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +41,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       </div>
 
       <section className={card}>
+        <h2 className="mb-1 font-medium text-neutral-200">App Lock</h2>
+        <PinSettings pinSet={pinIsSet(db)} autoLockMinutes={s.autoLockMinutes} />
+      </section>
+
+      <section className={card}>
         <h2 className="mb-1 font-medium text-neutral-200">Backup</h2>
         <p className="mb-3 text-sm text-neutral-400">
           Downloads one .zip with your entire database and every receipt image. Everything lives on this
@@ -67,6 +75,31 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <a href="/api/courses/export" className={`${btn} mt-3`}>
           Export All Courses
         </a>
+      </section>
+
+      <section className={card}>
+        <h2 className="mb-1 font-medium text-neutral-200">Spreadsheets</h2>
+        <p className="mb-3 text-sm text-neutral-400">
+          Import firearms, serialized accessories, ammo purchases, and ammo goals from an Excel workbook (.xlsx) or
+          CSV, such as your original FIREARMS INVENTORY sheet. TAC-LOG finds each table by its header row, shows a
+          preview first, and skips anything already here (matched by serial number).
+        </p>
+        <SpreadsheetImport />
+        <div className="mt-4 text-sm text-neutral-400">Export to CSV (opens in Excel):</div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {[
+            ["firearms", "Firearms"],
+            ["accessories", "Accessories"],
+            ["ammo", "Ammo Purchases"],
+            ["range-sessions", "Range Sessions"],
+            ["rounds-fired", "Rounds Fired Log"],
+            ["maintenance", "Maintenance Log"],
+          ].map(([type, label]) => (
+            <a key={type} href={`/api/csv?type=${type}`} className={btn}>
+              {label}
+            </a>
+          ))}
+        </div>
       </section>
 
       <form action={saveSettingsForm} className="flex flex-col gap-6">
@@ -185,7 +218,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             {count(`select count(*) as n from firearms`)} firearms ·{" "}
             {count(`select count(*) as n from courses_of_fire`)} courses ·{" "}
             {count(`select count(*) as n from range_log`)} range sessions ·{" "}
-            {count(`select count(*) as n from receipt_images`)} receipts
+            {count(`select count(*) as n from attachments`)} photos &amp; documents
           </dd>
         </dl>
       </section>

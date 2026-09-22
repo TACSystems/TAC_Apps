@@ -36,20 +36,27 @@ export default async function AccessoriesPage() {
             className="flex items-center justify-between rounded border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm"
           >
             <div>
-              <div className="font-medium">{a.make_model}</div>
+              <Link href={`/inventory/accessories/${a.id}`} className="font-medium text-blue-400 hover:text-blue-300">
+                {a.make_model}
+              </Link>
               <div className="text-neutral-400">
                 {a.type} {a.serial_number ? `· SN ${a.serial_number}` : ""}{" "}
-                {a.firearm_make_model ? `· linked to ${a.firearm_make_model}` : ""}
+                {a.firearm_make_model ? `· mounted on ${a.firearm_make_model}` : "· not mounted"}
               </div>
             </div>
-            <form action={deleteAccessory.bind(null, a.id)}>
-              <ConfirmSubmitButton
-                confirmMessage={`Delete accessory "${a.make_model}"?`}
-                className="text-red-400 hover:text-red-300"
-              >
-                Delete
-              </ConfirmSubmitButton>
-            </form>
+            <div className="flex items-center gap-4">
+              <Link href={`/inventory/accessories/${a.id}`} className="text-blue-400 hover:text-blue-300">
+                Edit
+              </Link>
+              <form action={deleteAccessory.bind(null, a.id)}>
+                <ConfirmSubmitButton
+                  confirmMessage={`Delete accessory "${a.make_model}"? Its receipts, photos, and mount history are removed too.`}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  Delete
+                </ConfirmSubmitButton>
+              </form>
+            </div>
           </div>
         ))}
         {accessories.length === 0 && (

@@ -1,6 +1,11 @@
 import { getDb } from "@/lib/db";
 import type { RangeLog, RangeLogZoneCount } from "@/lib/db/types";
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import { deleteRangeLog } from "../actions";
+import { costPerRound } from "@/lib/stats";
+import { getSettings, money } from "@/lib/settings";
 import { passFail } from "@/lib/cof-shared";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +36,8 @@ export default async function RangeLogDetailPage({
   if (!log) notFound();
 
   const result = passFail(log.final_score_percent, log.passing_score_percent);
+  const cpr = costPerRound(db, log.caliber);
+  const ammoCost = cpr != null && log.rounds_fired ? money(Math.round(cpr * log.rounds_fired * 100) / 100, getSettings(db).currencySymbol) : null;
 
   const zoneCounts = db
     .prepare(`select * from range_log_zone_counts where range_log_id = ?`)
@@ -42,18 +49,34 @@ export default async function RangeLogDetailPage({
         <h1 className="text-xl font-semibold">
           {log.cof_name ?? "Range Log"} — {log.date}
         </h1>
-        <a
-          href={`/range-log/${id}/print`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800"
-        >
-          Print Scorecard
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={`/range-log/${id}/print`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800"
+          >
+            Print Scorecard
+          </a>
+          <Link href={`/range-log/${id}/edit`} className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
+            Edit
+          </Link>
+          <form action={deleteRangeLog.bind(null, id)}>
+            <ConfirmSubmitButton
+              confirmMessage={`Delete this range session?${
+                log.rounds_fired ? ` Its ${log.rounds_fired} rounds are taken off the firearm's shot count and returned to ammo on hand.` : ""
+              } This cannot be undone.`}
+              className="border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200 hover:bg-red-900"
+            >
+              Delete
+            </ConfirmSubmitButton>
+          </form>
+        </div>
       </div>
       <p className="mb-4 text-sm text-neutral-400">
         {log.firearm_make_model ?? "No firearm linked"} · {log.range_location}
         {log.ammo_lot ? ` · Lot ${log.ammo_lot}` : ""}
+        {ammoCost ? ` · est. ammo cost ${ammoCost}` : ""}
       </p>
 
       <div className="mb-4 grid grid-cols-3 gap-4 border border-neutral-800 bg-neutral-900 p-4 text-sm">

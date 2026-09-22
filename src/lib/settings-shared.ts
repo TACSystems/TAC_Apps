@@ -26,6 +26,7 @@ export type AppSettings = {
   deductManualRoundsByDefault: boolean;
   lowAmmoPercent: number;
   currencySymbol: string;
+  autoLockMinutes: number;
 };
 
 export const DEFAULT_HOME: HomeLayout = {
@@ -52,6 +53,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   deductManualRoundsByDefault: true,
   lowAmmoPercent: 50,
   currencySymbol: "$",
+  autoLockMinutes: 0,
 };
 
 export function normalizeHome(raw: unknown): HomeLayout {

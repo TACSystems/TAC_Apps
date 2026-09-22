@@ -1,11 +1,13 @@
 import { getDb } from "@/lib/db";
 import type { AmmoPurchase } from "@/lib/db/types";
-import { createAmmoPurchase, setAmmoGoal, deleteAmmoPurchase } from "./actions";
+import { createAmmoPurchase, setAmmoGoal, deleteAmmoPurchase, deleteAmmoGoal } from "./actions";
 import SelectOrOther from "@/components/SelectOrOther";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import { getSettings, money } from "@/lib/settings";
 import { ammoStatus } from "@/lib/ammo";
-import SuggestInput from "@/components/SuggestInput";
+import AmmoPurchaseFields from "@/components/AmmoPurchaseFields";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +53,16 @@ export default async function AmmoPage() {
                     <div className={`h-full ${a.low ? "bg-red-600" : "bg-blue-600"}`} style={{ width: `${pct}%` }} />
                   </div>
                 )}
+                {a.goal != null && (
+                  <form action={deleteAmmoGoal.bind(null, a.caliber)} className="mt-2">
+                    <ConfirmSubmitButton
+                      confirmMessage={`Remove the ${a.caliber} goal? Your purchases and on-hand count aren't affected.`}
+                      className="text-xs text-red-400 hover:text-red-300"
+                    >
+                      Remove goal
+                    </ConfirmSubmitButton>
+                  </form>
+                )}
               </div>
             );
           })}
@@ -88,61 +100,11 @@ export default async function AmmoPage() {
       <section>
         <h2 className="mb-2 font-medium text-neutral-200">Log a Purchase</h2>
         <form action={createAmmoPurchase} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <label className="flex flex-col gap-1 text-sm">
-            Manufacturer
-            <SuggestInput
-              name="manufacturer"
-              listId="ammo-manufacturers"
-              options={manufacturerOptions}
-              className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Ammo Type
-            <SelectOrOther name="ammo_type" options={ammoTypeOptions} />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Caliber
-            <SelectOrOther name="caliber" options={caliberOptions} required />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Grain
-            <input
-              type="number"
-              name="grain"
-              className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Lot #
-            <input name="lot_number" className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Quantity
-            <input
-              type="number"
-              name="quantity"
-              required
-              className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Price
-            <input
-              type="number"
-              step="0.01"
-              name="price"
-              className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Date Purchased
-            <input
-              type="date"
-              name="date_purchased"
-              className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-            />
-          </label>
+          <AmmoPurchaseFields
+            manufacturerOptions={manufacturerOptions}
+            ammoTypeOptions={ammoTypeOptions}
+            caliberOptions={caliberOptions}
+          />
           <button
             type="submit"
             className="w-fit rounded bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500 sm:col-span-3"
@@ -165,6 +127,7 @@ export default async function AmmoPage() {
                 <th className="px-3 py-2">Lot #</th>
                 <th className="px-3 py-2">Qty</th>
                 <th className="px-3 py-2">Price</th>
+                <th className="px-3 py-2">Per Round</th>
                 <th></th>
               </tr>
             </thead>
@@ -178,10 +141,25 @@ export default async function AmmoPage() {
                   <td className="px-3 py-2 text-neutral-400">{p.lot_number ?? "—"}</td>
                   <td className="px-3 py-2">{p.quantity}</td>
                   <td className="px-3 py-2">{p.price != null ? money(p.price, settings.currencySymbol) : "—"}</td>
+                  <td className="px-3 py-2 text-neutral-400">
+                    {p.price != null && p.quantity > 0
+                      ? money(Math.round((p.price / p.quantity) * 1000) / 1000, settings.currencySymbol)
+                      : "—"}
+                  </td>
                   <td className="px-3 py-2">
-                    <form action={deleteAmmoPurchase.bind(null, p.id)}>
-                      <button className="text-red-400 hover:text-red-300">Delete</button>
-                    </form>
+                    <div className="flex gap-3">
+                      <Link href={`/ammo/purchases/${p.id}`} className="text-blue-400 hover:text-blue-300">
+                        Edit
+                      </Link>
+                      <form action={deleteAmmoPurchase.bind(null, p.id)}>
+                        <ConfirmSubmitButton
+                          confirmMessage={`Delete this purchase of ${p.quantity} rounds of ${p.caliber}? It's removed from ammo on hand.`}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          Delete
+                        </ConfirmSubmitButton>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))}

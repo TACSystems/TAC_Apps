@@ -1,3 +1,4 @@
+import { lockedResponse } from "@/lib/api-guard";
 import fs from "fs";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
@@ -14,6 +15,8 @@ const MIME: Record<string, string> = {
 };
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  const locked = await lockedResponse();
+  if (locked) return locked;
   const { path: segments } = await params;
   const dataDir = process.env.FIREARMS_DB_DIR || path.join(process.cwd(), "data");
   const base = path.resolve(path.join(dataDir, "receipts"));

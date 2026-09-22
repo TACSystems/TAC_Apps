@@ -17,6 +17,8 @@ export default function ScoringForm({
   defaults,
   suggestions,
   action,
+  initial,
+  submitLabel = "Save Range Session",
 }: {
   zones: ZoneDef[];
   fields: ScorecardField[];
@@ -27,13 +29,22 @@ export default function ScoringForm({
   defaults: Record<string, string>;
   suggestions: Record<string, string[]>;
   action: (formData: FormData) => void;
+  initial?: {
+    date: string;
+    firearm_id: string | null;
+    rounds_fired: number | null;
+    counts: Record<string, number>;
+    notes: string | null;
+    passing: number | null;
+  };
+  submitLabel?: string;
 }) {
-  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [counts, setCounts] = useState<Record<string, number>>(initial?.counts ?? {});
 
   const totalPoints = zones.reduce((sum, z) => sum + z.value * (counts[z.zone_label] ?? 0), 0);
   const roundsCounted = zones.reduce((sum, z) => sum + (counts[z.zone_label] ?? 0), 0);
   const percent = maxPoints > 0 ? Math.round((totalPoints / maxPoints) * 1000) / 10 : null;
-  const result = passFail(percent, passing);
+  const result = passFail(percent, initial ? initial.passing : passing);
 
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -44,13 +55,13 @@ export default function ScoringForm({
             type="date"
             name="date"
             required
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            defaultValue={initial?.date ?? new Date().toISOString().slice(0, 10)}
             className={inputCls}
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
           Firearm
-          <select name="firearm_id" required className={inputCls}>
+          <select name="firearm_id" required defaultValue={initial?.firearm_id ?? ""} className={inputCls}>
             <option value="">— Select —</option>
             {firearms.map((f) => (
               <option key={f.id} value={f.id}>
@@ -61,8 +72,23 @@ export default function ScoringForm({
         </label>
         <label className="flex flex-col gap-1 text-sm">
           Rounds Fired
-          <input type="number" name="rounds_fired" min={0} defaultValue={totalRounds || ""} className={inputCls} />
+          <input type="number" name="rounds_fired" min={0} defaultValue={initial ? initial.rounds_fired ?? "" : totalRounds || ""} className={inputCls} />
         </label>
+        {initial && (
+          <label className="flex flex-col gap-1 text-sm">
+            Passing Score (%) for this session
+            <input
+              type="number"
+              name="passing_score_percent"
+              min={0}
+              max={100}
+              step="any"
+              defaultValue={initial.passing ?? ""}
+              placeholder="None"
+              className={inputCls}
+            />
+          </label>
+        )}
         {fields.map((f) => (
           <label key={f.key} className={`flex flex-col gap-1 text-sm ${f.wide ? "sm:col-span-2" : ""}`}>
             {f.label}
@@ -108,7 +134,7 @@ export default function ScoringForm({
                       type="number"
                       name={`zone:${z.zone_label}`}
                       min={0}
-                      defaultValue={0}
+                      defaultValue={initial?.counts[z.zone_label] ?? 0}
                       onChange={(e) =>
                         setCounts((c) => ({ ...c, [z.zone_label]: Number(e.target.value || 0) }))
                       }
@@ -150,14 +176,14 @@ export default function ScoringForm({
 
       <label className="flex flex-col gap-1 text-sm">
         Notes
-        <textarea name="notes" rows={3} className={inputCls} />
+        <textarea name="notes" rows={3} defaultValue={initial?.notes ?? ""} className={inputCls} />
       </label>
 
       <SubmitButton
         pendingLabel="Saving Session…"
         className="w-fit rounded bg-blue-600 px-4 py-2 font-medium hover:bg-blue-500"
       >
-        Save Range Session
+        {submitLabel}
       </SubmitButton>
     </form>
   );

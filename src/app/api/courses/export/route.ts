@@ -1,3 +1,4 @@
+import { lockedResponse } from "@/lib/api-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { exportCourse, loadCourse, type CofPatch } from "@/lib/cof";
@@ -5,6 +6,8 @@ import { exportCourse, loadCourse, type CofPatch } from "@/lib/cof";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const locked = await lockedResponse();
+  if (locked) return locked;
   const db = getDb();
   const id = req.nextUrl.searchParams.get("id");
   const ids = id

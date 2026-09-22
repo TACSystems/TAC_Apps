@@ -97,6 +97,27 @@ function migrateScoringZonesToTargetTypes(db: Database.Database) {
   })();
 }
 
+function migrateReceiptImages(db: Database.Database) {
+  if (!tableExists(db, "receipt_images")) return;
+  db.transaction(() => {
+    db.exec(`
+      insert or ignore into attachments (id, owner_type, owner_id, kind, file_path, original_name, uploaded_at)
+      select id, 'firearm', firearm_id, 'receipt', file_path, original_name, uploaded_at from receipt_images;
+      drop table receipt_images;
+    `);
+  })();
+}
+
+function seedAccessoryMounts(db: Database.Database) {
+  db.exec(`
+    insert into accessory_mounts (id, accessory_id, firearm_id, firearm_label, from_date)
+    select lower(hex(randomblob(16))), a.id, a.firearm_id, f.make_model, a.acquisition_date
+    from accessories a join firearms f on f.id = a.firearm_id
+    where a.firearm_id is not null
+      and not exists (select 1 from accessory_mounts m where m.accessory_id = a.id)
+  `);
+}
+
 function dropGroupTables(db: Database.Database) {
   db.exec(`
     drop table if exists group_range_log_zone_counts;
@@ -153,6 +174,8 @@ function initDb(): Database.Database {
 
   migrateScoringZonesToTargetTypes(db);
   dropGroupTables(db);
+  migrateReceiptImages(db);
+  seedAccessoryMounts(db);
 
   const courseCount = (db.prepare("select count(*) as n from courses_of_fire").get() as { n: number }).n;
   if (courseCount === 0) {
@@ -164,6 +187,14 @@ function initDb(): Database.Database {
   }
 
   seedDropdownOptions(db);
+
+  for (const m of ["RESET-PIN", "RESET-PIN.txt"]) {
+    const marker = path.join(dir, m);
+    if (fs.existsSync(marker)) {
+      db.prepare(`delete from app_settings where key = 'pin_hash'`).run();
+      fs.rmSync(marker, { force: true });
+    }
+  }
 
   return db;
 }
