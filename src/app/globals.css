@@ -70,4 +70,16 @@ input, select, textarea {
     background: #ffffff;
     color: #000000;
   }
+  main,
+  .print-sheet {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  .page-break {
+    break-before: page;
+  }
+}
+
+@page {
+  margin: 0.5in;
 }

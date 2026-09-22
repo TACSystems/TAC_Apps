@@ -15,6 +15,7 @@ export type Firearm = {
   malfunctions: number;
   last_cleaned_at_shots: number | null;
   clean_interval_rounds: number | null;
+  clean_interval_days: number | null;
   date_of_entry: string;
 };
 
@@ -104,6 +105,10 @@ export type CourseOfFire = {
   name: string;
   total_rounds: number | null;
   target_type: string | null;
+  target_type_id: string | null;
+  passing_score_percent: number | null;
+  columns_json: string | null;
+  scorecard_json: string | null;
   notes: string | null;
 };
 
@@ -128,13 +133,6 @@ export type CofString = {
   action: string | null;
 };
 
-export type CofScoringZone = {
-  id: string;
-  cof_id: string;
-  zone_label: string;
-  value: number;
-};
-
 export type RangeLog = {
   id: string;
   cof_id: string | null;
@@ -151,6 +149,8 @@ export type RangeLog = {
   total_points: number | null;
   final_score_percent: number | null;
   grader_name: string | null;
+  passing_score_percent: number | null;
+  custom_fields_json: string | null;
   notes: string | null;
   created_at: string;
 };
@@ -158,45 +158,6 @@ export type RangeLog = {
 export type RangeLogZoneCount = {
   id: string;
   range_log_id: string;
-  zone_label: string;
-  value: number;
-  counted: number;
-  subtotal: number;
-};
-
-export type Participant = {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  notes: string | null;
-  status: "active" | "inactive";
-  date_added: string;
-};
-
-export type GroupRangeLog = {
-  id: string;
-  participant_id: string | null;
-  cof_id: string | null;
-  firearm_id: string | null;
-  date: string;
-  range_location: string | null;
-  weapon_used: string | null;
-  caliber: string | null;
-  grain: number | null;
-  weather_conditions: string | null;
-  rounds_fired: number | null;
-  rounds_counted: number | null;
-  total_points: number | null;
-  final_score_percent: number | null;
-  grader_name: string | null;
-  notes: string | null;
-  created_at: string;
-};
-
-export type GroupRangeLogZoneCount = {
-  id: string;
-  group_range_log_id: string;
   zone_label: string;
   value: number;
   counted: number;

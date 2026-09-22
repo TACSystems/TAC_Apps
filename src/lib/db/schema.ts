@@ -24,6 +24,7 @@ create table if not exists firearms (
   malfunctions integer not null default 0,
   last_cleaned_at_shots integer,
   clean_interval_rounds integer,
+  clean_interval_days integer,
   date_of_entry text not null default (datetime('now'))
 );
 
@@ -100,12 +101,31 @@ create table if not exists ammo_goals (
   goal_quantity integer not null default 0
 );
 
+create table if not exists target_types (
+  id text primary key,
+  name text not null unique,
+  description text,
+  created_at text not null default (datetime('now'))
+);
+
+create table if not exists target_type_zones (
+  id text primary key,
+  target_type_id text not null references target_types(id) on delete cascade,
+  zone_label text not null,
+  value real not null,
+  sort_order integer not null default 0
+);
+
 create table if not exists courses_of_fire (
   id text primary key,
   code text not null unique,
   name text not null,
   total_rounds real,
   target_type text,
+  target_type_id text references target_types(id) on delete set null,
+  passing_score_percent real,
+  columns_json text,
+  scorecard_json text,
   notes text
 );
 
@@ -115,28 +135,24 @@ create table if not exists cof_phases (
   phase_number integer not null,
   title text not null,
   phase_total_rounds real,
+  notes text,
   unique (cof_id, phase_number)
 );
 
 create table if not exists cof_strings (
   id text primary key,
   phase_id text not null references cof_phases(id) on delete cascade,
-  string_number real not null,
+  sort_order integer not null default 0,
+  row_type text not null default 'string',
+  string_number real,
   option_label text,
   distance text,
   weapon text,
   rounds text,
   time_limit text,
   position text,
-  action text
-);
-
-create table if not exists cof_scoring_zones (
-  id text primary key,
-  cof_id text not null references courses_of_fire(id) on delete cascade,
-  zone_label text not null,
-  value real not null,
-  unique (cof_id, zone_label)
+  action text,
+  extra_json text
 );
 
 -- Personal range log: your own runs, tied to your own armory.
@@ -156,6 +172,8 @@ create table if not exists range_log (
   total_points real,
   final_score_percent real,
   grader_name text,
+  passing_score_percent real,
+  custom_fields_json text,
   notes text,
   created_at text not null default (datetime('now'))
 );
@@ -163,47 +181,6 @@ create table if not exists range_log (
 create table if not exists range_log_zone_counts (
   id text primary key,
   range_log_id text not null references range_log(id) on delete cascade,
-  zone_label text not null,
-  value real not null,
-  counted integer not null default 0,
-  subtotal real generated always as (value * counted) stored
-);
-
--- Group side: an optional saved roster of other people you run range days with,
--- kept entirely separate from your own personal inventory and range log.
-create table if not exists participants (
-  id text primary key,
-  name text not null,
-  email text,
-  phone text,
-  notes text,
-  status text not null default 'active' check (status in ('active','inactive')),
-  date_added text not null default (datetime('now'))
-);
-
-create table if not exists group_range_log (
-  id text primary key,
-  participant_id text references participants(id) on delete set null,
-  cof_id text references courses_of_fire(id) on delete set null,
-  firearm_id text references firearms(id) on delete set null,
-  date text not null,
-  range_location text,
-  weapon_used text,
-  caliber text,
-  grain integer,
-  weather_conditions text,
-  rounds_fired integer,
-  rounds_counted integer,
-  total_points real,
-  final_score_percent real,
-  grader_name text,
-  notes text,
-  created_at text not null default (datetime('now'))
-);
-
-create table if not exists group_range_log_zone_counts (
-  id text primary key,
-  group_range_log_id text not null references group_range_log(id) on delete cascade,
   zone_label text not null,
   value real not null,
   counted integer not null default 0,

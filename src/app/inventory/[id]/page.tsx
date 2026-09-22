@@ -11,6 +11,8 @@ import {
 
 export const dynamic = "force-dynamic";
 import FirearmForm from "@/components/FirearmForm";
+import ReceiptUploadForm from "@/components/ReceiptUploadForm";
+import { maintenanceInfo } from "@/lib/maintenance";
 import SubmitButton from "@/components/SubmitButton";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import type {
@@ -73,12 +75,12 @@ export default async function FirearmDetailPage({
   const accessoriesInvestment = accessories.reduce((sum, a) => sum + (a.purchase_value ?? 0), 0);
   const totalInvestment = (firearm.purchase_value ?? 0) + accessoriesInvestment;
 
-  const roundsSinceClean =
-    firearm.last_cleaned_at_shots != null ? firearm.shots_fired - firearm.last_cleaned_at_shots : null;
-  const cleaningDue =
-    firearm.clean_interval_rounds != null &&
-    roundsSinceClean != null &&
-    roundsSinceClean >= firearm.clean_interval_rounds;
+  const lastCleaning = maintenanceLog.find((m) => m.type === "cleaning")?.date ?? null;
+  const upkeep = maintenanceInfo(
+    firearm,
+    lastCleaning,
+    maintenanceLog[0] ? { date: maintenanceLog[0].date, type: maintenanceLog[0].type } : null
+  );
 
   const updateWithId = updateFirearm.bind(null, id);
   const deleteWithId = deleteFirearm.bind(null, id);
@@ -129,12 +131,18 @@ export default async function FirearmDetailPage({
         </div>
         <div>
           <div className="text-xs text-neutral-500">Cleaning</div>
-          <div className={`text-lg ${cleaningDue ? "text-red-400" : ""}`}>
-            {firearm.clean_interval_rounds == null
+          <div
+            className={`text-lg ${
+              upkeep.status === "due" ? "text-red-400" : upkeep.status === "soon" ? "text-amber-400" : ""
+            }`}
+          >
+            {upkeep.status === "unset"
               ? "—"
-              : cleaningDue
+              : upkeep.status === "due"
                 ? "Due"
-                : `${roundsSinceClean ?? 0}/${firearm.clean_interval_rounds}`}
+                : firearm.clean_interval_rounds
+                  ? `${upkeep.roundsSince}/${firearm.clean_interval_rounds}`
+                  : `by ${upkeep.nextDueDate}`}
           </div>
         </div>
       </div>
@@ -199,21 +207,7 @@ export default async function FirearmDetailPage({
             <p className="col-span-full text-sm text-neutral-500">No receipt images uploaded yet.</p>
           )}
         </div>
-        <form action={uploadReceiptAction} className="flex items-center gap-2">
-          <input
-            type="file"
-            name="receipt_image"
-            accept="image/*,application/pdf"
-            required
-            className="text-sm text-neutral-400"
-          />
-          <SubmitButton
-            pendingLabel="Uploading…"
-            className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700"
-          >
-            Upload
-          </SubmitButton>
-        </form>
+        <ReceiptUploadForm action={uploadReceiptAction} />
       </section>
 
       <section>

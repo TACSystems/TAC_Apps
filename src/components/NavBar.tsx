@@ -32,18 +32,6 @@ export default function NavBar() {
           </Link>
 
           <span className="mx-1 h-4 w-px bg-neutral-700" aria-hidden="true" />
-          <span className="text-[10px] tracking-[0.2em] text-neutral-600">GROUP</span>
-          <Link href="/participants" className="hover:text-neutral-100">
-            Participants
-          </Link>
-          <Link href="/group-log" className="hover:text-neutral-100">
-            Group Log
-          </Link>
-          <Link href="/group-stats" className="hover:text-neutral-100">
-            Group Stats
-          </Link>
-
-          <span className="mx-1 h-4 w-px bg-neutral-700" aria-hidden="true" />
           <Link href="/controls" className="hover:text-neutral-100">
             Controls
           </Link>

@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/db";
 import type { RangeLog, RangeLogZoneCount } from "@/lib/db/types";
 import { notFound } from "next/navigation";
+import { passFail } from "@/lib/cof-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,8 @@ export default async function RangeLogDetailPage({
     | undefined;
 
   if (!log) notFound();
+
+  const result = passFail(log.final_score_percent, log.passing_score_percent);
 
   const zoneCounts = db
     .prepare(`select * from range_log_zone_counts where range_log_id = ?`)
@@ -66,7 +69,15 @@ export default async function RangeLogDetailPage({
           <div className="text-neutral-500">Final Score</div>
           <div className="text-lg">
             {log.final_score_percent != null ? `${log.final_score_percent}%` : "—"}
+            {result && (
+              <span className={`ml-2 text-sm ${result === "PASS" ? "text-green-400" : "text-red-400"}`}>
+                {result}
+              </span>
+            )}
           </div>
+          {log.passing_score_percent != null && (
+            <div className="text-xs text-neutral-500">Passing: {log.passing_score_percent}%</div>
+          )}
         </div>
       </div>
 

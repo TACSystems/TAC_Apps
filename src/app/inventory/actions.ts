@@ -22,9 +22,9 @@ export async function createFirearm(formData: FormData) {
   db.prepare(
     `insert into firearms
       (id, make_model, caliber, platform, serial_number, purchase_date, purchase_location,
-       purchase_value, ffl_license_number, receipt, clean_interval_rounds, status, notes)
+       purchase_value, ffl_license_number, receipt, clean_interval_rounds, clean_interval_days, status, notes)
      values (@id, @make_model, @caliber, @platform, @serial_number, @purchase_date, @purchase_location,
-       @purchase_value, @ffl_license_number, @receipt, @clean_interval_rounds, @status, @notes)`
+       @purchase_value, @ffl_license_number, @receipt, @clean_interval_rounds, @clean_interval_days, @status, @notes)`
   ).run({
     id: randomUUID(),
     make_model: String(formData.get("make_model")),
@@ -37,6 +37,7 @@ export async function createFirearm(formData: FormData) {
     ffl_license_number: s(formData, "ffl_license_number"),
     receipt: s(formData, "receipt"),
     clean_interval_rounds: n(formData, "clean_interval_rounds"),
+    clean_interval_days: n(formData, "clean_interval_days"),
     status: s(formData, "status") ?? "active",
     notes: s(formData, "notes"),
   });
@@ -59,6 +60,7 @@ export async function updateFirearm(id: string, formData: FormData) {
       ffl_license_number = @ffl_license_number,
       receipt = @receipt,
       clean_interval_rounds = @clean_interval_rounds,
+      clean_interval_days = @clean_interval_days,
       status = @status,
       notes = @notes
      where id = @id`
@@ -74,6 +76,7 @@ export async function updateFirearm(id: string, formData: FormData) {
     ffl_license_number: s(formData, "ffl_license_number"),
     receipt: s(formData, "receipt"),
     clean_interval_rounds: n(formData, "clean_interval_rounds"),
+    clean_interval_days: n(formData, "clean_interval_days"),
     status: s(formData, "status") ?? "active",
     notes: s(formData, "notes"),
   });

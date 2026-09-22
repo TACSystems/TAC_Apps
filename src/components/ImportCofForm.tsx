@@ -48,7 +48,7 @@ export default function ImportCofForm() {
       <input
         type="file"
         name="file"
-        accept="application/json"
+        accept="application/json,.json"
         className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
       />
       <button

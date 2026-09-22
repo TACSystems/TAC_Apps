@@ -1,3 +1,4 @@
+import { passFail } from "@/lib/cof-shared";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { RangeLog } from "@/lib/db/types";
@@ -45,6 +46,15 @@ export default async function RangeLogPage() {
               <td className="px-3 py-2">{l.firearm_make_model ?? "—"}</td>
               <td className="px-3 py-2">
                 {l.final_score_percent != null ? `${l.final_score_percent}%` : "—"}
+                {passFail(l.final_score_percent, l.passing_score_percent) && (
+                  <span
+                    className={`ml-2 text-xs ${
+                      passFail(l.final_score_percent, l.passing_score_percent) === "PASS" ? "text-green-400" : "text-red-400"
+                    }`}
+                  >
+                    {passFail(l.final_score_percent, l.passing_score_percent)}
+                  </span>
+                )}
               </td>
             </tr>
           ),

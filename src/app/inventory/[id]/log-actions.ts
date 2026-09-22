@@ -27,6 +27,7 @@ export async function logMaintenance(firearmId: string, formData: FormData) {
   const firearm = db.prepare(`select shots_fired from firearms where id = ?`).get(firearmId) as
     | { shots_fired: number }
     | undefined;
+  const type = s(formData, "type") ?? "cleaning";
 
   db.prepare(
     `insert into maintenance_log (id, firearm_id, date, shots_fired_at_time, type, notes)
@@ -36,16 +37,19 @@ export async function logMaintenance(firearmId: string, formData: FormData) {
     firearm_id: firearmId,
     date: String(formData.get("date")),
     shots_fired_at_time: firearm?.shots_fired ?? null,
-    type: s(formData, "type") ?? "cleaning",
+    type,
     notes: s(formData, "notes"),
   });
 
-  db.prepare(`update firearms set last_cleaned_at_shots = ? where id = ?`).run(
-    firearm?.shots_fired ?? 0,
-    firearmId
-  );
+  if (type === "cleaning") {
+    db.prepare(`update firearms set last_cleaned_at_shots = ? where id = ?`).run(
+      firearm?.shots_fired ?? 0,
+      firearmId
+    );
+  }
 
   revalidatePath(`/inventory/${firearmId}`);
+  revalidatePath("/");
 }
 
 export async function logMalfunction(firearmId: string, formData: FormData) {
@@ -88,6 +92,9 @@ export async function logZeroRecord(firearmId: string, formData: FormData) {
 export async function uploadReceiptImage(firearmId: string, formData: FormData) {
   const file = formData.get("receipt_image");
   if (!(file instanceof File) || file.size === 0) {
+    return;
+  }
+  if (!/\.(jpe?g|png|webp|gif|pdf)$/i.test(file.name)) {
     return;
   }
 

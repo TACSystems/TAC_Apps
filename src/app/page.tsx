@@ -1,6 +1,27 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { RangeLog } from "@/lib/db/types";
+import { maintenanceSchedule, STATUS_LABEL, type MaintenanceStatus } from "@/lib/maintenance";
+import { logMaintenance } from "@/app/inventory/[id]/log-actions";
+import SubmitButton from "@/components/SubmitButton";
+
+const STATUS_CLASS: Record<MaintenanceStatus, string> = {
+  due: "border-red-800 bg-red-950 text-red-300",
+  soon: "border-amber-700 bg-amber-950 text-amber-300",
+  ok: "border-neutral-700 text-neutral-300",
+  unset: "border-neutral-800 text-neutral-500",
+};
+
+function Meter({ pct }: { pct: number | null }) {
+  if (pct == null) return null;
+  const w = Math.min(100, Math.round(pct * 100));
+  const color = pct >= 1 ? "bg-red-500" : pct >= 0.8 ? "bg-amber-500" : "bg-blue-400";
+  return (
+    <div className="mt-1 h-1 w-full bg-neutral-800">
+      <div className={`h-1 ${color}`} style={{ width: `${w}%` }} />
+    </div>
+  );
+}
 
 export const dynamic = "force-dynamic";
 
@@ -11,9 +32,12 @@ export default async function HomePage() {
     .prepare(`select count(*) as n from firearms where status = 'active'`)
     .get() as { n: number };
 
-  const activeParticipants = db
-    .prepare(`select count(*) as n from participants where status = 'active'`)
-    .get() as { n: number };
+  const schedule = maintenanceSchedule(db);
+  const dueCount = schedule.filter((m) => m.status === "due").length;
+  const soonCount = schedule.filter((m) => m.status === "soon").length;
+  const today = new Date().toISOString().slice(0, 10);
+
+  const courseCount = db.prepare(`select count(*) as n from courses_of_fire`).get() as { n: number };
 
   const logs = db
     .prepare(
@@ -26,24 +50,13 @@ export default async function HomePage() {
     )
     .all() as (RangeLog & { cof_name: string | null; firearm_make_model: string | null })[];
 
-  const groupLogs = db
-    .prepare(
-      `select grl.date, grl.final_score_percent, c.name as cof_name, p.name as participant_name
-       from group_range_log grl
-       left join courses_of_fire c on c.id = grl.cof_id
-       left join participants p on p.id = grl.participant_id
-       order by grl.date desc
-       limit 5`
-    )
-    .all() as { date: string; final_score_percent: number | null; cof_name: string | null; participant_name: string | null }[];
-
   return (
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="text-xl font-semibold">Welcome back</h1>
         <p className="text-neutral-400">
-          {firearmCount.n} firearm{firearmCount.n === 1 ? "" : "s"} in the armory · {activeParticipants.n}{" "}
-          active participant{activeParticipants.n === 1 ? "" : "s"} on the group roster.
+          {firearmCount.n} firearm{firearmCount.n === 1 ? "" : "s"} in the armory · {courseCount.n}{" "}
+          course{courseCount.n === 1 ? "" : "s"} of fire on file.
         </p>
       </div>
 
@@ -62,8 +75,110 @@ export default async function HomePage() {
       </form>
 
       <section>
+        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-medium text-neutral-200">Maintenance Schedule</h2>
+          <span className="text-xs text-neutral-500">
+            {dueCount > 0 || soonCount > 0
+              ? `${dueCount} due · ${soonCount} due soon`
+              : schedule.length > 0
+                ? "Everything is within schedule"
+                : ""}
+          </span>
+        </div>
+        {schedule.length === 0 ? (
+          <p className="text-sm text-neutral-500">
+            No firearms in the armory yet.{" "}
+            <Link href="/inventory/new" className="text-blue-400 hover:text-blue-300">
+              Add one
+            </Link>
+            .
+          </p>
+        ) : (
+          <div className="overflow-x-auto border border-neutral-800">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-neutral-900 text-xs text-neutral-400">
+                <tr>
+                  <th className="px-3 py-2">Firearm</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Rounds Since Clean</th>
+                  <th className="px-3 py-2">Last Cleaned</th>
+                  <th className="px-3 py-2">Next Due</th>
+                  <th className="px-3 py-2" />
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((m) => (
+                  <tr key={m.firearm.id} className="border-t border-neutral-800 align-top">
+                    <td className="px-3 py-2">
+                      <Link href={`/inventory/${m.firearm.id}`} className="hover:text-blue-300">
+                        {m.firearm.make_model}
+                      </Link>
+                      <div className="text-xs text-neutral-500">
+                        {m.firearm.caliber ?? ""}
+                        {m.firearm.status === "stored" ? " · stored" : ""}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className={`border px-2 py-0.5 text-xs tracking-wider ${STATUS_CLASS[m.status]}`}>
+                        {STATUS_LABEL[m.status]}
+                      </span>
+                    </td>
+                    <td className="w-44 px-3 py-2">
+                      {m.roundsSince}
+                      {m.firearm.clean_interval_rounds ? ` / ${m.firearm.clean_interval_rounds}` : ""}
+                      <Meter pct={m.roundsPct} />
+                    </td>
+                    <td className="px-3 py-2">
+                      {m.lastCleanedDate ?? <span className="text-neutral-500">Never logged</span>}
+                      {m.daysSince != null && (
+                        <div className="text-xs text-neutral-500">{m.daysSince} days ago</div>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      {m.nextDueDate || m.roundsRemaining != null ? (
+                        <>
+                          {m.nextDueDate && <div>{m.nextDueDate}</div>}
+                          {m.roundsRemaining != null && (
+                            <div className="text-xs text-neutral-500">
+                              {m.roundsRemaining > 0
+                                ? `or in ${m.roundsRemaining} rounds`
+                                : `${-m.roundsRemaining} rounds over`}
+                            </div>
+                          )}
+                          <Meter pct={m.daysPct} />
+                        </>
+                      ) : (
+                        <Link
+                          href={`/inventory/${m.firearm.id}`}
+                          className="text-xs text-blue-400 hover:text-blue-300"
+                        >
+                          Set a cleaning interval
+                        </Link>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      <form action={logMaintenance.bind(null, m.firearm.id)}>
+                        <input type="hidden" name="date" value={today} />
+                        <input type="hidden" name="type" value="cleaning" />
+                        <SubmitButton
+                          pendingLabel="Logging…"
+                          className="whitespace-nowrap border border-neutral-700 px-2 py-1 text-xs hover:bg-neutral-800"
+                        >
+                          Log Cleaning
+                        </SubmitButton>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section>
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-medium text-neutral-200">Recent range sessions (personal)</h2>
+          <h2 className="font-medium text-neutral-200">Recent range sessions</h2>
           <Link href="/range-log" className="text-sm text-blue-400 hover:text-blue-300">
             View all →
           </Link>
@@ -89,33 +204,25 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-medium text-neutral-200">Recent group range days</h2>
-          <Link href="/group-log" className="text-sm text-blue-400 hover:text-blue-300">
-            View all →
-          </Link>
-        </div>
-        <div className="flex flex-col gap-2">
-          {groupLogs.map((l, i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm"
-            >
-              <span>
-                {l.date} · {l.participant_name ?? "Unassigned"} · {l.cof_name ?? "Unlisted course"}
-              </span>
-              <span className="text-neutral-400">
-                {l.final_score_percent != null ? `${l.final_score_percent}%` : "—"}
-              </span>
-            </div>
-          ))}
-          {groupLogs.length === 0 && (
-            <p className="text-sm text-neutral-500">
-              No group range days recorded yet — participants are entirely optional.
-            </p>
-          )}
-        </div>
+      <section className="flex flex-wrap gap-2">
+        <Link
+          href="/courses/new"
+          className="bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500"
+        >
+          Build a Course of Fire
+        </Link>
+        <Link
+          href="/courses"
+          className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800"
+        >
+          Browse Courses
+        </Link>
+        <Link
+          href="/targets"
+          className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800"
+        >
+          Target Types
+        </Link>
       </section>
     </div>
   );

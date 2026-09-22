@@ -122,6 +122,17 @@ export default function FirearmForm({
         />
       </label>
 
+      <label className="flex flex-col gap-1 text-sm">
+        Clean Every (days)
+        <input
+          type="number"
+          name="clean_interval_days"
+          defaultValue={firearm?.clean_interval_days ?? ""}
+          placeholder="e.g. 90"
+          className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
+        />
+      </label>
+
       <label className="flex flex-col gap-1 text-sm sm:col-span-2">
         Notes
         <textarea

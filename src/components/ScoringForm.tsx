@@ -1,35 +1,38 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { CofScoringZone, Firearm } from "@/lib/db/types";
+import { useState } from "react";
+import type { Firearm } from "@/lib/db/types";
+import { passFail, type ScorecardField, type ZoneDef } from "@/lib/cof-shared";
 import SubmitButton from "@/components/SubmitButton";
+
+const inputCls = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";
 
 export default function ScoringForm({
   zones,
+  fields,
   firearms,
   totalRounds,
+  maxPoints,
+  passing,
   action,
 }: {
-  zones: CofScoringZone[];
+  zones: ZoneDef[];
+  fields: ScorecardField[];
   firearms: Firearm[];
-  totalRounds: number | null;
+  totalRounds: number;
+  maxPoints: number;
+  passing: number | null;
   action: (formData: FormData) => void;
 }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
-  const highestZoneValue = useMemo(
-    () => zones.reduce((max, z) => Math.max(max, z.value), 0),
-    [zones]
-  );
-  const maxPoints = totalRounds ? totalRounds * highestZoneValue : 0;
 
-  const totalPoints = zones.reduce((sum, z) => sum + z.value * (counts[z.id] ?? 0), 0);
-  const roundsCounted = zones.reduce((sum, z) => sum + (counts[z.id] ?? 0), 0);
+  const totalPoints = zones.reduce((sum, z) => sum + z.value * (counts[z.zone_label] ?? 0), 0);
+  const roundsCounted = zones.reduce((sum, z) => sum + (counts[z.zone_label] ?? 0), 0);
   const percent = maxPoints > 0 ? Math.round((totalPoints / maxPoints) * 1000) / 10 : null;
+  const result = passFail(percent, passing);
 
   return (
     <form action={action} className="flex flex-col gap-4">
-      <input type="hidden" name="max_points" value={maxPoints} />
-
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
           Date
@@ -38,16 +41,12 @@ export default function ScoringForm({
             name="date"
             required
             defaultValue={new Date().toISOString().slice(0, 10)}
-            className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
+            className={inputCls}
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
           Firearm
-          <select
-            name="firearm_id"
-            required
-            className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-          >
+          <select name="firearm_id" required className={inputCls}>
             <option value="">— Select —</option>
             {firearms.map((f) => (
               <option key={f.id} value={f.id}>
@@ -57,51 +56,20 @@ export default function ScoringForm({
           </select>
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          Weapon Used (free text)
-          <input name="weapon_used" className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Grain
-          <input
-            type="number"
-            name="grain"
-            className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Ammo Lot #
-          <input name="ammo_lot" className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Range Location
-          <input
-            name="range_location"
-            className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Weather Conditions
-          <input
-            name="weather_conditions"
-            className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
           Rounds Fired
-          <input
-            type="number"
-            name="rounds_fired"
-            defaultValue={totalRounds ?? ""}
-            className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-          />
+          <input type="number" name="rounds_fired" min={0} defaultValue={totalRounds || ""} className={inputCls} />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Grader Name
-          <input
-            name="grader_name"
-            className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-          />
-        </label>
+        {fields.map((f) => (
+          <label key={f.key} className={`flex flex-col gap-1 text-sm ${f.wide ? "sm:col-span-2" : ""}`}>
+            {f.label}
+            <input
+              name={`field:${f.key}`}
+              type={f.key === "grain" ? "number" : f.key === "grader_date" ? "date" : "text"}
+              placeholder={f.key === "caliber" ? "Defaults to the firearm's caliber" : undefined}
+              className={inputCls}
+            />
+          </label>
+        ))}
       </div>
 
       <div>
@@ -118,24 +86,22 @@ export default function ScoringForm({
             </thead>
             <tbody>
               {zones.map((z) => (
-                <tr key={z.id} className="border-t border-neutral-800">
+                <tr key={z.zone_label} className="border-t border-neutral-800">
                   <td className="px-3 py-2">{z.zone_label}</td>
                   <td className="px-3 py-2">{z.value}</td>
                   <td className="px-3 py-2">
-                    <input type="hidden" name="zone_label" value={z.zone_label} />
-                    <input type="hidden" name="zone_value" value={z.value} />
                     <input
                       type="number"
-                      name="zone_counted"
+                      name={`zone:${z.zone_label}`}
                       min={0}
                       defaultValue={0}
                       onChange={(e) =>
-                        setCounts((c) => ({ ...c, [z.id]: Number(e.target.value || 0) }))
+                        setCounts((c) => ({ ...c, [z.zone_label]: Number(e.target.value || 0) }))
                       }
                       className="w-20 rounded border border-neutral-700 bg-neutral-950 px-2 py-1"
                     />
                   </td>
-                  <td className="px-3 py-2">{z.value * (counts[z.id] ?? 0)}</td>
+                  <td className="px-3 py-2">{z.value * (counts[z.zone_label] ?? 0)}</td>
                 </tr>
               ))}
             </tbody>
@@ -143,28 +109,34 @@ export default function ScoringForm({
         </div>
       </div>
 
-      <div className="flex gap-6 rounded border border-neutral-800 bg-neutral-900 p-4 text-sm">
+      <div className="flex flex-wrap gap-6 rounded border border-neutral-800 bg-neutral-900 p-4 text-sm">
         <div>
           <div className="text-neutral-500">Rounds Counted</div>
-          <div className="text-lg">{roundsCounted}</div>
+          <div className={`text-lg ${roundsCounted > totalRounds ? "text-red-400" : ""}`}>
+            {roundsCounted} / {totalRounds}
+          </div>
         </div>
         <div>
           <div className="text-neutral-500">Total Points</div>
-          <div className="text-lg">{totalPoints}</div>
+          <div className="text-lg">
+            {totalPoints} / {maxPoints}
+          </div>
         </div>
         <div>
           <div className="text-neutral-500">Final Score</div>
           <div className="text-lg">{percent != null ? `${percent}%` : "—"}</div>
         </div>
+        {passing != null && (
+          <div>
+            <div className="text-neutral-500">Result (pass {passing}%)</div>
+            <div className={`text-lg ${result === "PASS" ? "text-green-400" : "text-red-400"}`}>{result}</div>
+          </div>
+        )}
       </div>
 
       <label className="flex flex-col gap-1 text-sm">
         Notes
-        <textarea
-          name="notes"
-          rows={3}
-          className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-        />
+        <textarea name="notes" rows={3} className={inputCls} />
       </label>
 
       <SubmitButton

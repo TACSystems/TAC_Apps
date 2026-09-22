@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { applyCofPatch, type CofPatch } from "@/lib/db/cof-patch";
+import { applyCofPatch, type CofPatch } from "@/lib/cof";
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
