@@ -16,7 +16,6 @@ export type MaintenanceInfo = {
   lastEntry: { date: string; type: string } | null;
 };
 
-const SOON_THRESHOLD = 0.8;
 
 function daysBetween(fromIso: string, to: Date) {
   const from = new Date(`${fromIso}T00:00:00`);
@@ -33,6 +32,7 @@ export function maintenanceInfo(
   firearm: Firearm,
   lastCleanedDate: string | null,
   lastEntry: { date: string; type: string } | null,
+  soonThreshold = 0.8,
   today = new Date()
 ): MaintenanceInfo {
   const roundsSince = Math.max(0, firearm.shots_fired - (firearm.last_cleaned_at_shots ?? 0));
@@ -50,7 +50,7 @@ export function maintenanceInfo(
   let status: MaintenanceStatus;
   if (roundsPct == null && daysPct == null) status = "unset";
   else if (worst >= 1) status = "due";
-  else if (worst >= SOON_THRESHOLD) status = "soon";
+  else if (worst >= soonThreshold) status = "soon";
   else status = "ok";
 
   return {
@@ -69,12 +69,18 @@ export function maintenanceInfo(
 
 const STATUS_ORDER: Record<MaintenanceStatus, number> = { due: 0, soon: 1, ok: 2, unset: 3 };
 
-export function maintenanceSchedule(db: Database.Database): MaintenanceInfo[] {
+export function maintenanceSchedule(
+  db: Database.Database,
+  opts: { soonThreshold?: number; includeStored?: boolean } = {}
+): MaintenanceInfo[] {
   const firearms = db
-    .prepare(`select * from firearms where status != 'sold' order by make_model`)
+    .prepare(
+      `select * from firearms where status != 'sold' ${opts.includeStored === false ? "and status != 'stored'" : ""}
+       order by make_model`
+    )
     .all() as Firearm[];
   const lastClean = db.prepare(
-    `select max(date) as d from maintenance_log where firearm_id = ? and type = 'cleaning'`
+    `select max(date) as d from maintenance_log where firearm_id = ? and lower(type) = 'cleaning'`
   );
   const lastAny = db.prepare(
     `select date, type from maintenance_log where firearm_id = ? order by date desc, created_at desc limit 1`
@@ -84,7 +90,8 @@ export function maintenanceSchedule(db: Database.Database): MaintenanceInfo[] {
       maintenanceInfo(
         f,
         (lastClean.get(f.id) as { d: string | null }).d,
-        (lastAny.get(f.id) as { date: string; type: string } | undefined) ?? null
+        (lastAny.get(f.id) as { date: string; type: string } | undefined) ?? null,
+        opts.soonThreshold ?? 0.8
       )
     )
     .sort(

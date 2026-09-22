@@ -195,16 +195,47 @@ create table if not exists dropdown_options (
   unique (category, value)
 );
 
-create view if not exists ammo_on_hand as
+create table if not exists rounds_fired_log (
+  id text primary key,
+  firearm_id text references firearms(id) on delete set null,
+  date text not null,
+  rounds integer not null,
+  caliber text,
+  ammo_lot text,
+  deduct_from_ammo integer not null default 1,
+  notes text,
+  created_at text not null default (datetime('now'))
+);
+
+create table if not exists app_settings (
+  key text primary key,
+  value text not null
+);
+
+drop view if exists ammo_on_hand;
+
+create view ammo_on_hand as
+with purchased as (
+  select caliber, sum(quantity) as qty from ammo_purchases group by caliber
+),
+fired as (
+  select caliber, sum(rounds) as qty from (
+    select caliber, coalesce(rounds_fired, 0) as rounds from range_log where caliber is not null
+    union all
+    select caliber, rounds from rounds_fired_log where deduct_from_ammo = 1 and caliber is not null
+  ) group by caliber
+),
+calibers as (
+  select caliber from purchased
+  union select caliber from fired
+  union select caliber from ammo_goals
+)
 select
-  ap.caliber,
-  coalesce(sum(ap.quantity), 0) as purchased,
-  coalesce((
-    select sum(rl.rounds_fired) from range_log rl where rl.caliber = ap.caliber
-  ), 0) as fired,
-  coalesce(sum(ap.quantity), 0) - coalesce((
-    select sum(rl.rounds_fired) from range_log rl where rl.caliber = ap.caliber
-  ), 0) as on_hand
-from ammo_purchases ap
-group by ap.caliber;
+  c.caliber,
+  coalesce(p.qty, 0) as purchased,
+  coalesce(f.qty, 0) as fired,
+  coalesce(p.qty, 0) - coalesce(f.qty, 0) as on_hand
+from calibers c
+left join purchased p on p.caliber = c.caliber
+left join fired f on f.caliber = c.caliber;
 `;

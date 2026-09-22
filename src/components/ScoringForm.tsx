@@ -14,6 +14,8 @@ export default function ScoringForm({
   totalRounds,
   maxPoints,
   passing,
+  defaults,
+  suggestions,
   action,
 }: {
   zones: ZoneDef[];
@@ -22,6 +24,8 @@ export default function ScoringForm({
   totalRounds: number;
   maxPoints: number;
   passing: number | null;
+  defaults: Record<string, string>;
+  suggestions: Record<string, string[]>;
   action: (formData: FormData) => void;
 }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -66,9 +70,19 @@ export default function ScoringForm({
               name={`field:${f.key}`}
               type={f.key === "grain" ? "number" : f.key === "grader_date" ? "date" : "text"}
               placeholder={f.key === "caliber" ? "Defaults to the firearm's caliber" : undefined}
+              defaultValue={defaults[f.key] ?? ""}
+              list={suggestions[f.key]?.length ? `suggest-${f.key}` : undefined}
+              autoComplete="off"
               className={inputCls}
             />
           </label>
+        ))}
+        {Object.entries(suggestions).map(([key, opts]) => (
+          <datalist key={key} id={`suggest-${key}`}>
+            {opts.map((o) => (
+              <option key={o} value={o} />
+            ))}
+          </datalist>
         ))}
       </div>
 
@@ -140,10 +154,10 @@ export default function ScoringForm({
       </label>
 
       <SubmitButton
-        pendingLabel="Saving Run…"
+        pendingLabel="Saving Session…"
         className="w-fit rounded bg-blue-600 px-4 py-2 font-medium hover:bg-blue-500"
       >
-        Save Run
+        Save Range Session
       </SubmitButton>
     </form>
   );

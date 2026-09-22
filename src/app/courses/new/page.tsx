@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { listTargetTypes, loadCourse, type CourseDef } from "@/lib/cof";
 import CourseBuilder from "@/components/CourseBuilder";
+import { getDropdownOptions } from "@/lib/db/dropdown-options";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,8 @@ export default async function NewCoursePage({ searchParams }: { searchParams: Pr
         <h1 className="text-xl font-semibold">Course of Fire Builder</h1>
         {sourceName && <p className="text-sm text-neutral-400">Starting from a copy of {sourceName}.</p>}
       </div>
-      <CourseBuilder initial={initial} targets={targets} mode="new" />
+      <CourseBuilder initial={initial} targets={targets}
+        positionOptions={getDropdownOptions(db, "position")} mode="new" />
     </div>
   );
 }

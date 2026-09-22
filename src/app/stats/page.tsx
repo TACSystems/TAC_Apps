@@ -92,7 +92,7 @@ export default async function StatsPage({
         </table>
         {logs.length === 0 && (
           <p className="px-3 py-6 text-center text-sm text-neutral-500">
-            No scored runs yet for this course.
+            No scored range sessions yet for this course.
           </p>
         )}
       </div>

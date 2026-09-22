@@ -121,6 +121,7 @@ async function startServer() {
       PORT: String(port),
       HOSTNAME: "127.0.0.1",
       FIREARMS_DB_DIR: dir_,
+      TAC_LOG_VERSION: app.getVersion(),
       ELECTRON_RUN_AS_NODE: "1",
     },
     stdio: isDev ? "inherit" : "ignore",

@@ -2,6 +2,7 @@ import FirearmForm from "@/components/FirearmForm";
 import { createFirearm } from "@/app/inventory/actions";
 import { getDb } from "@/lib/db";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
+import { getSettings } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,7 @@ export default function NewFirearmPage() {
   const db = getDb();
   const platformOptions = getDropdownOptions(db, "platform");
   const caliberOptions = getDropdownOptions(db, "caliber");
+  const settings = getSettings(db);
 
   return (
     <div className="max-w-2xl">
@@ -18,6 +20,8 @@ export default function NewFirearmPage() {
         submitLabel="Add Firearm"
         platformOptions={platformOptions}
         caliberOptions={caliberOptions}
+        defaultCleanRounds={settings.defaultCleanIntervalRounds}
+        defaultCleanDays={settings.defaultCleanIntervalDays}
       />
     </div>
   );

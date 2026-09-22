@@ -46,7 +46,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={`/courses/${id}/log`} className="bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500">
-            Log a Run
+            Log a Range Session
           </Link>
           <Link href={`/courses/${id}/print`} className={btn}>
             Print
@@ -64,8 +64,8 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
             <ConfirmSubmitButton
               confirmMessage={`Delete ${course.name}? ${
                 runCount > 0
-                  ? `Your ${runCount} logged run${runCount === 1 ? "" : "s"} on this course stay on file but will no longer show a linked course.`
-                  : "No runs have been logged on it."
+                  ? `Your ${runCount} logged range session${runCount === 1 ? "" : "s"} on this course stay on file but will no longer show a linked course.`
+                  : "No range sessions have been logged on it."
               } This cannot be undone.`}
               className="border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200 hover:bg-red-900"
             >

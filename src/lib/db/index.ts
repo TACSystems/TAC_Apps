@@ -105,10 +105,25 @@ function dropGroupTables(db: Database.Database) {
   `);
 }
 
+export function dataDir() {
+  return process.env.FIREARMS_DB_DIR || path.join(process.cwd(), "data");
+}
+
+export function closeDb() {
+  const db = global.__firearmsDb;
+  if (db) {
+    try {
+      db.pragma("wal_checkpoint(TRUNCATE)");
+    } catch {}
+    db.close();
+    global.__firearmsDb = undefined;
+  }
+}
+
 function initDb(): Database.Database {
-  const dataDir = process.env.FIREARMS_DB_DIR || path.join(process.cwd(), "data");
-  fs.mkdirSync(dataDir, { recursive: true });
-  const dbPath = path.join(dataDir, "firearms.db");
+  const dir = dataDir();
+  fs.mkdirSync(dir, { recursive: true });
+  const dbPath = path.join(dir, "firearms.db");
 
   const db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
@@ -141,7 +156,7 @@ function initDb(): Database.Database {
 
   const courseCount = (db.prepare("select count(*) as n from courses_of_fire").get() as { n: number }).n;
   if (courseCount === 0) {
-    const seedPath = path.join(dataDir, "courses-of-fire.seed.json");
+    const seedPath = path.join(dir, "courses-of-fire.seed.json");
     if (fs.existsSync(seedPath)) {
       const patch = JSON.parse(fs.readFileSync(seedPath, "utf-8")) as CofPatch;
       applyCofPatch(db, patch);

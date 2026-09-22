@@ -35,6 +35,9 @@ export default function NavBar() {
           <Link href="/controls" className="hover:text-neutral-100">
             Controls
           </Link>
+          <Link href="/settings" className="hover:text-neutral-100">
+            Settings
+          </Link>
         </div>
       </div>
     </header>

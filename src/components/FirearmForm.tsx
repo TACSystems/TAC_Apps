@@ -8,8 +8,12 @@ export default function FirearmForm({
   submitLabel,
   platformOptions,
   caliberOptions,
+  defaultCleanRounds,
+  defaultCleanDays,
 }: {
   firearm?: Firearm;
+  defaultCleanRounds?: number | null;
+  defaultCleanDays?: number | null;
   action: (formData: FormData) => void;
   submitLabel: string;
   platformOptions: string[];
@@ -116,7 +120,7 @@ export default function FirearmForm({
         <input
           type="number"
           name="clean_interval_rounds"
-          defaultValue={firearm?.clean_interval_rounds ?? ""}
+          defaultValue={firearm ? firearm.clean_interval_rounds ?? "" : defaultCleanRounds ?? ""}
           placeholder="e.g. 500"
           className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
         />
@@ -127,7 +131,7 @@ export default function FirearmForm({
         <input
           type="number"
           name="clean_interval_days"
-          defaultValue={firearm?.clean_interval_days ?? ""}
+          defaultValue={firearm ? firearm.clean_interval_days ?? "" : defaultCleanDays ?? ""}
           placeholder="e.g. 90"
           className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
         />

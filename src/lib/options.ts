@@ -3,9 +3,31 @@ export const DROPDOWN_CATEGORIES = {
   caliber: "Caliber",
   accessory_type: "Accessory Type",
   ammo_type: "Ammo Type",
+  ammo_manufacturer: "Ammo Manufacturer",
+  maintenance_type: "Maintenance Type",
+  malfunction_type: "Malfunction Type",
+  zero_distance: "Zero Distance",
+  range_location: "Range Location",
+  weather: "Weather Conditions",
+  position: "Shooting Position",
 } as const;
 
 export type DropdownCategory = keyof typeof DROPDOWN_CATEGORIES;
+
+export const DROPDOWN_USED_IN: Record<DropdownCategory, string> = {
+  platform: "Armory / firearm and accessory forms",
+  caliber: "Armory, Ammo, and Update Rounds Fired",
+  accessory_type: "Armory / accessories",
+  ammo_type: "Ammo / purchases",
+  ammo_manufacturer: "Ammo / purchases",
+  maintenance_type: "Armory / maintenance log (Cleaning is always available and resets the round counter)",
+  malfunction_type: "Armory / malfunction log",
+  zero_distance: "Armory / zero log",
+  range_location: "Log a Range Session",
+  weather: "Log a Range Session",
+  position: "Course of Fire Builder / Position column",
+};
+
 
 export const DEFAULT_OPTIONS: Record<DropdownCategory, string[]> = {
   platform: [
@@ -64,4 +86,35 @@ export const DEFAULT_OPTIONS: Record<DropdownCategory, string[]> = {
     "Birdshot",
     "Slug",
   ],
+  ammo_manufacturer: [
+    "Federal",
+    "Winchester",
+    "Remington",
+    "Hornady",
+    "CCI",
+    "Speer",
+    "PMC",
+    "Fiocchi",
+    "Sellier & Bellot",
+    "Blazer",
+    "Magtech",
+    "Aguila",
+  ],
+  maintenance_type: ["Cleaning", "Lubrication", "Inspection", "Parts Replacement", "Repair", "Gunsmith Service"],
+  malfunction_type: [
+    "Failure to Feed",
+    "Failure to Eject",
+    "Stovepipe",
+    "Double Feed",
+    "Failure to Extract",
+    "Failure to Fire / Light Strike",
+    "Failure to Lock Back",
+    "Out of Battery",
+    "Squib",
+    "Magazine Issue",
+  ],
+  zero_distance: ["7 yd", "15 yd", "25 yd", "36 yd", "50 yd", "100 yd", "200 yd", "300 yd"],
+  range_location: [],
+  weather: ["Clear", "Partly Cloudy", "Overcast", "Rain", "Windy", "Hot", "Cold", "Low Light / Night"],
+  position: ["Standing", "Kneeling", "Prone", "Sitting", "Barricade", "Draw", "Low Ready", "High Ready", "Compressed Ready"],
 };

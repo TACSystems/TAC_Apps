@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { listTargetTypes, loadCourse } from "@/lib/cof";
 import CourseBuilder from "@/components/CourseBuilder";
+import { getDropdownOptions } from "@/lib/db/dropdown-options";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
         </Link>
         <h1 className="text-xl font-semibold">Edit Course of Fire</h1>
         <p className="text-sm text-neutral-400">
-          Runs you&apos;ve already logged on this course keep the scores they were saved with.
+          Range sessions you&apos;ve already logged on this course keep the scores they were saved with.
         </p>
       </div>
       <CourseBuilder
@@ -39,6 +40,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
           phases: course.phases,
         }}
         targets={targets}
+        positionOptions={getDropdownOptions(db, "position")}
         mode="edit"
       />
     </div>

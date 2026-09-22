@@ -20,7 +20,12 @@ export default async function RangeLogPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Range Log</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold">Range Log</h1>
+        <Link href="/range-log/new" className="bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500">
+          Log a Range Session
+        </Link>
+      </div>
       <SearchBox
         placeholder="Search by course, firearm, or date…"
         emptyMessage="No range log entries found."

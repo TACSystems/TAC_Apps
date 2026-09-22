@@ -27,7 +27,7 @@ export async function logMaintenance(firearmId: string, formData: FormData) {
   const firearm = db.prepare(`select shots_fired from firearms where id = ?`).get(firearmId) as
     | { shots_fired: number }
     | undefined;
-  const type = s(formData, "type") ?? "cleaning";
+  const type = s(formData, "type") ?? "Cleaning";
 
   db.prepare(
     `insert into maintenance_log (id, firearm_id, date, shots_fired_at_time, type, notes)
@@ -41,7 +41,7 @@ export async function logMaintenance(firearmId: string, formData: FormData) {
     notes: s(formData, "notes"),
   });
 
-  if (type === "cleaning") {
+  if (type.toLowerCase() === "cleaning") {
     db.prepare(`update firearms set last_cleaned_at_shots = ? where id = ?`).run(
       firearm?.shots_fired ?? 0,
       firearmId
@@ -128,4 +128,54 @@ export async function deleteReceiptImage(firearmId: string, imageId: string, fil
     // file already gone — nothing to clean up
   }
   revalidatePath(`/inventory/${firearmId}`);
+}
+
+export async function logRoundsFired(firearmId: string, formData: FormData) {
+  const db = getDb();
+  const rounds = Math.round(Number(formData.get("rounds") || 0));
+  if (!Number.isFinite(rounds) || rounds <= 0) return;
+  const firearm = db.prepare(`select caliber from firearms where id = ?`).get(firearmId) as
+    | { caliber: string | null }
+    | undefined;
+  if (!firearm) return;
+
+  db.transaction(() => {
+    db.prepare(
+      `insert into rounds_fired_log (id, firearm_id, date, rounds, caliber, ammo_lot, deduct_from_ammo, notes)
+       values (@id, @firearm_id, @date, @rounds, @caliber, @ammo_lot, @deduct_from_ammo, @notes)`
+    ).run({
+      id: randomUUID(),
+      firearm_id: firearmId,
+      date: String(formData.get("date") || new Date().toISOString().slice(0, 10)),
+      rounds,
+      caliber: s(formData, "caliber") ?? firearm.caliber,
+      ammo_lot: s(formData, "ammo_lot"),
+      deduct_from_ammo: formData.get("deduct_from_ammo") === "on" ? 1 : 0,
+      notes: s(formData, "notes"),
+    });
+    db.prepare(`update firearms set shots_fired = shots_fired + ? where id = ?`).run(rounds, firearmId);
+  })();
+
+  revalidatePath(`/inventory/${firearmId}`);
+  revalidatePath("/");
+  revalidatePath("/ammo");
+}
+
+export async function deleteRoundsFired(firearmId: string, entryId: string) {
+  const db = getDb();
+  const entry = db.prepare(`select rounds from rounds_fired_log where id = ?`).get(entryId) as
+    | { rounds: number }
+    | undefined;
+  if (entry) {
+    db.transaction(() => {
+      db.prepare(`delete from rounds_fired_log where id = ?`).run(entryId);
+      db.prepare(`update firearms set shots_fired = max(0, shots_fired - ?) where id = ?`).run(
+        entry.rounds,
+        firearmId
+      );
+    })();
+  }
+  revalidatePath(`/inventory/${firearmId}`);
+  revalidatePath("/");
+  revalidatePath("/ammo");
 }
