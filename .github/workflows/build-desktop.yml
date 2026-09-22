@@ -1,0 +1,60 @@
+name: Build TAC-LOG desktop app
+
+# Builds the native Mac (.dmg) and Windows (.exe) installers on their own
+# real operating systems — this matters because better-sqlite3's native
+# module has to match the OS it runs on, and that only happens reliably
+# when `npm install` itself runs on that OS. Run manually from the
+# Actions tab ("Run workflow"), or push a tag like "v1.0.0" to trigger it
+# automatically and attach both installers to a GitHub Release.
+#
+# This is optional — if you only ever need a Mac build, you can just run
+# `npm run dist:mac` on your own Mac instead and skip this file entirely.
+# It's here for the cases described in SETUP.md: producing a Windows
+# installer without owning a Windows machine, or producing both from one
+# push.
+
+on:
+  workflow_dispatch: {}
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            dist_script: dist:mac
+            artifact_glob: release/*.dmg
+          - os: windows-latest
+            dist_script: dist:win
+            artifact_glob: release/*.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm install
+
+      - run: npm run ${{ matrix.dist_script }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tac-log-${{ matrix.os }}
+          path: ${{ matrix.artifact_glob }}
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*

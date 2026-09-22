@@ -1,26 +1,73 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0b08;
+  --foreground: #e7ead4;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-tactical-mono);
+  --font-mono: var(--font-tactical-mono);
+  --font-tactical-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", "Liberation Mono",
+    monospace;
+
+  /* Neutral scale retheme: near-black olive panels instead of pure gray */
+  --color-neutral-950: #0a0b08;
+  --color-neutral-900: #12140e;
+  --color-neutral-800: #262a1c;
+  --color-neutral-700: #3a4029;
+  --color-neutral-600: #4c5236;
+  --color-neutral-500: #7c8560;
+  --color-neutral-400: #a3ab84;
+  --color-neutral-300: #c2c9a8;
+  --color-neutral-200: #dde2c8;
+  --color-neutral-100: #eef0e0;
+
+  /* "blue" scale retheme: olive-drab for primary actions, brass/amber for links */
+  --color-blue-600: #4a5a24;
+  --color-blue-500: #5e7030;
+  --color-blue-400: #d1a941;
+  --color-blue-300: #ddbd63;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-radius: 0 !important;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-tactical-mono);
+}
+
+h1, h2, h3,
+label,
+th,
+button,
+nav a {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+input, select, textarea {
+  letter-spacing: 0.02em;
+}
+
+::placeholder {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+@media print {
+  nav,
+  header,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
 }

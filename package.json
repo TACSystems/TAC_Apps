@@ -1,26 +1,77 @@
 {
   "name": "firearms-app",
+  "productName": "TAC-LOG",
   "version": "0.1.0",
+  "description": "Personal firearm inventory, ammo tracking, courses of fire, and range session scoring — by Precision Systems",
+  "author": "Precision Systems",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "electron:dev": "npm run build && electron .",
+    "electron:prepare": "npm run build && node scripts/prepare-electron.js",
+    "dist": "npm run electron:prepare && electron-builder",
+    "dist:mac": "npm run electron:prepare && electron-builder --mac",
+    "dist:win": "npm run electron:prepare && electron-builder --win"
   },
   "dependencies": {
+    "better-sqlite3": "^13.0.3",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "electron": "^38.2.0",
+    "electron-builder": "^26.0.20",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "build": {
+    "appId": "systems.precision.tac-log",
+    "productName": "TAC-LOG",
+    "copyright": "Copyright © Precision Systems",
+    "directories": {
+      "output": "release"
+    },
+    "npmRebuild": false,
+    "publish": null,
+    "afterPack": "scripts/after-pack.js",
+    "files": [
+      "electron/main.js",
+      "electron/icon.png",
+      "!electron/resources/**",
+      "!node_modules/**"
+    ],
+    "extraResources": [
+      { "from": "electron/resources/seed", "to": "seed" }
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "electron/icons/icon.icns",
+      "target": ["dmg"]
+    },
+    "win": {
+      "icon": "electron/icons/icon.ico",
+      "target": ["nsis"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "icon": "electron/icons/icon.icns",
+      "target": ["AppImage"],
+      "category": "Utility"
+    }
   }
 }

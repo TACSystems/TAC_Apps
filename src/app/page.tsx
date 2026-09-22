@@ -1,69 +1,122 @@
-import Image from "next/image";
+import Link from "next/link";
+import { getDb } from "@/lib/db";
+import type { RangeLog } from "@/lib/db/types";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const db = getDb();
+
+  const firearmCount = db
+    .prepare(`select count(*) as n from firearms where status = 'active'`)
+    .get() as { n: number };
+
+  const activeParticipants = db
+    .prepare(`select count(*) as n from participants where status = 'active'`)
+    .get() as { n: number };
+
+  const logs = db
+    .prepare(
+      `select rl.*, c.name as cof_name, f.make_model as firearm_make_model
+       from range_log rl
+       left join courses_of_fire c on c.id = rl.cof_id
+       left join firearms f on f.id = rl.firearm_id
+       order by rl.date desc
+       limit 5`
+    )
+    .all() as (RangeLog & { cof_name: string | null; firearm_make_model: string | null })[];
+
+  const groupLogs = db
+    .prepare(
+      `select grl.date, grl.final_score_percent, c.name as cof_name, p.name as participant_name
+       from group_range_log grl
+       left join courses_of_fire c on c.id = grl.cof_id
+       left join participants p on p.id = grl.participant_id
+       order by grl.date desc
+       limit 5`
+    )
+    .all() as { date: string; final_score_percent: number | null; cof_name: string | null; participant_name: string | null }[];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex flex-col gap-8">
+      <div>
+        <h1 className="text-xl font-semibold">Welcome back</h1>
+        <p className="text-neutral-400">
+          {firearmCount.n} firearm{firearmCount.n === 1 ? "" : "s"} in the armory · {activeParticipants.n}{" "}
+          active participant{activeParticipants.n === 1 ? "" : "s"} on the group roster.
+        </p>
+      </div>
+
+      <form action="/search" className="flex gap-2">
+        <input
+          name="q"
+          placeholder="Search firearms, ammo, courses, range log…"
+          className="w-full max-w-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm normal-case"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <button
+          type="submit"
+          className="border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700"
+        >
+          Search
+        </button>
+      </form>
+
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-medium text-neutral-200">Recent range sessions (personal)</h2>
+          <Link href="/range-log" className="text-sm text-blue-400 hover:text-blue-300">
+            View all →
+          </Link>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="flex flex-col gap-2">
+          {logs.map((l) => (
+            <Link
+              key={l.id}
+              href={`/range-log/${l.id}`}
+              className="flex items-center justify-between border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm hover:border-neutral-600"
+            >
+              <span>
+                {l.date} · {l.firearm_make_model ?? "—"} · {l.cof_name ?? "Unlisted course"}
+              </span>
+              <span className="text-neutral-400">
+                {l.final_score_percent != null ? `${l.final_score_percent}%` : "—"}
+              </span>
+            </Link>
+          ))}
+          {logs.length === 0 && (
+            <p className="text-sm text-neutral-500">No range sessions logged yet.</p>
+          )}
         </div>
-      </main>
+      </section>
+
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-medium text-neutral-200">Recent group range days</h2>
+          <Link href="/group-log" className="text-sm text-blue-400 hover:text-blue-300">
+            View all →
+          </Link>
+        </div>
+        <div className="flex flex-col gap-2">
+          {groupLogs.map((l, i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm"
+            >
+              <span>
+                {l.date} · {l.participant_name ?? "Unassigned"} · {l.cof_name ?? "Unlisted course"}
+              </span>
+              <span className="text-neutral-400">
+                {l.final_score_percent != null ? `${l.final_score_percent}%` : "—"}
+              </span>
+            </div>
+          ))}
+          {groupLogs.length === 0 && (
+            <p className="text-sm text-neutral-500">
+              No group range days recorded yet — participants are entirely optional.
+            </p>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
