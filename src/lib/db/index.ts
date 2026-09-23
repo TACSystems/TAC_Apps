@@ -194,6 +194,7 @@ function initDb(): Database.Database {
     if (!key) throw new LockedError();
   }
 
+  const fresh = !fs.existsSync(dbPath());
   const db = openRaw(dbPath(), key);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
@@ -247,6 +248,11 @@ function initDb(): Database.Database {
   db.prepare(
     `insert into app_settings (key, value) values ('last_version', ?) on conflict(key) do update set value = excluded.value`
   ).run(JSON.stringify(process.env.TAC_LOG_VERSION ?? "dev"));
+  if (fresh && process.env.TAC_LOG_VERSION) {
+    db.prepare(`insert or ignore into app_settings (key, value) values ('whats_new_seen', ?)`).run(
+      JSON.stringify(process.env.TAC_LOG_VERSION)
+    );
+  }
 
   return db;
 }
