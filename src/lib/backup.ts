@@ -1,10 +1,88 @@
-import Database from "better-sqlite3";
+import Database from "better-sqlite3-multiple-ciphers";
 import fs from "fs";
 import path from "path";
-import { closeDb, dataDir, getDb } from "@/lib/db";
+import { randomBytes } from "crypto";
+import { closeDb, dataDir, getDb, rekeyFile } from "@/lib/db";
 import { createZip, readZip, type ZipEntry } from "@/lib/zip";
+import {
+  dataKey,
+  deriveKey,
+  isEncrypted,
+  lockoutState,
+  openFile,
+  recordFailure,
+  recordSuccess,
+  seal,
+  sealFile,
+  unseal,
+} from "@/lib/security-state";
 
 const SQLITE_HEADER = Buffer.from("SQLite format 3\u0000", "latin1");
+const BACKUP_MAGIC = Buffer.from("TLBAK1\u0000\u0000", "latin1");
+const BACKUP_SCOPE = "backup";
+
+export class BackupPasswordError extends Error {
+  waitUntil: number;
+  attemptsLeft: number;
+  constructor(message: string, waitUntil = 0, attemptsLeft = 0) {
+    super(message);
+    this.waitUntil = waitUntil;
+    this.attemptsLeft = attemptsLeft;
+  }
+}
+
+type SavedBackupKey = { salt: string; key: string };
+
+export function savedBackupKey(db: Database.Database): SavedBackupKey | null {
+  const row = db.prepare(`select value from app_settings where key = 'backup_key'`).get() as
+    | { value: string }
+    | undefined;
+  if (!row) return null;
+  try {
+    return JSON.parse(row.value);
+  } catch {
+    return null;
+  }
+}
+
+export function saveBackupPassword(db: Database.Database, password: string | null) {
+  if (!password) {
+    db.prepare(`delete from app_settings where key = 'backup_key'`).run();
+    return;
+  }
+  const salt = randomBytes(16).toString("hex");
+  const key = deriveKey(password, salt).toString("hex");
+  db.prepare(
+    `insert into app_settings (key, value) values ('backup_key', ?) on conflict(key) do update set value = excluded.value`
+  ).run(JSON.stringify({ salt, key }));
+}
+
+export function isEncryptedBackup(buf: Buffer) {
+  return buf.length > BACKUP_MAGIC.length + 16 + 28 && buf.subarray(0, BACKUP_MAGIC.length).equals(BACKUP_MAGIC);
+}
+
+function envelope(zip: Buffer, salt: Buffer, key: Buffer) {
+  return Buffer.concat([BACKUP_MAGIC, salt, seal(key, zip)]);
+}
+
+function openEnvelope(buf: Buffer, password: string) {
+  const lock = lockoutState(BACKUP_SCOPE);
+  if (lock.waitUntil) throw new BackupPasswordError("Too many wrong backup passwords.", lock.waitUntil);
+  const salt = buf.subarray(BACKUP_MAGIC.length, BACKUP_MAGIC.length + 16);
+  const body = buf.subarray(BACKUP_MAGIC.length + 16);
+  try {
+    const out = unseal(deriveKey(password, salt.toString("hex")), body);
+    recordSuccess(BACKUP_SCOPE);
+    return out;
+  } catch {
+    const f = recordFailure(BACKUP_SCOPE);
+    throw new BackupPasswordError(
+      f.waitUntil ? "Too many wrong backup passwords." : "That backup password is wrong.",
+      f.waitUntil,
+      f.attemptsLeft
+    );
+  }
+}
 
 function walk(dir: string, base: string, out: ZipEntry[]) {
   if (!fs.existsSync(dir)) return;
@@ -12,12 +90,11 @@ function walk(dir: string, base: string, out: ZipEntry[]) {
     const full = path.join(dir, entry.name);
     const rel = `${base}/${entry.name}`;
     if (entry.isDirectory()) walk(full, rel, out);
-    else if (entry.isFile()) out.push({ name: rel, data: fs.readFileSync(full) });
+    else if (entry.isFile()) out.push({ name: rel, data: openFile(fs.readFileSync(full)) });
   }
 }
 
-export function createBackup(): { buffer: Buffer; receiptCount: number } {
-  const db = getDb();
+export function backupZip(db: Database.Database): { buffer: Buffer; receiptCount: number } {
   const snapshot = db.serialize();
   const receipts: ZipEntry[] = [];
   walk(path.join(dataDir(), "receipts"), "receipts", receipts);
@@ -34,6 +111,29 @@ export function createBackup(): { buffer: Buffer; receiptCount: number } {
     ...receipts,
   ]);
   return { buffer, receiptCount: receipts.length };
+}
+
+export function createBackup(
+  db: Database.Database = getDb(),
+  password?: string
+): { buffer: Buffer; receiptCount: number; encrypted: boolean } {
+  const { buffer, receiptCount } = backupZip(db);
+  if (password) {
+    const salt = randomBytes(16);
+    return { buffer: envelope(buffer, salt, deriveKey(password, salt.toString("hex"))), receiptCount, encrypted: true };
+  }
+  const saved = savedBackupKey(db);
+  if (saved) {
+    return {
+      buffer: envelope(buffer, Buffer.from(saved.salt, "hex"), Buffer.from(saved.key, "hex")),
+      receiptCount,
+      encrypted: true,
+    };
+  }
+  if (isEncrypted()) {
+    throw new Error("Database encryption is on, so backups need a password. Set a backup password in Settings first.");
+  }
+  return { buffer, receiptCount, encrypted: false };
 }
 
 function validateDatabase(file: string) {
@@ -55,8 +155,16 @@ function validateDatabase(file: string) {
   }
 }
 
-export function restoreBackup(buf: Buffer): { receiptCount: number | null; safetyFolder: string } {
+export function restoreBackup(
+  input: Buffer,
+  password?: string
+): { receiptCount: number | null; safetyFolder: string } {
   const dir = dataDir();
+  let buf = input;
+  if (isEncryptedBackup(buf)) {
+    if (!password) throw new BackupPasswordError("This backup is password-protected. Enter its password.", 0, -1);
+    buf = openEnvelope(buf, password);
+  }
   let dbBytes: Buffer;
   let receipts: ZipEntry[] | null = null;
 
@@ -93,6 +201,11 @@ export function restoreBackup(buf: Buffer): { receiptCount: number | null; safet
 
   closeDb();
   const live = path.join(dir, "firearms.db");
+  if (isEncrypted()) {
+    const key = dataKey();
+    if (!key) throw new Error("TAC-LOG is locked.");
+    rekeyFile(tmp, null, key);
+  }
   if (fs.existsSync(live)) fs.renameSync(live, path.join(safety, "firearms.db"));
   fs.rmSync(`${live}-wal`, { force: true });
   fs.rmSync(`${live}-shm`, { force: true });
@@ -109,5 +222,33 @@ export function restoreBackup(buf: Buffer): { receiptCount: number | null; safet
   }
 
   getDb();
+  if (isEncrypted()) sealAllAttachments();
   return { receiptCount: receipts ? receipts.length : null, safetyFolder: safety };
+}
+
+export function sealAllAttachments() {
+  return sealTree(path.join(dataDir(), "receipts"));
+}
+
+export function sealTree(root: string) {
+  const files: string[] = [];
+  const collect = (d: string) => {
+    if (!fs.existsSync(d)) return;
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const full = path.join(d, e.name);
+      if (e.isDirectory()) collect(full);
+      else if (e.isFile()) files.push(full);
+    }
+  };
+  collect(root);
+  for (const f of files) {
+    const raw = fs.readFileSync(f);
+    const plain = openFile(raw);
+    const next = sealFile(plain);
+    if (!next.equals(raw)) {
+      fs.writeFileSync(`${f}.tmp`, next);
+      fs.renameSync(`${f}.tmp`, f);
+    }
+  }
+  return files.length;
 }

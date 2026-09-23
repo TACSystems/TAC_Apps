@@ -21,13 +21,24 @@ export default function FirearmForm({
 }) {
   return (
     <form action={action} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <label className="flex flex-col gap-1 text-sm sm:col-span-2">
+      <label className="flex flex-col gap-1 text-sm">
         Make / Model
         <input
           name="make_model"
           required
           defaultValue={firearm?.make_model}
           className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
+        />
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm">
+        Nickname (optional)
+        <input
+          name="nickname"
+          defaultValue={firearm?.nickname ?? ""}
+          placeholder="e.g. Duty Gun, Old Reliable"
+          maxLength={60}
+          className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 normal-case"
         />
       </label>
 
@@ -148,7 +159,7 @@ export default function FirearmForm({
       </label>
 
       <SubmitButton
-        className="mt-2 w-fit rounded bg-blue-600 px-4 py-2 font-medium hover:bg-blue-500 sm:col-span-2"
+        className="mt-2 w-fit rounded bg-brand-olive px-4 py-2 font-medium hover:bg-brand-olive-light sm:col-span-2"
       >
         {submitLabel}
       </SubmitButton>

@@ -1,6 +1,8 @@
 export type Firearm = {
   id: string;
   make_model: string;
+  nickname: string | null;
+  label?: string;
   caliber: string | null;
   platform: string | null;
   serial_number: string | null;

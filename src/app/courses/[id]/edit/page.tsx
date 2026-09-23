@@ -17,7 +17,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <Link href={`/courses/${id}`} className="text-xs text-blue-400 hover:text-blue-300">
+        <Link href={`/courses/${id}`} className="text-xs text-brand-amber hover:text-brand-amber-light">
           ← {course.name}
         </Link>
         <h1 className="text-xl font-semibold">Edit Course of Fire</h1>

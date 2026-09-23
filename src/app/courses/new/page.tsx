@@ -37,7 +37,7 @@ export default async function NewCoursePage({ searchParams }: { searchParams: Pr
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <Link href="/courses" className="text-xs text-blue-400 hover:text-blue-300">
+        <Link href="/courses" className="text-xs text-brand-amber hover:text-brand-amber-light">
           ← Courses of Fire
         </Link>
         <h1 className="text-xl font-semibold">Course of Fire Builder</h1>

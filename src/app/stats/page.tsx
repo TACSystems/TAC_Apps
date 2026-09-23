@@ -41,7 +41,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
   const logs = selectedId
     ? (db
         .prepare(
-          `select rl.*, coalesce(f.make_model, 'Unlinked firearm') as firearm_name
+          `select rl.*, coalesce(firearm_label(f.make_model, f.nickname), 'Unlinked firearm') as firearm_name
            from range_log rl left join firearms f on f.id = rl.firearm_id
            where rl.cof_id = ? and rl.final_score_percent is not null order by rl.date asc`
         )
@@ -137,7 +137,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
               {shotCourses.map((c) => (
                 <tr key={c.id}>
                   <td className={td}>
-                    <Link href={`/stats?cof=${c.id}`} className="text-blue-400 hover:text-blue-300">
+                    <Link href={`/stats?cof=${c.id}`} className="text-brand-amber hover:text-brand-amber-light">
                       {c.name}
                     </Link>
                   </td>
@@ -173,8 +173,8 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
               {byFirearm.map((f) => (
                 <tr key={f.id}>
                   <td className={td}>
-                    <Link href={`/inventory/${f.id}`} className="text-blue-400 hover:text-blue-300">
-                      {f.make_model}
+                    <Link href={`/inventory/${f.id}`} className="text-brand-amber hover:text-brand-amber-light">
+                      {f.label}
                     </Link>
                   </td>
                   <td className={td}>{f.shots_fired.toLocaleString()}</td>

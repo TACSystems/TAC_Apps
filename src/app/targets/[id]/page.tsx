@@ -26,9 +26,9 @@ export default async function EditTargetTypePage({
     .all(id) as { id: string; name: string; code: string }[];
 
   return (
-    <div className="flex max-w-2xl flex-col gap-6">
+    <div className="flex max-w-4xl flex-col gap-6">
       <div>
-        <Link href="/targets" className="text-xs text-blue-400 hover:text-blue-300">
+        <Link href="/targets" className="text-xs text-brand-amber hover:text-brand-amber-light">
           ← Target Types
         </Link>
         <h1 className="text-xl font-semibold">{target.name}</h1>
@@ -64,7 +64,7 @@ export default async function EditTargetTypePage({
             {courses.map((c, i) => (
               <span key={c.id}>
                 {i > 0 && ", "}
-                <Link href={`/courses/${c.id}`} className="text-blue-400 hover:text-blue-300">
+                <Link href={`/courses/${c.id}`} className="text-brand-amber hover:text-brand-amber-light">
                   {c.name}
                 </Link>
               </span>

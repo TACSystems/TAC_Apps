@@ -1,3 +1,4 @@
+import { fd } from "@/lib/display";
 import { IMAGE_ATTACHMENT, type Attachment, type AttachmentKind, type OwnerType } from "@/lib/attachments";
 import { removeAttachment, uploadAttachment } from "@/app/attachments/actions";
 import AttachmentUploadForm from "@/components/AttachmentUploadForm";
@@ -52,7 +53,7 @@ export default function AttachmentGallery({
                 {r.original_name}
               </div>
               <div className="flex items-center justify-between text-neutral-600">
-                <span>{r.uploaded_at.slice(0, 10)}</span>
+                <span>{fd(r.uploaded_at)}</span>
                 <form action={removeAttachment.bind(null, r.id)}>
                   <ConfirmSubmitButton
                     confirmMessage={`Delete ${KIND_LABEL[r.kind].toLowerCase()} "${r.original_name ?? "this file"}"?`}

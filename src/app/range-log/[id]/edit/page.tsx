@@ -23,7 +23,7 @@ export default async function EditRangeSessionPage({ params }: { params: Promise
   const counts = Object.fromEntries(zoneRows.map((z) => [z.zone_label, z.counted]));
 
   const firearms = db
-    .prepare(`select * from firearms where status = 'active' or id = ? order by make_model`)
+    .prepare(`select *, firearm_label(make_model, nickname) as label from firearms where status = 'active' or id = ? order by make_model`)
     .all(log.firearm_id ?? "") as Firearm[];
 
   const scorecard = course?.scorecard ?? DEFAULT_SCORECARD;
@@ -46,8 +46,8 @@ export default async function EditRangeSessionPage({ params }: { params: Promise
   const total = course?.effective_total_rounds ?? log.rounds_fired ?? 0;
 
   return (
-    <div className="max-w-2xl">
-      <Link href={`/range-log/${id}`} className="text-xs text-blue-400 hover:text-blue-300">
+    <div className="max-w-4xl">
+      <Link href={`/range-log/${id}`} className="text-xs text-brand-amber hover:text-brand-amber-light">
         ← Back to session
       </Link>
       <h1 className="text-xl font-semibold">Edit Range Session</h1>

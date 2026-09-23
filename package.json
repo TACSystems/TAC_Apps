@@ -1,14 +1,14 @@
 {
   "name": "firearms-app",
   "productName": "TAC-LOG",
-  "version": "0.4.1",
-  "description": "Personal firearm inventory, ammo tracking, courses of fire, and range session scoring — by Precision Systems",
+  "version": "0.5.0",
+  "description": "Personal firearm inventory, ammo tracking, courses of fire, and range session scoring \u2014 by Precision Systems",
   "author": "Precision Systems",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/gen-changelog.js && next build",
     "start": "next start",
     "lint": "eslint",
     "electron:dev": "npm run build && electron .",
@@ -18,14 +18,14 @@
     "dist:win": "npm run electron:prepare && electron-builder --win"
   },
   "dependencies": {
-    "better-sqlite3": "^13.0.3",
+    "better-sqlite3-multiple-ciphers": "13.0.3",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@electron/fuses": "^2.1.3",
     "@tailwindcss/postcss": "^4",
-    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -39,7 +39,7 @@
   "build": {
     "appId": "systems.precision.tac-log",
     "productName": "TAC-LOG",
-    "copyright": "Copyright © Precision Systems",
+    "copyright": "Copyright \u00a9 Precision Systems",
     "directories": {
       "output": "release"
     },
@@ -48,21 +48,29 @@
     "afterPack": "scripts/after-pack.js",
     "files": [
       "electron/main.js",
+      "electron/preload.js",
       "electron/icon.png",
       "!electron/resources/**",
       "!node_modules/**"
     ],
     "extraResources": [
-      { "from": "electron/resources/seed", "to": "seed" }
+      {
+        "from": "electron/resources/seed",
+        "to": "seed"
+      }
     ],
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "electron/icons/icon.icns",
-      "target": ["dmg"]
+      "target": [
+        "dmg"
+      ]
     },
     "win": {
       "icon": "electron/icons/icon.ico",
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -70,7 +78,9 @@
     },
     "linux": {
       "icon": "electron/icons/icon.icns",
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Utility"
     }
   }

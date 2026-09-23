@@ -6,6 +6,7 @@ import { getSettings, type HomeSectionKey } from "@/lib/settings";
 import { ammoStatus } from "@/lib/ammo";
 import { logMaintenance } from "@/app/inventory/[id]/log-actions";
 import SubmitButton from "@/components/SubmitButton";
+import { label, fd } from "@/lib/display";
 
 const STATUS_CLASS: Record<MaintenanceStatus, string> = {
   due: "border-red-800 bg-red-950 text-red-300",
@@ -17,7 +18,7 @@ const STATUS_CLASS: Record<MaintenanceStatus, string> = {
 function Meter({ pct }: { pct: number | null }) {
   if (pct == null) return null;
   const w = Math.min(100, Math.round(pct * 100));
-  const color = pct >= 1 ? "bg-red-500" : pct >= 0.8 ? "bg-amber-500" : "bg-blue-400";
+  const color = pct >= 1 ? "bg-red-500" : pct >= 0.8 ? "bg-amber-500" : "bg-brand-amber";
   return (
     <div className="mt-1 h-1 w-full bg-neutral-800">
       <div className={`h-1 ${color}`} style={{ width: `${w}%` }} />
@@ -52,7 +53,7 @@ export default async function HomePage() {
 
   const logs = db
     .prepare(
-      `select rl.*, c.name as cof_name, f.make_model as firearm_make_model
+      `select rl.*, c.name as cof_name, firearm_label(f.make_model, f.nickname) as firearm_make_model
        from range_log rl
        left join courses_of_fire c on c.id = rl.cof_id
        left join firearms f on f.id = rl.firearm_id
@@ -64,7 +65,7 @@ export default async function HomePage() {
   const sections: Record<HomeSectionKey, React.ReactNode> = {
     quick_actions: (
       <section className="flex flex-wrap gap-2">
-        <Link href="/range-log/new" className="bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500">
+        <Link href="/range-log/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
           Log a Range Session
         </Link>
         <Link href="/courses/new" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
@@ -110,7 +111,7 @@ export default async function HomePage() {
             {schedule.length === 0 ? (
               <>
                 No firearms in the armory yet.{" "}
-                <Link href="/inventory/new" className="text-blue-400 hover:text-blue-300">
+                <Link href="/inventory/new" className="text-brand-amber hover:text-brand-amber-light">
                   Add one
                 </Link>
                 .
@@ -136,8 +137,8 @@ export default async function HomePage() {
                 {scheduleShown.map((m) => (
                   <tr key={m.firearm.id} className="border-t border-neutral-800 align-top">
                     <td className="px-3 py-2">
-                      <Link href={`/inventory/${m.firearm.id}`} className="hover:text-blue-300">
-                        {m.firearm.make_model}
+                      <Link href={`/inventory/${m.firearm.id}`} className="hover:text-brand-amber-light">
+                        {label(m.firearm)}
                       </Link>
                       <div className="text-xs text-neutral-500">
                         {m.firearm.caliber ?? ""}
@@ -155,15 +156,15 @@ export default async function HomePage() {
                       <Meter pct={m.roundsPct} />
                     </td>
                     <td className="px-3 py-2">
-                      {m.lastCleanedDate ?? <span className="text-neutral-500">Never logged</span>}
+                      {fd(m.lastCleanedDate) || <span className="text-neutral-500">Never logged</span>}
                       {m.daysSince != null && (
-                        <div className="text-xs text-neutral-500">{m.daysSince} days ago</div>
+                        <div className="text-xs text-neutral-500">{m.daysSince} {m.daysSince === 1 ? "day" : "days"} ago</div>
                       )}
                     </td>
                     <td className="px-3 py-2">
                       {m.nextDueDate || m.roundsRemaining != null ? (
                         <>
-                          {m.nextDueDate && <div>{m.nextDueDate}</div>}
+                          {m.nextDueDate && <div>{fd(m.nextDueDate)}</div>}
                           {m.roundsRemaining != null && (
                             <div className="text-xs text-neutral-500">
                               {m.roundsRemaining > 0
@@ -176,7 +177,7 @@ export default async function HomePage() {
                       ) : (
                         <Link
                           href={`/inventory/${m.firearm.id}`}
-                          className="text-xs text-blue-400 hover:text-blue-300"
+                          className="text-xs text-brand-amber hover:text-brand-amber-light"
                         >
                           Set a cleaning interval
                         </Link>
@@ -206,14 +207,14 @@ export default async function HomePage() {
       <section>
         <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-medium text-neutral-200">Ammo On Hand</h2>
-          <Link href="/ammo" className="text-sm text-blue-400 hover:text-blue-300">
+          <Link href="/ammo" className="text-sm text-brand-amber hover:text-brand-amber-light">
             Ammo tracking →
           </Link>
         </div>
         {ammo.length === 0 ? (
           <p className="text-sm text-neutral-500">
             No ammo goals set yet.{" "}
-            <Link href="/ammo" className="text-blue-400 hover:text-blue-300">
+            <Link href="/ammo" className="text-brand-amber hover:text-brand-amber-light">
               Set a goal per caliber
             </Link>{" "}
             to track it here.
@@ -233,7 +234,7 @@ export default async function HomePage() {
                     of {a.goal?.toLocaleString()} goal · {pct}%{a.low ? " · LOW" : ""}
                   </div>
                   <div className="mt-1 h-1 w-full bg-neutral-800">
-                    <div className={`h-1 ${a.low ? "bg-red-500" : "bg-blue-400"}`} style={{ width: `${pct}%` }} />
+                    <div className={`h-1 ${a.low ? "bg-red-500" : "bg-brand-amber"}`} style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               );
@@ -246,7 +247,7 @@ export default async function HomePage() {
       <section>
         <div className="mb-2 flex items-center justify-between">
           <h2 className="font-medium text-neutral-200">Recent Range Sessions</h2>
-          <Link href="/range-log" className="text-sm text-blue-400 hover:text-blue-300">
+          <Link href="/range-log" className="text-sm text-brand-amber hover:text-brand-amber-light">
             View all →
           </Link>
         </div>
@@ -258,7 +259,7 @@ export default async function HomePage() {
               className="flex items-center justify-between border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm hover:border-neutral-600"
             >
               <span>
-                {l.date} · {l.firearm_make_model ?? "—"} · {l.cof_name ?? "Unlisted course"}
+                {fd(l.date)} · {l.firearm_make_model ?? "—"} · {l.cof_name ?? "Unlisted course"}
               </span>
               <span className="text-neutral-400">
                 {l.final_score_percent != null ? `${l.final_score_percent}%` : "—"}

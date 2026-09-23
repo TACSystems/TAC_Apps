@@ -1,7 +1,3 @@
-// Auto-derived from the original schema.sql — inlined so the schema ships
-// as compiled code with no runtime filesystem dependency (needed for the
-// packaged Electron build, where reading a raw .sql file by a cwd-relative
-// path is unreliable).
 export const SCHEMA_SQL = `-- Firearms App — local SQLite schema
 -- This runs automatically on first launch (see src/lib/db/index.ts).
 -- Everything lives in a single file at data/firearms.db, next to this project,
@@ -10,6 +6,7 @@ export const SCHEMA_SQL = `-- Firearms App — local SQLite schema
 create table if not exists firearms (
   id text primary key,
   make_model text not null,
+  nickname text,
   caliber text,
   platform text,
   serial_number text,

@@ -54,7 +54,7 @@ export default function ImportCofForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-fit rounded bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-50"
+        className="w-fit rounded bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-50"
       >
         {loading ? "Importing…" : "Import"}
       </button>

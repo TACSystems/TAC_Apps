@@ -158,7 +158,7 @@ export default function TargetTypeEditor({
         <button
           type="button"
           onClick={() => setZones((zs) => [...zs, { key: nextKey++, zone_label: "", value: "0" }])}
-          className="mt-2 text-sm text-blue-400 hover:text-blue-300"
+          className="mt-2 text-sm text-brand-amber hover:text-brand-amber-light"
         >
           + Add zone
         </button>
@@ -174,7 +174,7 @@ export default function TargetTypeEditor({
           type="button"
           onClick={save}
           disabled={pending}
-          className="bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-60"
+          className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60"
         >
           {pending ? "Saving…" : "Save Target Type"}
         </button>

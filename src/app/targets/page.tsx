@@ -11,7 +11,7 @@ export default async function TargetTypesPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <Link href="/courses" className="text-xs text-blue-400 hover:text-blue-300">
+          <Link href="/courses" className="text-xs text-brand-amber hover:text-brand-amber-light">
             ← Courses of Fire
           </Link>
           <h1 className="text-xl font-semibold">Target Types</h1>
@@ -19,7 +19,7 @@ export default async function TargetTypesPage() {
             Each target type carries its own scoring matrix and can be reused by any course of fire.
           </p>
         </div>
-        <Link href="/targets/new" className="bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500">
+        <Link href="/targets/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
           New Target Type
         </Link>
       </div>

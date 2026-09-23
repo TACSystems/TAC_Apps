@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { RangeLog } from "@/lib/db/types";
 import SearchBox from "@/components/SearchBox";
+import { fd } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ export default async function RangeLogPage() {
   const db = getDb();
   const logs = db
     .prepare(
-      `select rl.*, c.name as cof_name, f.make_model as firearm_make_model
+      `select rl.*, c.name as cof_name, firearm_label(f.make_model, f.nickname) as firearm_make_model
        from range_log rl
        left join courses_of_fire c on c.id = rl.cof_id
        left join firearms f on f.id = rl.firearm_id
@@ -22,7 +23,7 @@ export default async function RangeLogPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Range Log</h1>
-        <Link href="/range-log/new" className="bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500">
+        <Link href="/range-log/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
           Log a Range Session
         </Link>
       </div>
@@ -39,12 +40,12 @@ export default async function RangeLogPage() {
         }
         rows={logs.map((l) => ({
           key: l.id,
-          text: `${l.cof_name ?? ""} ${l.firearm_make_model ?? ""} ${l.date}`,
+          text: `${l.cof_name ?? ""} ${l.firearm_make_model ?? ""} ${l.date} ${fd(l.date)}`,
           row: (
             <tr key={l.id} className="border-t border-neutral-800 hover:bg-neutral-900">
               <td className="px-3 py-2">
-                <Link href={`/range-log/${l.id}`} className="text-blue-400 hover:text-blue-300">
-                  {l.date}
+                <Link href={`/range-log/${l.id}`} className="text-brand-amber hover:text-brand-amber-light">
+                  {fd(l.date)}
                 </Link>
               </td>
               <td className="px-3 py-2">{l.cof_name ?? "—"}</td>

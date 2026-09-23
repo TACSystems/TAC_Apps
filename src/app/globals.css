@@ -10,8 +10,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-tactical-mono);
   --font-mono: var(--font-tactical-mono);
-  --font-tactical-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", "Liberation Mono",
-    monospace;
+  --font-tactical-mono: "Courier New", Courier, monospace;
 
   /* Neutral scale retheme: near-black olive panels instead of pure gray */
   --color-neutral-950: #0a0b08;
@@ -25,11 +24,11 @@
   --color-neutral-200: #dde2c8;
   --color-neutral-100: #eef0e0;
 
-  /* "blue" scale retheme: olive-drab for primary actions, brass/amber for links */
-  --color-blue-600: #4a5a24;
-  --color-blue-500: #5e7030;
-  --color-blue-400: #d1a941;
-  --color-blue-300: #ddbd63;
+  --color-brand-olive: #4a5a24;
+  --color-brand-olive-light: #5e7030;
+  --color-brand-amber: #d1a941;
+  --color-brand-amber-light: #ddbd63;
+  --color-brand-tile: #262a1c;
 }
 
 * {
@@ -53,6 +52,11 @@ nav a {
 
 input, select, textarea {
   letter-spacing: 0.02em;
+  font-family: inherit;
+}
+
+h1, h2, h3, th {
+  font-weight: 700;
 }
 
 ::placeholder {
@@ -63,6 +67,7 @@ input, select, textarea {
 @media print {
   nav,
   header,
+  footer,
   .no-print {
     display: none !important;
   }
@@ -74,6 +79,21 @@ input, select, textarea {
   .print-sheet {
     padding: 0 !important;
     max-width: none !important;
+  }
+  body:has(.recovery-card) main * {
+    visibility: hidden;
+  }
+  body:has(.recovery-card) .recovery-card,
+  body:has(.recovery-card) .recovery-card * {
+    visibility: visible;
+    color: #000000 !important;
+    background: #ffffff !important;
+  }
+  body:has(.recovery-card) .recovery-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
   }
   .page-break {
     break-before: page;

@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "electron/resources/**",
+    "release/**",
+    "scripts/**",
+    "electron/**",
+    "src/types/better-sqlite3-multiple-ciphers.d.ts",
   ]),
 ]);
 

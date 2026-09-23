@@ -3,32 +3,45 @@ import "./globals.css";
 import NavBar from "@/components/NavBar";
 import LockScreen from "@/components/LockScreen";
 import IdleLock from "@/components/IdleLock";
+import WhatsNewNotice from "@/components/WhatsNewNotice";
 import { getDb } from "@/lib/db";
-import { isUnlocked, pinIsSet } from "@/lib/lock";
+import { isUnlocked, lockoutSeconds, securityMode } from "@/lib/security-state";
 import { getSettings } from "@/lib/settings";
+import { whatsNewPending } from "@/lib/changelog";
 
 export const metadata: Metadata = {
-  title: "TAC-LOG | Precision Systems",
-  description: "Personal firearm inventory, ammo tracking, courses of fire, and range session scoring — by Precision Systems",
+  title: "TAC-LOG",
+  description: "Firearm inventory, ammo tracking, courses of fire, and range session scoring. Powered by Precision Systems.",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const mode = securityMode();
+  const unlocked = isUnlocked();
+
+  if (!unlocked && mode !== "none") {
+    return (
+      <html lang="en">
+        <body className="min-h-screen bg-neutral-950 text-neutral-100">
+          <LockScreen mode={mode} initialWaitSeconds={lockoutSeconds("unlock")} />
+        </body>
+      </html>
+    );
+  }
+
   const db = getDb();
-  const hasPin = pinIsSet(db);
-  const unlocked = await isUnlocked();
+  const settings = getSettings(db);
+  const whatsNew = whatsNewPending(db);
 
   return (
     <html lang="en">
-      <body className="min-h-screen bg-neutral-950 text-neutral-100">
-        {unlocked ? (
-          <>
-            <NavBar showLock={hasPin} />
-            {hasPin && <IdleLock minutes={getSettings(db).autoLockMinutes} />}
-            <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
-          </>
-        ) : (
-          <LockScreen />
-        )}
+      <body className="flex min-h-screen flex-col bg-neutral-950 text-neutral-100">
+        <NavBar showLock={mode !== "none"} />
+        {mode !== "none" && <IdleLock minutes={settings.autoLockMinutes} />}
+        {whatsNew && <WhatsNewNotice version={whatsNew} />}
+        <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6">{children}</main>
+        <footer className="border-t border-neutral-800 py-3 text-center text-[11px] tracking-[0.25em] text-neutral-500 print:hidden">
+          POWERED BY PRECISION SYSTEMS
+        </footer>
       </body>
     </html>
   );

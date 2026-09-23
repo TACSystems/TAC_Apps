@@ -2,6 +2,7 @@ import { lockedResponse } from "@/lib/api-guard";
 import fs from "fs";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
+import { openFile } from "@/lib/security-state";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pat
 
   const ext = path.extname(target).toLowerCase();
   const contentType = MIME[ext] ?? "application/octet-stream";
-  const buffer = fs.readFileSync(target);
+  const buffer = openFile(fs.readFileSync(target));
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
       "Content-Type": contentType,

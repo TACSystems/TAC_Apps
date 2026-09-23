@@ -100,7 +100,7 @@ export default function HomeLayoutEditor({ initial }: { initial: HomeLayout }) {
               setSaved(true);
             })
           }
-          className="bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-60"
+          className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60"
         >
           {pending ? "Saving…" : "Save Home Layout"}
         </button>

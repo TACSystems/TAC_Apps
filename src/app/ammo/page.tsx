@@ -8,6 +8,7 @@ import { ammoStatus } from "@/lib/ammo";
 import AmmoPurchaseFields from "@/components/AmmoPurchaseFields";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import Link from "next/link";
+import { fd } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,7 @@ export default async function AmmoPage() {
                 </div>
                 {pct != null && (
                   <div className="mt-2 h-2 overflow-hidden rounded bg-neutral-800">
-                    <div className={`h-full ${a.low ? "bg-red-600" : "bg-blue-600"}`} style={{ width: `${pct}%` }} />
+                    <div className={`h-full ${a.low ? "bg-red-600" : "bg-brand-olive"}`} style={{ width: `${pct}%` }} />
                   </div>
                 )}
                 {a.goal != null && (
@@ -107,7 +108,7 @@ export default async function AmmoPage() {
           />
           <button
             type="submit"
-            className="w-fit rounded bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500 sm:col-span-3"
+            className="w-fit rounded bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light sm:col-span-3"
           >
             Log Purchase
           </button>
@@ -134,7 +135,7 @@ export default async function AmmoPage() {
             <tbody>
               {purchases.map((p) => (
                 <tr key={p.id} className="border-t border-neutral-800">
-                  <td className="px-3 py-2">{p.date_purchased}</td>
+                  <td className="px-3 py-2">{fd(p.date_purchased)}</td>
                   <td className="px-3 py-2">{p.caliber}</td>
                   <td className="px-3 py-2">{p.manufacturer}</td>
                   <td className="px-3 py-2">{p.ammo_type}</td>
@@ -148,7 +149,7 @@ export default async function AmmoPage() {
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex gap-3">
-                      <Link href={`/ammo/purchases/${p.id}`} className="text-blue-400 hover:text-blue-300">
+                      <Link href={`/ammo/purchases/${p.id}`} className="text-brand-amber hover:text-brand-amber-light">
                         Edit
                       </Link>
                       <form action={deleteAmmoPurchase.bind(null, p.id)}>

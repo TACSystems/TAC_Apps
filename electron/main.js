@@ -1,35 +1,23 @@
 // TAC-LOG desktop shell.
-//
-// This does not reimplement the app — it spawns the same Next.js server
-// this project runs in the browser (built with `output: "standalone"`)
-// as a background process bound to 127.0.0.1, points a normal Electron
-// window at it, and shuts the server down when the window closes.
-//
-// The database and any uploaded receipt images live under Electron's
-// per-OS "userData" directory (NOT inside the installed app folder,
-// which is read-only once installed on both macOS and Windows) — see
-// dataDir below. That's a new location compared to running this project
-// with `npm run dev` / `npm run start`, where the data/ folder next to
-// the project is used instead; both paths go through the same
-// FIREARMS_DB_DIR override already built into src/lib/db/index.ts.
 
-const { app, BrowserWindow, Menu, shell } = require("electron");
+const { app, BrowserWindow, Menu, shell, dialog, ipcMain, powerMonitor, session, utilityProcess } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const net = require("net");
-const { spawn } = require("child_process");
 const http = require("http");
+const crypto = require("crypto");
 
 const isDev = !app.isPackaged;
 const PREFERRED_PORT = 47411;
+const LAUNCH_COOKIE = "taclog_launch";
+const launchSecret = crypto.randomBytes(32).toString("hex");
 
 let serverProcess = null;
 let mainWindow = null;
+let serverPort = null;
+let backupTimer = null;
 
 function resourcesRoot() {
-  // In dev, run against the repo's own .next/standalone build (you must
-  // `npm run build` first). Packaged, electron-builder's extraResources
-  // puts our prepared server + seed data under process.resourcesPath.
   return isDev ? path.join(__dirname, "..") : process.resourcesPath;
 }
 
@@ -64,7 +52,6 @@ function findFreePort(preferred) {
     const tester = net.createServer();
     tester.unref();
     tester.on("error", () => {
-      // Preferred port is busy — let the OS hand us any free one instead.
       const fallback = net.createServer();
       fallback.unref();
       fallback.listen(0, "127.0.0.1", () => {
@@ -79,7 +66,7 @@ function findFreePort(preferred) {
   });
 }
 
-function waitForServer(port, timeoutMs = 20000) {
+function waitForServer(port, timeoutMs = 30000) {
   const deadline = Date.now() + timeoutMs;
   return new Promise((resolve, reject) => {
     function attempt() {
@@ -104,17 +91,16 @@ async function startServer() {
   const dir = serverDir();
   const entry = path.join(dir, "server.js");
   if (!fs.existsSync(entry)) {
-    throw new Error(
-      `Couldn't find the built server at ${entry}. Run "npm run build" (and, for a packaged app, ` +
-        `"npm run electron:prepare") before starting or packaging the desktop app.`
-    );
+    throw new Error(`Couldn't find the built server at ${entry}. Run "npm run electron:prepare" first.`);
   }
 
   const port = await findFreePort(PREFERRED_PORT);
   const dir_ = ensureDataDir();
 
-  serverProcess = spawn(process.execPath, [entry], {
+  serverProcess = utilityProcess.fork(entry, [], {
     cwd: dir,
+    serviceName: "TAC-LOG Server",
+    stdio: isDev ? "inherit" : "ignore",
     env: {
       ...process.env,
       NODE_ENV: "production",
@@ -122,30 +108,51 @@ async function startServer() {
       HOSTNAME: "127.0.0.1",
       FIREARMS_DB_DIR: dir_,
       TAC_LOG_VERSION: app.getVersion(),
-      ELECTRON_RUN_AS_NODE: "1",
+      TAC_LOG_LAUNCH_SECRET: launchSecret,
+      NEXT_TELEMETRY_DISABLED: "1",
     },
-    stdio: isDev ? "inherit" : "ignore",
   });
 
   serverProcess.on("exit", (code) => {
-    if (code && code !== 0 && mainWindow) {
-      console.error(`TAC-LOG server exited unexpectedly (code ${code}).`);
-    }
+    serverProcess = null;
+    if (code && mainWindow) console.error(`TAC-LOG server exited unexpectedly (code ${code}).`);
   });
 
   await waitForServer(port);
+  serverPort = port;
   return port;
+}
+
+function origin() {
+  return `http://127.0.0.1:${serverPort}`;
+}
+
+async function callServer(route) {
+  if (!serverPort) return null;
+  try {
+    const res = await fetch(`${origin()}${route}`, {
+      method: "POST",
+      headers: { Cookie: `${LAUNCH_COOKIE}=${launchSecret}` },
+    });
+    return res.ok ? res.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+async function lockApp() {
+  await callServer("/api/lock");
+  for (const w of BrowserWindow.getAllWindows()) {
+    if (w !== mainWindow) w.close();
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.reload();
 }
 
 function buildMenu() {
   const template = [
     {
       label: "TAC-LOG",
-      submenu: [
-        { role: "about" },
-        { type: "separator" },
-        { role: "quit" },
-      ],
+      submenu: [{ role: "about" }, { type: "separator" }, { label: "Lock", accelerator: "CmdOrCtrl+L", click: () => lockApp() }, { type: "separator" }, { role: "quit" }],
     },
     {
       label: "Edit",
@@ -175,45 +182,93 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
+function hardenContents(contents) {
+  contents.on("will-navigate", (event, url) => {
+    if (!url.startsWith(origin())) {
+      event.preventDefault();
+      if (/^https?:/.test(url)) shell.openExternal(url);
+    }
+  });
+  contents.on("will-attach-webview", (event) => event.preventDefault());
+  contents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith(origin())) {
+      return {
+        action: "allow",
+        overrideBrowserWindowOptions: {
+          autoHideMenuBar: true,
+          webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+        },
+      };
+    }
+    if (/^https?:/.test(url)) shell.openExternal(url);
+    return { action: "deny" };
+  });
+}
+
 async function createWindow() {
-  const port = await startServer();
+  if (!serverPort) await startServer();
+
+  await session.defaultSession.cookies.set({
+    url: origin(),
+    name: LAUNCH_COOKIE,
+    value: launchSecret,
+    httpOnly: true,
+    sameSite: "strict",
+  });
 
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 900,
-    minWidth: 900,
-    minHeight: 600,
+    width: 1440,
+    height: 940,
+    minWidth: 960,
+    minHeight: 640,
     backgroundColor: "#0a0b08",
     title: "TAC-LOG",
     icon: path.join(__dirname, "icon.png"),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
+      webviewTag: false,
+      devTools: isDev,
+      preload: path.join(__dirname, "preload.js"),
     },
   });
-
-  // Anything that isn't a plain in-app navigation (an external link, a
-  // "print scorecard" target="_blank") opens in the OS browser instead of
-  // spawning a second Electron window.
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (!url.startsWith(`http://127.0.0.1:${port}`)) {
-      shell.openExternal(url);
-      return { action: "deny" };
-    }
-    return { action: "allow" };
+  mainWindow.on("closed", () => {
+    mainWindow = null;
   });
 
-  mainWindow.loadURL(`http://127.0.0.1:${port}`);
+  mainWindow.loadURL(origin());
+  mainWindow.webContents.once("did-finish-load", () => callServer("/api/auto-backup"));
 }
 
+app.on("web-contents-created", (_e, contents) => hardenContents(contents));
+
+ipcMain.handle("taclog:choose-folder", async (event) => {
+  if (!event.senderFrame || !event.senderFrame.url.startsWith(origin())) return null;
+  const win = BrowserWindow.fromWebContents(event.sender);
+  const result = await dialog.showOpenDialog(win, {
+    title: "Choose a folder for TAC-LOG backups",
+    properties: ["openDirectory", "createDirectory"],
+  });
+  return result.canceled || !result.filePaths.length ? null : result.filePaths[0];
+});
+
 app.whenReady().then(async () => {
+  session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) => cb(false));
   buildMenu();
   try {
     await createWindow();
   } catch (err) {
     console.error(err);
+    dialog.showErrorBox("TAC-LOG couldn't start", String(err && err.message ? err.message : err));
     app.quit();
+    return;
   }
+
+  powerMonitor.on("suspend", () => lockApp());
+  powerMonitor.on("lock-screen", () => lockApp());
+  backupTimer = setInterval(() => callServer("/api/auto-backup"), 30 * 60 * 1000);
+  powerMonitor.on("resume", () => callServer("/api/auto-backup"));
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -225,7 +280,9 @@ app.on("window-all-closed", () => {
 });
 
 app.on("before-quit", () => {
-  if (serverProcess && !serverProcess.killed) {
+  if (backupTimer) clearInterval(backupTimer);
+  if (serverProcess) {
     serverProcess.kill();
+    serverProcess = null;
   }
 });

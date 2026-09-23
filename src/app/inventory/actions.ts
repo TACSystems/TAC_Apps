@@ -1,5 +1,7 @@
 "use server";
 
+import { firearmLabel as labelOf } from "@/lib/settings-shared";
+
 import { getDb } from "@/lib/db";
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
@@ -22,13 +24,14 @@ export async function createFirearm(formData: FormData) {
   const db = getDb();
   db.prepare(
     `insert into firearms
-      (id, make_model, caliber, platform, serial_number, purchase_date, purchase_location,
+      (id, make_model, nickname, caliber, platform, serial_number, purchase_date, purchase_location,
        purchase_value, ffl_license_number, receipt, clean_interval_rounds, clean_interval_days, status, notes)
-     values (@id, @make_model, @caliber, @platform, @serial_number, @purchase_date, @purchase_location,
+     values (@id, @make_model, @nickname, @caliber, @platform, @serial_number, @purchase_date, @purchase_location,
        @purchase_value, @ffl_license_number, @receipt, @clean_interval_rounds, @clean_interval_days, @status, @notes)`
   ).run({
     id: randomUUID(),
     make_model: String(formData.get("make_model")),
+    nickname: s(formData, "nickname"),
     caliber: s(formData, "caliber"),
     platform: s(formData, "platform"),
     serial_number: s(formData, "serial_number"),
@@ -52,6 +55,7 @@ export async function updateFirearm(id: string, formData: FormData) {
   db.prepare(
     `update firearms set
       make_model = @make_model,
+      nickname = @nickname,
       caliber = @caliber,
       platform = @platform,
       serial_number = @serial_number,
@@ -68,6 +72,7 @@ export async function updateFirearm(id: string, formData: FormData) {
   ).run({
     id,
     make_model: String(formData.get("make_model")),
+    nickname: s(formData, "nickname"),
     caliber: s(formData, "caliber"),
     platform: s(formData, "platform"),
     serial_number: s(formData, "serial_number"),
@@ -115,10 +120,10 @@ function accessoryParams(formData: FormData) {
 
 function firearmLabel(id: string | null) {
   if (!id) return null;
-  const row = getDb().prepare(`select make_model from firearms where id = ?`).get(id) as
-    | { make_model: string }
+  const row = getDb().prepare(`select make_model, nickname from firearms where id = ?`).get(id) as
+    | { make_model: string; nickname: string | null }
     | undefined;
-  return row?.make_model ?? null;
+  return row ? labelOf(row, "both") : null;
 }
 
 export async function createAccessory(formData: FormData) {

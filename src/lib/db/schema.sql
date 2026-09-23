@@ -6,6 +6,7 @@
 create table if not exists firearms (
   id text primary key,
   make_model text not null,
+  nickname text,
   caliber text,
   platform text,
   serial_number text,

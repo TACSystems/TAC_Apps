@@ -2,13 +2,13 @@
 
 All notable changes to TAC-LOG, newest first.
 
-## [0.5.0] — Planned
+## [0.5.0] — 2026-09-23
 
 ### Added
 - Firearm nicknames, with a setting to show the nickname, the make/model, or both.
-- Automatic backups on a schedule to a folder you choose, keeping the most recent copies, plus a backup before every database upgrade.
+- Automatic backups on a schedule to a folder you choose, keeping the most recent copies, plus a safety copy of the database before every upgrade.
 - US date format (MM/DD/YYYY) option.
-- "What's New" screen in Settings → About showing this changelog.
+- "What's New" screen in Settings → About showing this changelog, with a one-time notice after each update.
 - New brand identity: amber stencil TL icon on olive (rounded tile on macOS), Courier New throughout, "TAC-LOG" header, "Powered by Precision Systems" in the footer and About.
 
 ### Changed
@@ -20,7 +20,8 @@ All notable changes to TAC-LOG, newest first.
 - Optional encryption of the database itself, with a printed recovery key. When encryption is on, a password (8+ characters) replaces the PIN.
 - Consistent wrong-attempt cooldown for the PIN, password, recovery key, and backup password. Waits escalate from 30 seconds up to 60 minutes, with a live countdown, and restarting the app no longer resets it.
 - Auto-lock when the computer sleeps or the screen locks.
-- Electron hardening: the server runs in a sandboxed utility process, and debugging and run-as-Node switches are turned off in shipped builds.
+- Photos, receipts, and documents are encrypted too when database encryption is on, along with the safety copies TAC-LOG keeps.
+- Electron hardening: the built-in server runs in its own utility process, the window is sandboxed with a content security policy and blocked navigation, and debugging and run-as-Node switches are turned off in shipped builds.
 
 ## [0.4.1] — 2026-09-23
 

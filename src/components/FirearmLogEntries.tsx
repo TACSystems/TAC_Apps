@@ -13,6 +13,7 @@ import SubmitButton from "@/components/SubmitButton";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import SuggestInput from "@/components/SuggestInput";
 import { money } from "@/lib/settings-shared";
+import { fd } from "@/lib/display";
 
 const input = "border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm";
 const saveBtn = "w-fit border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-xs hover:bg-neutral-700";
@@ -33,7 +34,7 @@ function Shell({
     <details className="group border border-neutral-800 bg-neutral-900 text-sm">
       <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-3 py-2">
         <div>{summary}</div>
-        <span className="shrink-0 text-xs text-blue-400 group-open:hidden">Edit</span>
+        <span className="shrink-0 text-xs text-brand-amber group-open:hidden">Edit</span>
         <span className="hidden shrink-0 text-xs text-neutral-500 group-open:inline">Close</span>
       </summary>
       <div className="flex flex-col gap-2 border-t border-neutral-800 px-3 py-3">
@@ -62,13 +63,13 @@ export function MaintenanceEntry({
     <Shell
       summary={
         <>
-          {entry.date} · {entry.type}
+          {fd(entry.date)} · {entry.type}
           {entry.shots_fired_at_time != null ? ` · at ${entry.shots_fired_at_time} rounds` : ""}
           {entry.notes ? <div className="text-neutral-500">{entry.notes}</div> : null}
         </>
       }
       deleteAction={deleteMaintenance.bind(null, firearmId, entry.id)}
-      confirm={`Delete this ${entry.type.toLowerCase()} entry from ${entry.date}?`}
+      confirm={`Delete this ${entry.type.toLowerCase()} entry from ${fd(entry.date)}?`}
     >
       <form action={updateMaintenance.bind(null, firearmId, entry.id)} className="grid grid-cols-1 gap-2 sm:grid-cols-4">
         <input type="date" name="date" required defaultValue={entry.date} className={input} />
@@ -107,14 +108,14 @@ export function MalfunctionEntry({
     <Shell
       summary={
         <>
-          {entry.date} · {entry.malfunction_type ?? "Unspecified"}
+          {fd(entry.date)} · {entry.malfunction_type ?? "Unspecified"}
           {entry.round_count_at_failure != null ? ` · at ${entry.round_count_at_failure} rounds` : ""}
           {entry.cause ? <div className="text-neutral-500">Cause: {entry.cause}</div> : null}
           {entry.notes ? <div className="text-neutral-500">{entry.notes}</div> : null}
         </>
       }
       deleteAction={deleteMalfunction.bind(null, firearmId, entry.id)}
-      confirm={`Delete this malfunction entry from ${entry.date}?`}
+      confirm={`Delete this malfunction entry from ${fd(entry.date)}?`}
     >
       <form action={updateMalfunction.bind(null, firearmId, entry.id)} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <input type="date" name="date" required defaultValue={entry.date} className={input} />
@@ -146,14 +147,14 @@ export function ZeroEntry({ firearmId, entry, distances }: { firearmId: string; 
     <Shell
       summary={
         <>
-          {entry.date} · {entry.distance ?? "—"} · {entry.optic ?? "—"}
+          {fd(entry.date)} · {entry.distance ?? "—"} · {entry.optic ?? "—"}
           {entry.ammo_description ? <div className="text-neutral-500">Ammo: {entry.ammo_description}</div> : null}
           {entry.adjustment ? <div className="text-neutral-500">Adjustment: {entry.adjustment}</div> : null}
           {entry.notes ? <div className="text-neutral-500">{entry.notes}</div> : null}
         </>
       }
       deleteAction={deleteZero.bind(null, firearmId, entry.id)}
-      confirm={`Delete this zero record from ${entry.date}?`}
+      confirm={`Delete this zero record from ${fd(entry.date)}?`}
     >
       <form action={updateZero.bind(null, firearmId, entry.id)} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <input type="date" name="date" required defaultValue={entry.date} className={input} />
@@ -223,7 +224,7 @@ export function DispositionEntry({ firearmId, entry, currency }: { firearmId: st
     <Shell
       summary={
         <>
-          {entry.date} · {entry.type}
+          {fd(entry.date)} · {entry.type}
           {entry.recipient_name ? ` · ${entry.recipient_name}` : ""}
           {entry.recipient_ffl ? ` · FFL ${entry.recipient_ffl}` : ""}
           {entry.price != null ? ` · ${money(entry.price, currency)}` : ""}

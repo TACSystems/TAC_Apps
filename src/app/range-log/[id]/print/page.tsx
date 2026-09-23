@@ -1,3 +1,4 @@
+import { fd } from "@/lib/display";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { DEFAULT_SCORECARD, loadCourse, parseJson, type LoadedCourse } from "@/lib/cof";
@@ -13,7 +14,7 @@ export default async function RangeLogPrintPage({ params }: { params: Promise<{ 
 
   const log = db
     .prepare(
-      `select rl.*, f.make_model as firearm_make_model from range_log rl
+      `select rl.*, firearm_label(f.make_model, f.nickname) as firearm_make_model from range_log rl
        left join firearms f on f.id = rl.firearm_id where rl.id = ?`
     )
     .get(id) as (RangeLog & { firearm_make_model: string | null }) | undefined;
@@ -41,7 +42,7 @@ export default async function RangeLogPrintPage({ params }: { params: Promise<{ 
 
   const fields: Record<string, string | null> = {
     ...parseJson<Record<string, string>>(log.custom_fields_json, {}),
-    date: log.date,
+    date: fd(log.date),
     range_location: log.range_location,
     weapon_used: [log.firearm_make_model, log.weapon_used].filter(Boolean).join(" — ") || null,
     caliber: log.caliber,

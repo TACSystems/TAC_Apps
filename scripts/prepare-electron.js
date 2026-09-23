@@ -67,8 +67,8 @@ if (fs.existsSync(publicDir)) {
   fs.cpSync(publicDir, path.join(serverOut, "public"), { recursive: true });
 }
 
-const prebuildsSrc = path.join(root, "node_modules", "better-sqlite3", "prebuilds");
-const prebuildsOut = path.join(serverOut, "node_modules", "better-sqlite3", "prebuilds");
+const prebuildsSrc = path.join(root, "node_modules", "better-sqlite3-multiple-ciphers", "prebuilds");
+const prebuildsOut = path.join(serverOut, "node_modules", "better-sqlite3-multiple-ciphers", "prebuilds");
 if (fs.existsSync(prebuildsSrc)) {
   fs.cpSync(prebuildsSrc, prebuildsOut, { recursive: true });
 }

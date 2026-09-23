@@ -24,7 +24,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link href="/courses" className="text-xs text-blue-400 hover:text-blue-300">
+          <Link href="/courses" className="text-xs text-brand-amber hover:text-brand-amber-light">
             ← Courses of Fire
           </Link>
           <h1 className="text-xl font-semibold">{course.name}</h1>
@@ -33,7 +33,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
             {course.target ? (
               <>
                 {" · target "}
-                <Link href={`/targets/${course.target.id}`} className="text-blue-400 hover:text-blue-300">
+                <Link href={`/targets/${course.target.id}`} className="text-brand-amber hover:text-brand-amber-light">
                   {course.target.name}
                 </Link>
               </>
@@ -42,10 +42,10 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
             )}
             {course.passing_score_percent != null ? ` · passing ${course.passing_score_percent}%` : ""}
           </p>
-          {course.notes && <p className="mt-2 max-w-2xl text-sm whitespace-pre-line text-neutral-300">{course.notes}</p>}
+          {course.notes && <p className="mt-2 max-w-4xl text-sm whitespace-pre-line text-neutral-300">{course.notes}</p>}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href={`/courses/${id}/log`} className="bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500">
+          <Link href={`/courses/${id}/log`} className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
             Log a Range Session
           </Link>
           <Link href={`/courses/${id}/print`} className={btn}>

@@ -7,6 +7,8 @@ export default function RestoreForm() {
   const router = useRouter();
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [needsPassword, setNeedsPassword] = useState(false);
+  const [password, setPassword] = useState("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,11 +30,21 @@ export default function RestoreForm() {
     setStatus(null);
     const body = new FormData();
     body.append("file", file);
+    if (password) body.append("password", password);
     try {
       const res = await fetch("/api/restore", { method: "POST", body });
       const data = await res.json();
       if (!res.ok) {
-        setStatus({ ok: false, message: data.error ?? "Restore failed." });
+        if (data.needsPassword) setNeedsPassword(true);
+        let message = data.error ?? "Restore failed.";
+        if (data.waitUntil) {
+          const secs = Math.ceil((data.waitUntil - Date.now()) / 1000);
+          message += ` Try again in ${secs < 60 ? `${secs} seconds` : `${Math.ceil(secs / 60)} minutes`}.`;
+        } else if (data.attemptsLeft > 0) {
+          message += ` ${data.attemptsLeft} ${data.attemptsLeft === 1 ? "attempt" : "attempts"} left before a wait.`;
+        }
+        setStatus({ ok: false, message });
+        setPassword("");
       } else {
         setStatus({
           ok: true,
@@ -56,7 +68,25 @@ export default function RestoreForm() {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <input type="file" name="file" accept=".zip,.db,application/zip" className="text-sm text-neutral-400" />
+        <input
+          type="file"
+          name="file"
+          accept=".zip,.tlbak,.db,application/zip"
+          className="text-sm text-neutral-400"
+          onChange={() => {
+            setStatus(null);
+            setNeedsPassword(false);
+          }}
+        />
+        {needsPassword && (
+          <input
+            type="password"
+            placeholder="Backup password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm"
+          />
+        )}
         <button
           type="submit"
           disabled={busy}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { isUnlocked } from "@/lib/lock";
+import { isUnlocked } from "@/lib/security-state";
 
 export async function lockedResponse(): Promise<NextResponse | null> {
-  return (await isUnlocked()) ? null : new NextResponse("TAC-LOG is locked.", { status: 401 });
+  return isUnlocked() ? null : new NextResponse("TAC-LOG is locked.", { status: 401 });
 }

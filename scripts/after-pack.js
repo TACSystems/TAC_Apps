@@ -8,6 +8,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { flipFuses, FuseVersion, FuseV1Options } = require("@electron/fuses");
 
 module.exports = async function afterPack(context) {
   const src = path.join(__dirname, "..", "electron", "resources", "server");
@@ -27,4 +28,22 @@ module.exports = async function afterPack(context) {
   fs.rmSync(dest, { recursive: true, force: true });
   fs.cpSync(src, dest, { recursive: true });
   console.log(`after-pack: copied server bundle to ${dest}`);
+
+  const name = context.packager.appInfo.productFilename;
+  const binary =
+    context.electronPlatformName === "darwin"
+      ? path.join(context.appOutDir, `${name}.app`, "Contents", "MacOS", name)
+      : context.electronPlatformName === "win32"
+        ? path.join(context.appOutDir, `${name}.exe`)
+        : path.join(context.appOutDir, context.packager.executableName);
+  await flipFuses(binary, {
+    version: FuseVersion.V1,
+    resetAdHocDarwinSignature: context.electronPlatformName === "darwin" && process.platform === "darwin",
+    [FuseV1Options.RunAsNode]: false,
+    [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
+    [FuseV1Options.EnableNodeCliInspectArguments]: false,
+    [FuseV1Options.OnlyLoadAppFromAsar]: true,
+    [FuseV1Options.GrantFileProtocolExtraPrivileges]: false,
+  });
+  console.log(`after-pack: flipped security fuses on ${binary}`);
 };

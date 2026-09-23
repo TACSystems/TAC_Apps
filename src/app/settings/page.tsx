@@ -6,9 +6,14 @@ import ImportCofForm from "@/components/ImportCofForm";
 import RestoreForm from "@/components/RestoreForm";
 import { saveSettingsForm } from "./actions";
 import SubmitButton from "@/components/SubmitButton";
-import PinSettings from "@/components/PinSettings";
+import Link from "next/link";
+import SecuritySettings from "@/components/SecuritySettings";
+import BackupSettings from "@/components/BackupSettings";
 import SpreadsheetImport from "@/components/SpreadsheetImport";
-import { pinIsSet } from "@/lib/lock";
+import { securityMode, isEncrypted } from "@/lib/security-state";
+import { savedBackupKey } from "@/lib/backup";
+import { getAutoBackup, getAutoBackupStatus } from "@/lib/auto-backup";
+import { DATE_FORMATS, FIREARM_LABEL_MODES } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -30,37 +35,46 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const s = getSettings(db);
   const dir = dataDir();
   const count = (sql: string) => (db.prepare(sql).get() as { n: number }).n;
+  const auto = getAutoBackup(db);
+  const autoStatus = getAutoBackupStatus(db);
   const dbBytes =
     fileSize(path.join(dir, "firearms.db")) + fileSize(path.join(dir, "firearms.db-wal"));
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
+    <div className="flex max-w-5xl flex-col gap-6">
       <div>
         <h1 className="text-xl font-semibold">Settings</h1>
         <p className="text-sm text-neutral-400">Backups, course imports, and app-wide defaults.</p>
       </div>
 
       <section className={card}>
-        <h2 className="mb-1 font-medium text-neutral-200">App Lock</h2>
-        <PinSettings pinSet={pinIsSet(db)} autoLockMinutes={s.autoLockMinutes} />
+        <h2 className="mb-1 font-medium text-neutral-200">Security</h2>
+        <SecuritySettings mode={securityMode()} autoLockMinutes={s.autoLockMinutes} />
       </section>
 
       <section className={card}>
         <h2 className="mb-1 font-medium text-neutral-200">Backup</h2>
         <p className="mb-3 text-sm text-neutral-400">
-          Downloads one .zip with your entire database and every receipt image. Everything lives on this
-          computer only, with no cloud copy, so keep backups somewhere safe (a USB drive or your own cloud storage).
+          A full backup is one file with your entire database and every photo and receipt. Everything lives on this
+          computer only, with no cloud copy, so keep backups somewhere safe.
         </p>
-        <a href="/api/export" className={btn}>
-          Download Full Backup
-        </a>
+        <BackupSettings
+          hasPassword={Boolean(savedBackupKey(db))}
+          encrypted={isEncrypted()}
+          frequency={auto.frequency}
+          folder={auto.folder}
+          keep={auto.keep}
+          lastRun={autoStatus.lastRun}
+          lastFile={autoStatus.lastFile}
+          lastError={autoStatus.lastError}
+        />
       </section>
 
       <section className={card}>
         <h2 className="mb-1 font-medium text-neutral-200">Restore</h2>
         <p className="mb-3 text-sm text-neutral-400">
-          Replace this computer&apos;s data with a TAC-LOG backup (.zip), or with an older database-only backup
-          (.db). Also how you move TAC-LOG to a new computer. Older backups are upgraded automatically.
+          Replace this computer&apos;s data with a TAC-LOG backup (.tlbak or .zip), or with an older database-only
+          backup (.db). Also how you move TAC-LOG to a new computer. Older backups are upgraded automatically.
         </p>
         <RestoreForm />
       </section>
@@ -190,22 +204,52 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
         <section className={card}>
           <h2 className="mb-3 font-medium text-neutral-200">Display</h2>
-          <label className="flex w-40 flex-col gap-1 text-sm">
-            Currency Symbol
-            <input name="currencySymbol" defaultValue={s.currencySymbol} maxLength={4} className={input} />
-          </label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <label className="flex flex-col gap-1 text-sm">
+              Show Firearms As
+              <select name="firearmLabel" defaultValue={s.firearmLabel} className={input}>
+                {Object.entries(FIREARM_LABEL_MODES).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Date Format
+              <select name="dateFormat" defaultValue={s.dateFormat} className={input}>
+                {Object.entries(DATE_FORMATS).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Currency Symbol
+              <input name="currencySymbol" defaultValue={s.currencySymbol} maxLength={4} className={input} />
+            </label>
+          </div>
+          <p className="mt-2 text-xs text-neutral-500">
+            The Inventory Report for insurance always lists make, model, and serial number, whatever you pick here.
+          </p>
         </section>
 
         <SubmitButton
           pendingLabel="Saving…"
-          className="w-fit bg-blue-600 px-5 py-2 text-sm font-medium hover:bg-blue-500"
+          className="w-fit bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light"
         >
           Save Settings
         </SubmitButton>
       </form>
 
       <section className={card}>
-        <h2 className="mb-2 font-medium text-neutral-200">About</h2>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-medium text-neutral-200">About</h2>
+          <Link href="/settings/whats-new" className="text-sm text-brand-amber hover:text-brand-amber-light">
+            What&apos;s New / Changelog
+          </Link>
+        </div>
         <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-1 text-sm">
           <dt className="text-neutral-500">Version</dt>
           <dd>TAC-LOG {process.env.TAC_LOG_VERSION ?? "(development)"}</dd>
@@ -220,7 +264,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             {count(`select count(*) as n from range_log`)} range sessions ·{" "}
             {count(`select count(*) as n from attachments`)} photos &amp; documents
           </dd>
+          <dt className="text-neutral-500">Encryption</dt>
+          <dd>{isEncrypted() ? "On (SQLCipher, AES-256)" : "Off"}</dd>
         </dl>
+        <p className="mt-4 text-center text-[11px] tracking-[0.25em] text-neutral-500">POWERED BY PRECISION SYSTEMS</p>
       </section>
     </div>
   );

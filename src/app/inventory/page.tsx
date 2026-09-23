@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db";
 import type { Firearm } from "@/lib/db/types";
 import StatusBadge from "@/components/StatusBadge";
 import SearchBox from "@/components/SearchBox";
+import { label } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export default async function InventoryPage() {
           </Link>
           <Link
             href="/inventory/new"
-            className="bg-blue-600 px-3 py-2 text-sm font-medium hover:bg-blue-500"
+            className="bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light"
           >
             + Add Firearm
           </Link>
@@ -53,12 +54,12 @@ export default async function InventoryPage() {
         }
         rows={firearms.map((f) => ({
           key: f.id,
-          text: `${f.make_model} ${f.caliber ?? ""} ${f.platform ?? ""} ${f.serial_number ?? ""}`,
+          text: `${f.make_model} ${f.nickname ?? ""} ${f.caliber ?? ""} ${f.platform ?? ""} ${f.serial_number ?? ""}`,
           row: (
             <tr key={f.id} className="border-t border-neutral-800 hover:bg-neutral-900">
               <td className="px-3 py-2">
-                <Link href={`/inventory/${f.id}`} className="text-blue-400 hover:text-blue-300">
-                  {f.make_model}
+                <Link href={`/inventory/${f.id}`} className="text-brand-amber hover:text-brand-amber-light">
+                  {label(f)}
                 </Link>
               </td>
               <td className="px-3 py-2">{f.caliber}</td>

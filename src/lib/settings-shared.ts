@@ -27,6 +27,23 @@ export type AppSettings = {
   lowAmmoPercent: number;
   currencySymbol: string;
   autoLockMinutes: number;
+  firearmLabel: FirearmLabelMode;
+  dateFormat: DateFormat;
+};
+
+export type FirearmLabelMode = "make_model" | "nickname" | "both";
+export type DateFormat = "us" | "iso" | "eu";
+
+export const FIREARM_LABEL_MODES: Record<FirearmLabelMode, string> = {
+  make_model: "Make / Model",
+  nickname: "Nickname (when set)",
+  both: "Nickname and Make / Model",
+};
+
+export const DATE_FORMATS: Record<DateFormat, string> = {
+  us: "MM/DD/YYYY",
+  iso: "YYYY-MM-DD",
+  eu: "DD/MM/YYYY",
 };
 
 export const DEFAULT_HOME: HomeLayout = {
@@ -54,6 +71,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lowAmmoPercent: 50,
   currencySymbol: "$",
   autoLockMinutes: 0,
+  firearmLabel: "both",
+  dateFormat: "us",
 };
 
 export function normalizeHome(raw: unknown): HomeLayout {
@@ -79,4 +98,28 @@ export function normalizeHome(raw: unknown): HomeLayout {
 
 export function money(value: number, symbol: string) {
   return `${symbol}${value.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}
+
+export function formatDate(value: string | null | undefined, format: DateFormat = "us"): string {
+  if (!value) return "";
+  const m = String(value).match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+  if (!m) return String(value);
+  const [, y, mo, d, rest] = m;
+  const time = rest.match(/[T ](\d{2}):(\d{2})/);
+  const base = format === "iso" ? `${y}-${mo}-${d}` : format === "eu" ? `${d}/${mo}/${y}` : `${mo}/${d}/${y}`;
+  return time ? `${base} ${time[1]}:${time[2]}` : base;
+}
+
+export function formatDay(value: string | null | undefined, format: DateFormat = "us"): string {
+  return formatDate(value ? String(value).slice(0, 10) : value, format);
+}
+
+export type LabelledFirearm = { make_model: string; nickname?: string | null };
+
+export function firearmLabel(f: LabelledFirearm | null | undefined, mode: FirearmLabelMode = "both"): string {
+  if (!f) return "";
+  const nick = f.nickname?.trim();
+  if (!nick || mode === "make_model") return f.make_model;
+  if (mode === "nickname") return nick;
+  return `${nick} (${f.make_model})`;
 }

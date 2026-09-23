@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { Firearm, AmmoPurchase, CourseOfFire, RangeLog } from "@/lib/db/types";
+import { label, fd } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
 
@@ -24,10 +25,10 @@ export default async function SearchPage({
     firearms = db
       .prepare(
         `select * from firearms
-         where lower(make_model) like ? or lower(coalesce(serial_number,'')) like ? or lower(coalesce(caliber,'')) like ?
+         where lower(make_model) like ? or lower(coalesce(nickname,'')) like ? or lower(coalesce(serial_number,'')) like ? or lower(coalesce(caliber,'')) like ?
          order by make_model`
       )
-      .all(needle, needle, needle) as Firearm[];
+      .all(needle, needle, needle, needle) as Firearm[];
 
     ammo = db
       .prepare(
@@ -92,7 +93,7 @@ export default async function SearchPage({
                 href={`/inventory/${f.id}`}
                 className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm hover:border-neutral-600"
               >
-                {f.make_model} {f.caliber ? `· ${f.caliber}` : ""}
+                {label(f)} {f.caliber ? `· ${f.caliber}` : ""}
               </Link>
             ))}
           </div>
@@ -143,7 +144,7 @@ export default async function SearchPage({
                 href={`/range-log/${l.id}`}
                 className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm hover:border-neutral-600"
               >
-                {l.date} · {l.cof_name ?? "Unlisted course"} · {l.range_location ?? "—"}
+                {fd(l.date)} · {l.cof_name ?? "Unlisted course"} · {l.range_location ?? "—"}
               </Link>
             ))}
           </div>

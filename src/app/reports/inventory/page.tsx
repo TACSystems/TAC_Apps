@@ -4,6 +4,7 @@ import type { Accessory, Firearm } from "@/lib/db/types";
 import { getSettings, money } from "@/lib/settings";
 import PrintButton from "@/components/PrintButton";
 import { PrintFooter } from "@/components/CourseSheet";
+import { fd } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +114,7 @@ export default async function InventoryReportPage({
             <div className="flex items-baseline justify-between gap-2">
               <h2 className="text-lg font-bold uppercase">
                 {i + 1}. {f.make_model}
+                {f.nickname ? <span className="ml-2 text-sm font-normal normal-case">&ldquo;{f.nickname}&rdquo;</span> : null}
               </h2>
               <span className="text-xs uppercase">{f.status}</span>
             </div>
@@ -130,7 +132,7 @@ export default async function InventoryReportPage({
                 <b>Purchase value:</b> {f.purchase_value != null ? money(f.purchase_value, cur) : "—"}
               </div>
               <div>
-                <b>Purchased:</b> {f.purchase_date ?? "—"}
+                <b>Purchased:</b> {fd(f.purchase_date) || "—"}
               </div>
               <div>
                 <b>From:</b> {f.purchase_location ?? "—"}
@@ -201,7 +203,7 @@ export default async function InventoryReportPage({
                   <td className={cell}>{a.make_model}</td>
                   <td className={cell}>{a.type ?? "—"}</td>
                   <td className={cell}>{a.serial_number ?? "—"}</td>
-                  <td className={cell}>{a.acquisition_date ?? "—"}</td>
+                  <td className={cell}>{fd(a.acquisition_date) || "—"}</td>
                   <td className={`${cell} text-right`}>{a.purchase_value != null ? money(a.purchase_value, cur) : "—"}</td>
                 </tr>
               ))}
@@ -230,7 +232,7 @@ export default async function InventoryReportPage({
                     <td className={cell}>{f.serial_number ?? "—"}</td>
                     <td className={cell}>
                       {d
-                        ? `${d.date} · ${d.type}${d.recipient_name ? ` to ${d.recipient_name}` : ""}${
+                        ? `${fd(d.date)} · ${d.type}${d.recipient_name ? ` to ${d.recipient_name}` : ""}${
                             d.recipient_ffl ? ` (FFL ${d.recipient_ffl})` : ""
                           }${d.price != null ? ` · ${money(d.price, cur)}` : ""}`
                         : "No sale/transfer record entered"}

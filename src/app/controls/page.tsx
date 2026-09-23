@@ -102,7 +102,7 @@ export default async function ControlsPage({ searchParams }: { searchParams: Pro
                     placeholder="Add a new option…"
                     className="w-64 border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm normal-case"
                   />
-                  <button type="submit" className="bg-blue-600 px-3 py-2 text-sm font-medium hover:bg-blue-500">
+                  <button type="submit" className="bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light">
                     Add
                   </button>
                 </form>

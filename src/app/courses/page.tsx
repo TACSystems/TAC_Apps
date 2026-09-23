@@ -20,7 +20,7 @@ export default async function CoursesPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Courses of Fire</h1>
         <div className="flex flex-wrap gap-2">
-          <Link href="/courses/new" className="bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500">
+          <Link href="/courses/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
             Build New Course
           </Link>
           <Link href="/targets" className={btn}>
@@ -44,16 +44,16 @@ export default async function CoursesPage() {
               </div>
             </Link>
             <div className="flex gap-4 border-t border-neutral-800 px-4 py-2 text-xs">
-              <Link href={`/courses/${c.id}/log`} className="text-blue-400 hover:text-blue-300">
+              <Link href={`/courses/${c.id}/log`} className="text-brand-amber hover:text-brand-amber-light">
                 Log a Range Session
               </Link>
-              <Link href={`/courses/${c.id}/print`} className="text-blue-400 hover:text-blue-300">
+              <Link href={`/courses/${c.id}/print`} className="text-brand-amber hover:text-brand-amber-light">
                 Print
               </Link>
-              <Link href={`/courses/${c.id}/edit`} className="text-blue-400 hover:text-blue-300">
+              <Link href={`/courses/${c.id}/edit`} className="text-brand-amber hover:text-brand-amber-light">
                 Edit
               </Link>
-              <Link href={`/courses/new?from=${c.id}`} className="text-blue-400 hover:text-blue-300">
+              <Link href={`/courses/new?from=${c.id}`} className="text-brand-amber hover:text-brand-amber-light">
                 Duplicate
               </Link>
             </div>

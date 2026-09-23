@@ -24,9 +24,9 @@ type BRow = StringRow & { uid: string };
 type BPhase = { uid: string; title: string; notes: string; total: string; strings: BRow[] };
 
 const input = "border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm normal-case";
-const cellInput = "w-full min-w-[5rem] border border-neutral-800 bg-neutral-950 px-2 py-1 text-sm normal-case";
+const cellInput = "w-full min-w-[4rem] border border-neutral-800 bg-neutral-950 px-2 py-1 text-sm normal-case";
 const smallBtn = "border border-neutral-700 px-2 py-0.5 text-xs hover:bg-neutral-800 disabled:opacity-30";
-const addLink = "text-sm text-blue-400 hover:text-blue-300";
+const addLink = "text-sm text-brand-amber hover:text-brand-amber-light";
 
 function uid() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -302,7 +302,7 @@ export default function CourseBuilder({
           <div className="flex flex-col justify-end text-xs text-neutral-500">
             Calculated from strings: {computedTotal} rounds
             {toNum(totalOverride) != null && toNum(totalOverride) !== computedTotal && (
-              <span className="text-blue-400">Override in use ({effectiveTotal})</span>
+              <span className="text-brand-amber">Override in use ({effectiveTotal})</span>
             )}
           </div>
           <label className="flex flex-col gap-1 text-sm sm:col-span-3">
@@ -508,13 +508,13 @@ export default function CourseBuilder({
               />
 
               <div className="overflow-x-auto border border-neutral-800">
-                <table className="w-full text-left text-sm">
+                <table className="w-full table-auto text-left text-sm">
                   <thead className="bg-neutral-900 text-xs text-neutral-400">
                     <tr>
-                      <th className="px-2 py-2">#</th>
-                      <th className="px-2 py-2">Option</th>
+                      <th className="w-20 px-2 py-2">#</th>
+                      <th className="w-28 px-2 py-2">Option</th>
                       {columns.map((c) => (
-                        <th key={c.key} className="px-2 py-2">
+                        <th key={c.key} className={`px-2 py-2 ${c.key === "action" ? "w-[32%]" : ""}`}>
                           {c.label}
                         </th>
                       ))}
@@ -530,7 +530,7 @@ export default function CourseBuilder({
                               value={row.values.action ?? ""}
                               onChange={(e) => setCell(phase.uid, row.uid, "action", e.target.value)}
                               placeholder="Instruction row, e.g. * TRANSITION TO 7 YARD LINE *"
-                              className={`${cellInput} text-center text-blue-400`}
+                              className={`${cellInput} text-center text-brand-amber`}
                             />
                           </td>
                         ) : (
@@ -561,7 +561,7 @@ export default function CourseBuilder({
                                     value={row.values[c.key] ?? ""}
                                     onChange={(e) => setCell(phase.uid, row.uid, c.key, e.target.value)}
                                     rows={1}
-                                    className={`${cellInput} !min-w-[14rem]`}
+                                    className={`${cellInput} !min-w-[12rem] resize-none [field-sizing:content]`}
                                   />
                                 </td>
                               ) : (
@@ -797,7 +797,7 @@ export default function CourseBuilder({
           type="button"
           onClick={save}
           disabled={pending}
-          className="bg-blue-600 px-5 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-60"
+          className="bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60"
         >
           {pending ? "Saving…" : mode === "edit" ? "Save Changes" : "Save Course"}
         </button>

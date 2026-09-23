@@ -1,70 +1,57 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db";
 import { updateSettings } from "@/lib/settings";
-import {
-  LOCK_COOKIE,
-  checkPin,
-  clearPin,
-  issueToken,
-  pinIsSet,
-  revokeToken,
-  setPin,
-  validPinFormat,
-} from "@/lib/lock";
+import * as sec from "@/lib/security";
+import { runAutoBackupIfDue } from "@/lib/auto-backup";
 
-async function startSession() {
-  const store = await cookies();
-  store.set(LOCK_COOKIE, issueToken(), { httpOnly: true, sameSite: "strict", path: "/" });
+function done<T>(res: T) {
+  revalidatePath("/", "layout");
+  return res;
 }
 
-export async function unlock(pin: string): Promise<{ ok: boolean; error?: string }> {
-  const res = checkPin(getDb(), String(pin ?? ""));
-  if (!res.ok) {
-    return {
-      ok: false,
-      error: res.waitSeconds ? `Too many wrong attempts. Try again in ${res.waitSeconds} seconds.` : "Wrong PIN.",
-    };
+export async function unlock(secret: string) {
+  const res = sec.unlock(String(secret ?? ""));
+  if (res.ok) {
+    try {
+      runAutoBackupIfDue();
+    } catch {}
   }
-  await startSession();
-  revalidatePath("/", "layout");
-  return { ok: true };
+  return done(res);
+}
+
+export async function unlockWithRecovery(recovery: string, password: string, confirm: string) {
+  return done(sec.unlockWithRecovery(String(recovery ?? ""), String(password ?? ""), String(confirm ?? "")));
 }
 
 export async function lockNow() {
-  const store = await cookies();
-  revokeToken(store.get(LOCK_COOKIE)?.value);
-  store.delete(LOCK_COOKIE);
+  sec.lock();
   revalidatePath("/", "layout");
 }
 
-export async function savePin(
-  current: string,
-  next: string,
-  confirm: string
-): Promise<{ ok: boolean; error?: string; message?: string }> {
-  const db = getDb();
-  if (pinIsSet(db)) {
-    const res = checkPin(db, current);
-    if (!res.ok) return { ok: false, error: res.waitSeconds ? `Too many wrong attempts. Wait ${res.waitSeconds}s.` : "Current PIN is wrong." };
-  }
-  if (!validPinFormat(next)) return { ok: false, error: "PIN must be 4 to 12 digits." };
-  if (next !== confirm) return { ok: false, error: "The two new PIN entries don't match." };
-  setPin(db, next);
-  await startSession();
-  revalidatePath("/", "layout");
-  return { ok: true, message: "PIN saved. TAC-LOG will ask for it each time it opens." };
+export async function savePin(current: string, next: string, confirm: string) {
+  return done(sec.setPin(String(current ?? ""), String(next ?? ""), String(confirm ?? "")));
 }
 
-export async function removePin(current: string): Promise<{ ok: boolean; error?: string; message?: string }> {
-  const db = getDb();
-  const res = checkPin(db, current);
-  if (!res.ok) return { ok: false, error: res.waitSeconds ? `Too many wrong attempts. Wait ${res.waitSeconds}s.` : "Current PIN is wrong." };
-  clearPin(db);
-  revalidatePath("/", "layout");
-  return { ok: true, message: "PIN removed." };
+export async function removePin(current: string) {
+  return done(sec.removePin(String(current ?? "")));
+}
+
+export async function enableEncryption(current: string, password: string, confirm: string) {
+  return done(sec.enableEncryption(String(current ?? ""), String(password ?? ""), String(confirm ?? "")));
+}
+
+export async function changePassword(current: string, next: string, confirm: string) {
+  return done(sec.changePassword(String(current ?? ""), String(next ?? ""), String(confirm ?? "")));
+}
+
+export async function newRecoveryKey(current: string) {
+  return done(sec.newRecovery(String(current ?? "")));
+}
+
+export async function disableEncryption(current: string) {
+  return done(sec.disableEncryption(String(current ?? "")));
 }
 
 export async function saveAutoLock(minutes: number) {

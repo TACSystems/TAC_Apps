@@ -13,7 +13,7 @@ const styles: Record<Variant, { table: string; th: string; td: string; note: str
     table: "w-full text-left text-sm",
     th: "bg-neutral-900 px-3 py-2 text-neutral-400",
     td: "border-t border-neutral-800 px-3 py-2 align-top",
-    note: "border-t border-neutral-800 bg-neutral-950 px-3 py-2 text-center text-xs tracking-widest text-blue-400",
+    note: "border-t border-neutral-800 bg-neutral-950 px-3 py-2 text-center text-xs tracking-widest text-brand-amber",
     muted: "text-neutral-500",
     h2: "mb-2 font-medium text-neutral-200",
   },

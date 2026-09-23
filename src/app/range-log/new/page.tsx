@@ -13,8 +13,8 @@ export default async function NewRangeSessionPage() {
     )
     .all() as (CourseOfFire & { last_run: string | null })[];
   const firearms = db
-    .prepare(`select id, make_model from firearms where status = 'active' order by make_model`)
-    .all() as Pick<Firearm, "id" | "make_model">[];
+    .prepare(`select id, make_model, firearm_label(make_model, nickname) as label from firearms where status = 'active' order by make_model`)
+    .all() as Pick<Firearm, "id" | "make_model" | "label">[];
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,7 +42,7 @@ export default async function NewRangeSessionPage() {
         {courses.length === 0 && (
           <p className="text-sm text-neutral-500">
             No courses of fire yet.{" "}
-            <Link href="/courses/new" className="text-blue-400 hover:text-blue-300">
+            <Link href="/courses/new" className="text-brand-amber hover:text-brand-amber-light">
               Build one
             </Link>
             .
@@ -62,7 +62,7 @@ export default async function NewRangeSessionPage() {
               href={`/inventory/${f.id}#rounds-fired`}
               className="border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800"
             >
-              {f.make_model}
+              {f.label ?? f.make_model}
             </Link>
           ))}
           {firearms.length === 0 && <span className="text-sm text-neutral-500">No active firearms in the armory.</span>}

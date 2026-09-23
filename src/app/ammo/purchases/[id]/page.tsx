@@ -16,8 +16,8 @@ export default async function EditAmmoPurchasePage({ params }: { params: Promise
   if (!purchase) notFound();
 
   return (
-    <div className="max-w-3xl">
-      <Link href="/ammo" className="text-xs text-blue-400 hover:text-blue-300">
+    <div className="max-w-4xl">
+      <Link href="/ammo" className="text-xs text-brand-amber hover:text-brand-amber-light">
         ← Ammo
       </Link>
       <h1 className="mb-4 text-xl font-semibold">Edit Ammo Purchase</h1>
@@ -28,7 +28,7 @@ export default async function EditAmmoPurchasePage({ params }: { params: Promise
           ammoTypeOptions={getDropdownOptions(db, "ammo_type")}
           caliberOptions={getDropdownOptions(db, "caliber")}
         />
-        <SubmitButton className="w-fit rounded bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500 sm:col-span-3">
+        <SubmitButton className="w-fit rounded bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light sm:col-span-3">
           Save Changes
         </SubmitButton>
       </form>

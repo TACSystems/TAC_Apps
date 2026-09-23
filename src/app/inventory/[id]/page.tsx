@@ -40,6 +40,7 @@ import type {
 } from "@/lib/db/types";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { label, fd } from "@/lib/display";
 
 export default async function FirearmDetailPage({
   params,
@@ -133,21 +134,26 @@ export default async function FirearmDetailPage({
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <Link href="/inventory" className="text-xs text-blue-400 hover:text-blue-300">
+        <Link href="/inventory" className="text-xs text-brand-amber hover:text-brand-amber-light">
           ← Armory
         </Link>
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">{firearm.make_model}</h1>
+          <div>
+            <h1 className="text-xl font-semibold">{label(firearm)}</h1>
+            {firearm.nickname && label(firearm) === firearm.nickname && (
+              <p className="text-sm text-neutral-400">{firearm.make_model}</p>
+            )}
+          </div>
           <form action={deleteWithId}>
             <ConfirmSubmitButton
-              confirmMessage={`Delete ${firearm.make_model}? This also removes its photos, receipts, sale records, maintenance, malfunction, and zero log entries. Its accessories and range log history stay on file but will no longer show a linked firearm. This cannot be undone.`}
+              confirmMessage={`Delete ${label(firearm)}? This also removes its photos, receipts, sale records, maintenance, malfunction, and zero log entries. Its accessories and range log history stay on file but will no longer show a linked firearm. This cannot be undone.`}
               className="border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200 hover:bg-red-900"
             >
               Delete
             </ConfirmSubmitButton>
           </form>
         </div>
-        <div className="max-w-2xl">
+        <div className="max-w-4xl">
           <FirearmForm
             firearm={firearm}
             action={updateWithId}
@@ -158,7 +164,7 @@ export default async function FirearmDetailPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 border border-neutral-800 bg-neutral-900 p-4 sm:max-w-2xl sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 border border-neutral-800 bg-neutral-900 p-4 sm:max-w-4xl sm:grid-cols-4">
         <div>
           <div className="text-xs text-neutral-500">Shots Fired</div>
           <div className="text-lg">{firearm.shots_fired}</div>
@@ -184,7 +190,7 @@ export default async function FirearmDetailPage({
                 ? "Due"
                 : firearm.clean_interval_rounds
                   ? `${upkeep.roundsSince}/${firearm.clean_interval_rounds}`
-                  : `by ${upkeep.nextDueDate}`}
+                  : `by ${fd(upkeep.nextDueDate)}`}
           </div>
         </div>
       </div>
@@ -195,7 +201,7 @@ export default async function FirearmDetailPage({
           Record rounds fired outside a logged range session (practice, plinking, function checks). Adds to this
           firearm&apos;s shot count and cleaning counter.
         </p>
-        <form action={logRoundsFired.bind(null, id)} className="grid grid-cols-1 gap-2 sm:max-w-2xl sm:grid-cols-4">
+        <form action={logRoundsFired.bind(null, id)} className="grid grid-cols-1 gap-2 sm:max-w-4xl sm:grid-cols-4">
           <label className="flex flex-col gap-1 text-xs">
             Date
             <input
@@ -236,20 +242,20 @@ export default async function FirearmDetailPage({
           </label>
           <SubmitButton
             pendingLabel="Recording…"
-            className="w-fit bg-blue-600 px-3 py-2 text-sm font-medium hover:bg-blue-500 sm:col-span-4"
+            className="w-fit bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light sm:col-span-4"
           >
             Record Rounds Fired
           </SubmitButton>
         </form>
         {roundsLog.length > 0 && (
-          <div className="mt-3 flex flex-col gap-1 sm:max-w-2xl">
+          <div className="mt-3 flex flex-col gap-1 sm:max-w-4xl">
             {roundsLog.slice(0, 10).map((r) => (
               <div
                 key={r.id}
                 className="flex items-center justify-between gap-2 border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-sm"
               >
                 <span>
-                  {r.date} · {r.rounds} rds{r.caliber ? ` · ${r.caliber}` : ""}
+                  {fd(r.date)} · {r.rounds} rds{r.caliber ? ` · ${r.caliber}` : ""}
                   {r.ammo_lot ? ` · Lot ${r.ammo_lot}` : ""}
                   {!r.deduct_from_ammo ? <span className="text-neutral-500"> · not deducted from ammo</span> : null}
                   {r.notes ? <span className="text-neutral-500"> · {r.notes}</span> : null}
@@ -295,7 +301,7 @@ export default async function FirearmDetailPage({
         </div>
         <Link
           href={`/inventory/accessories/new?firearm_id=${id}`}
-          className="mt-2 inline-block text-sm text-blue-400 hover:text-blue-300"
+          className="mt-2 inline-block text-sm text-brand-amber hover:text-brand-amber-light"
         >
           + Add accessory
         </Link>
@@ -304,10 +310,10 @@ export default async function FirearmDetailPage({
             <div className="mb-1 text-xs text-neutral-500">Previously mounted</div>
             {pastMounts.map((m) => (
               <div key={m.id} className="text-neutral-400">
-                <Link href={`/inventory/accessories/${m.accessory_id}`} className="text-blue-400 hover:text-blue-300">
+                <Link href={`/inventory/accessories/${m.accessory_id}`} className="text-brand-amber hover:text-brand-amber-light">
                   {m.make_model}
                 </Link>{" "}
-                · {m.from_date ?? "?"} → {m.to_date}
+                · {fd(m.from_date) || "?"} → {fd(m.to_date)}
               </div>
             ))}
           </div>
@@ -486,7 +492,7 @@ export default async function FirearmDetailPage({
           </div>
         )}
         <details className="border border-neutral-800 bg-neutral-900/50" open={dispositions.length === 0 && firearm.status === "sold"}>
-          <summary className="cursor-pointer px-3 py-2 text-sm text-blue-400">
+          <summary className="cursor-pointer px-3 py-2 text-sm text-brand-amber">
             {dispositions.length ? "+ Add another record" : "+ Record a sale or transfer"}
           </summary>
           <form action={recordDisposition.bind(null, id)} className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2">
@@ -495,7 +501,7 @@ export default async function FirearmDetailPage({
               <input type="checkbox" name="mark_disposed" defaultChecked={firearm.status !== "sold"} />
               Set this firearm&apos;s status to Sold (removes it from the maintenance schedule and active lists)
             </label>
-            <SubmitButton className="w-fit bg-blue-600 px-3 py-2 text-sm font-medium hover:bg-blue-500">
+            <SubmitButton className="w-fit bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light">
               Save Record
             </SubmitButton>
           </form>
@@ -524,7 +530,7 @@ export default async function FirearmDetailPage({
               className="flex items-center justify-between border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm hover:border-neutral-600"
             >
               <span>
-                {l.date} · {l.cof_name ?? "Unlisted course"}
+                {fd(l.date)} · {l.cof_name ?? "Unlisted course"}
               </span>
               <span className="text-neutral-400">
                 {l.final_score_percent != null ? `${l.final_score_percent}%` : "—"}

@@ -9,6 +9,7 @@ import { deleteAccessory, deleteMountEntry, updateAccessory } from "@/app/invent
 import AccessoryForm from "@/components/AccessoryForm";
 import AttachmentGallery from "@/components/AttachmentGallery";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import { fd } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
 
@@ -37,12 +38,12 @@ export default async function AccessoryDetailPage({
   const settings = getSettings(db);
 
   const firearms = db
-    .prepare(`select id, make_model, status from firearms order by make_model`)
-    .all() as Pick<Firearm, "id" | "make_model" | "status">[];
+    .prepare(`select id, make_model, nickname, status, firearm_label(make_model, nickname) as label from firearms order by make_model`)
+    .all() as Pick<Firearm, "id" | "make_model" | "status" | "label">[];
   const mounted = firearms.find((f) => f.id === accessory.firearm_id);
   const mounts = db
     .prepare(
-      `select m.*, f.make_model as current_name from accessory_mounts m
+      `select m.*, firearm_label(f.make_model, f.nickname) as current_name from accessory_mounts m
        left join firearms f on f.id = m.firearm_id
        where m.accessory_id = ? order by coalesce(m.from_date, m.created_at) desc, m.created_at desc`
     )
@@ -53,7 +54,7 @@ export default async function AccessoryDetailPage({
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <Link href="/inventory/accessories" className="text-xs text-blue-400 hover:text-blue-300">
+        <Link href="/inventory/accessories" className="text-xs text-brand-amber hover:text-brand-amber-light">
           ← Accessories
         </Link>
         <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
@@ -75,8 +76,8 @@ export default async function AccessoryDetailPage({
           {mounted ? (
             <>
               mounted on{" "}
-              <Link href={`/inventory/${mounted.id}`} className="text-blue-400 hover:text-blue-300">
-                {mounted.make_model}
+              <Link href={`/inventory/${mounted.id}`} className="text-brand-amber hover:text-brand-amber-light">
+                {mounted.label ?? mounted.make_model}
               </Link>
             </>
           ) : (
@@ -84,7 +85,7 @@ export default async function AccessoryDetailPage({
           )}
         </p>
         {saved && <p className="mb-3 text-sm text-green-400">Saved.</p>}
-        <div className="max-w-2xl">
+        <div className="max-w-4xl">
           <AccessoryForm
             accessory={accessory}
             firearms={firearms}
@@ -120,7 +121,7 @@ export default async function AccessoryDetailPage({
         <p className="mb-2 text-sm text-neutral-400">
           Recorded automatically when you change &quot;Mounted On&quot; above.
         </p>
-        <div className="flex flex-col gap-1 sm:max-w-2xl">
+        <div className="flex flex-col gap-1 sm:max-w-4xl">
           {mounts.map((m) => (
             <div
               key={m.id}
@@ -128,7 +129,7 @@ export default async function AccessoryDetailPage({
             >
               <span>
                 {m.firearm_id && m.current_name ? (
-                  <Link href={`/inventory/${m.firearm_id}`} className="text-blue-400 hover:text-blue-300">
+                  <Link href={`/inventory/${m.firearm_id}`} className="text-brand-amber hover:text-brand-amber-light">
                     {m.current_name}
                   </Link>
                 ) : (
@@ -136,7 +137,7 @@ export default async function AccessoryDetailPage({
                 )}
                 <span className="text-neutral-400">
                   {" · "}
-                  {m.from_date ?? "?"} → {m.to_date ?? "present"}
+                  {fd(m.from_date) || "?"} → {fd(m.to_date) || "present"}
                 </span>
                 {m.notes ? <span className="text-neutral-500"> · {m.notes}</span> : null}
               </span>

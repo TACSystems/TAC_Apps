@@ -1,4 +1,4 @@
-import type Database from "better-sqlite3";
+import type Database from "better-sqlite3-multiple-ciphers";
 import { randomUUID } from "crypto";
 import { excelDate, type Cell, type Sheet } from "@/lib/xlsx";
 

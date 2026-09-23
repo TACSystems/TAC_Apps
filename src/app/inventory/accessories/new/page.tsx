@@ -11,12 +11,12 @@ export default async function NewAccessoryPage({ searchParams }: { searchParams:
   const { firearm_id } = await searchParams;
   const db = getDb();
   const firearms = db
-    .prepare(`select id, make_model, status from firearms order by make_model`)
-    .all() as Pick<Firearm, "id" | "make_model" | "status">[];
+    .prepare(`select id, make_model, nickname, status, firearm_label(make_model, nickname) as label from firearms order by make_model`)
+    .all() as Pick<Firearm, "id" | "make_model" | "status" | "label">[];
 
   return (
-    <div className="max-w-2xl">
-      <Link href="/inventory/accessories" className="text-xs text-blue-400 hover:text-blue-300">
+    <div className="max-w-4xl">
+      <Link href="/inventory/accessories" className="text-xs text-brand-amber hover:text-brand-amber-light">
         ← Accessories
       </Link>
       <h1 className="mb-1 text-xl font-semibold">Add Accessory</h1>

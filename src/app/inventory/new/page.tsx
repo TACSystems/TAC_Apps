@@ -13,7 +13,7 @@ export default function NewFirearmPage() {
   const settings = getSettings(db);
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-4xl">
       <h1 className="mb-4 text-xl font-semibold">Add Firearm</h1>
       <FirearmForm
         action={createFirearm}

@@ -14,7 +14,7 @@ export default function AccessoryForm({
   submitLabel,
 }: {
   accessory?: Accessory;
-  firearms: Pick<Firearm, "id" | "make_model" | "status">[];
+  firearms: Pick<Firearm, "id" | "make_model" | "status" | "label">[];
   typeOptions: string[];
   platformOptions: string[];
   defaultFirearmId?: string | null;
@@ -45,7 +45,7 @@ export default function AccessoryForm({
           <option value="">— Not mounted —</option>
           {firearms.map((f) => (
             <option key={f.id} value={f.id}>
-              {f.make_model}
+              {f.label ?? f.make_model}
               {f.status === "sold" ? " (sold)" : ""}
             </option>
           ))}
@@ -90,7 +90,7 @@ export default function AccessoryForm({
         Receipt Reference
         <input name="receipt" defaultValue={accessory?.receipt ?? ""} placeholder="Order #, invoice #" className={input} />
       </label>
-      <SubmitButton pendingLabel="Saving…" className="mt-2 w-fit rounded bg-blue-600 px-4 py-2 font-medium hover:bg-blue-500">
+      <SubmitButton pendingLabel="Saving…" className="mt-2 w-fit rounded bg-brand-olive px-4 py-2 font-medium hover:bg-brand-olive-light">
         {submitLabel}
       </SubmitButton>
     </form>

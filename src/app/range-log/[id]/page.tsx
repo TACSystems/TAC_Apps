@@ -7,6 +7,7 @@ import { deleteRangeLog } from "../actions";
 import { costPerRound } from "@/lib/stats";
 import { getSettings, money } from "@/lib/settings";
 import { passFail } from "@/lib/cof-shared";
+import { fd } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function RangeLogDetailPage({
 
   const log = db
     .prepare(
-      `select rl.*, c.name as cof_name, f.make_model as firearm_make_model
+      `select rl.*, c.name as cof_name, firearm_label(f.make_model, f.nickname) as firearm_make_model
        from range_log rl
        left join courses_of_fire c on c.id = rl.cof_id
        left join firearms f on f.id = rl.firearm_id
@@ -47,7 +48,7 @@ export default async function RangeLogDetailPage({
     <div className="max-w-xl">
       <div className="mb-1 flex items-center justify-between">
         <h1 className="text-xl font-semibold">
-          {log.cof_name ?? "Range Log"} — {log.date}
+          {log.cof_name ?? "Range Log"} — {fd(log.date)}
         </h1>
         <div className="flex flex-wrap gap-2">
           <a

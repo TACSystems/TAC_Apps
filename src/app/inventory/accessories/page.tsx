@@ -10,7 +10,7 @@ export default async function AccessoriesPage() {
   const db = getDb();
   const accessories = db
     .prepare(
-      `select a.*, f.make_model as firearm_make_model
+      `select a.*, firearm_label(f.make_model, f.nickname) as firearm_make_model
        from accessories a
        left join firearms f on f.id = a.firearm_id
        order by a.date_of_entry desc`
@@ -23,7 +23,7 @@ export default async function AccessoriesPage() {
         <h1 className="text-xl font-semibold">Serialized Accessories</h1>
         <Link
           href="/inventory/accessories/new"
-          className="rounded bg-blue-600 px-3 py-2 text-sm font-medium hover:bg-blue-500"
+          className="rounded bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light"
         >
           + Add Accessory
         </Link>
@@ -36,7 +36,7 @@ export default async function AccessoriesPage() {
             className="flex items-center justify-between rounded border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm"
           >
             <div>
-              <Link href={`/inventory/accessories/${a.id}`} className="font-medium text-blue-400 hover:text-blue-300">
+              <Link href={`/inventory/accessories/${a.id}`} className="font-medium text-brand-amber hover:text-brand-amber-light">
                 {a.make_model}
               </Link>
               <div className="text-neutral-400">
@@ -45,7 +45,7 @@ export default async function AccessoriesPage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Link href={`/inventory/accessories/${a.id}`} className="text-blue-400 hover:text-blue-300">
+              <Link href={`/inventory/accessories/${a.id}`} className="text-brand-amber hover:text-brand-amber-light">
                 Edit
               </Link>
               <form action={deleteAccessory.bind(null, a.id)}>

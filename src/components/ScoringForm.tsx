@@ -65,7 +65,7 @@ export default function ScoringForm({
             <option value="">— Select —</option>
             {firearms.map((f) => (
               <option key={f.id} value={f.id}>
-                {f.make_model}
+                {f.label ?? f.make_model}
               </option>
             ))}
           </select>
@@ -181,7 +181,7 @@ export default function ScoringForm({
 
       <SubmitButton
         pendingLabel="Saving Session…"
-        className="w-fit rounded bg-blue-600 px-4 py-2 font-medium hover:bg-blue-500"
+        className="w-fit rounded bg-brand-olive px-4 py-2 font-medium hover:bg-brand-olive-light"
       >
         {submitLabel}
       </SubmitButton>

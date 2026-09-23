@@ -1,9 +1,13 @@
-import Database from "better-sqlite3";
+import Database from "better-sqlite3-multiple-ciphers";
 import fs from "fs";
 import path from "path";
 import { applyCofPatch, resolveTargetType, type CofPatch, type ZoneDef } from "@/lib/cof";
 import { seedDropdownOptions } from "./dropdown-options";
 import { SCHEMA_SQL } from "./schema";
+import { LockedError, dataKey, isEncrypted, isUnlocked, sqlKey } from "@/lib/security-state";
+import { preMigrationBackup } from "@/lib/auto-backup";
+import { registerLabelFunction, setDateFormat, setLabelMode } from "@/lib/display";
+import { getSettings } from "@/lib/settings";
 
 declare global {
   var __firearmsDb: Database.Database | undefined;
@@ -130,6 +134,46 @@ export function dataDir() {
   return process.env.FIREARMS_DB_DIR || path.join(process.cwd(), "data");
 }
 
+export function dbPath() {
+  return path.join(dataDir(), "firearms.db");
+}
+
+export function applyKey(db: Database.Database, key: Buffer) {
+  db.pragma("cipher = 'sqlcipher'");
+  db.pragma("legacy = 4");
+  db.pragma(`key = "${sqlKey(key)}"`);
+}
+
+export function openRaw(file: string, key?: Buffer, options?: Database.Options) {
+  const db = new Database(file, options);
+  if (key) applyKey(db, key);
+  return db;
+}
+
+export function rekeyFile(file: string, fromKey: Buffer | null, toKey: Buffer | null) {
+  const db = openRaw(file, fromKey ?? undefined);
+  try {
+    db.pragma("journal_mode = DELETE");
+    if (toKey) {
+      db.pragma("cipher = 'sqlcipher'");
+      db.pragma("legacy = 4");
+      db.pragma(`rekey = "${sqlKey(toKey)}"`);
+    } else {
+      db.pragma(`rekey = ""`);
+    }
+  } finally {
+    db.close();
+  }
+  const check = openRaw(file, toKey ?? undefined, { fileMustExist: true });
+  try {
+    const ok = check.pragma("integrity_check", { simple: true });
+    if (ok !== "ok") throw new Error("Database check failed after changing encryption.");
+    check.pragma("journal_mode = WAL");
+  } finally {
+    check.close();
+  }
+}
+
 export function closeDb() {
   const db = global.__firearmsDb;
   if (db) {
@@ -144,11 +188,17 @@ export function closeDb() {
 function initDb(): Database.Database {
   const dir = dataDir();
   fs.mkdirSync(dir, { recursive: true });
-  const dbPath = path.join(dir, "firearms.db");
+  let key: Buffer | undefined;
+  if (isEncrypted()) {
+    key = dataKey();
+    if (!key) throw new LockedError();
+  }
 
-  const db = new Database(dbPath);
+  const db = openRaw(dbPath(), key);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
+
+  preMigrationBackup(db);
 
   db.exec(SCHEMA_SQL);
 
@@ -188,18 +238,21 @@ function initDb(): Database.Database {
 
   seedDropdownOptions(db);
 
-  for (const m of ["RESET-PIN", "RESET-PIN.txt"]) {
-    const marker = path.join(dir, m);
-    if (fs.existsSync(marker)) {
-      db.prepare(`delete from app_settings where key = 'pin_hash'`).run();
-      fs.rmSync(marker, { force: true });
-    }
-  }
+  addColumnIfMissing(db, "firearms", "nickname", "TEXT");
+  registerLabelFunction(db);
+  const initial = getSettings(db);
+  setLabelMode(initial.firearmLabel);
+  setDateFormat(initial.dateFormat);
+  db.prepare(`delete from app_settings where key = 'pin_hash'`).run();
+  db.prepare(
+    `insert into app_settings (key, value) values ('last_version', ?) on conflict(key) do update set value = excluded.value`
+  ).run(JSON.stringify(process.env.TAC_LOG_VERSION ?? "dev"));
 
   return db;
 }
 
 export function getDb(): Database.Database {
+  if (!isUnlocked()) throw new LockedError();
   if (!global.__firearmsDb) {
     global.__firearmsDb = initDb();
   }

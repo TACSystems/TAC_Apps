@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 const EXPORTS: Record<string, { headers: string[]; sql: string }> = {
   firearms: {
     headers: ["MAKE/MODEL", "CALIBER", "PLATFORM", "SERIAL NUMBER", "PURCHASE DATE", "PURCHASE LOCATION", "PURCHASE VALUE", "FFL LICENSE NUMBER", "RECEIPT", "STATUS", "SHOTS FIRED", "CLEAN EVERY ROUNDS", "CLEAN EVERY DAYS", "NOTES", "DATE OF ENTRY"],
-    sql: `select make_model, caliber, platform, serial_number, purchase_date, purchase_location, purchase_value,
+    sql: `select make_model, nickname, caliber, platform, serial_number, purchase_date, purchase_location, purchase_value,
             ffl_license_number, receipt, status, shots_fired, clean_interval_rounds, clean_interval_days, notes, date_of_entry
           from firearms order by make_model`,
   },

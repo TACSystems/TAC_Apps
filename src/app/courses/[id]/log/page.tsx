@@ -17,7 +17,7 @@ export default async function LogRunPage({ params }: { params: Promise<{ id: str
   if (!course) notFound();
 
   const firearms = db
-    .prepare(`select * from firearms where status = 'active' order by make_model`)
+    .prepare(`select *, firearm_label(make_model, nickname) as label from firearms where status = 'active' order by make_model`)
     .all() as Firearm[];
 
   const settings = getSettings(db);
@@ -36,10 +36,10 @@ export default async function LogRunPage({ params }: { params: Promise<{ id: str
   );
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-4xl">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <Link href={`/courses/${id}`} className="text-xs text-blue-400 hover:text-blue-300">
+          <Link href={`/courses/${id}`} className="text-xs text-brand-amber hover:text-brand-amber-light">
             ← {course.name}
           </Link>
           <h1 className="text-xl font-semibold">Log a Range Session</h1>
@@ -71,7 +71,7 @@ export default async function LogRunPage({ params }: { params: Promise<{ id: str
       ) : (
         <p className="text-sm text-neutral-400">
           This course has no target type, so there&apos;s nothing to score against.{" "}
-          <Link href={`/courses/${id}/edit`} className="text-blue-400 hover:text-blue-300">
+          <Link href={`/courses/${id}/edit`} className="text-brand-amber hover:text-brand-amber-light">
             Pick one in the editor
           </Link>
           .

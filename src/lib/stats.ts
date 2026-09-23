@@ -1,4 +1,4 @@
-import type Database from "better-sqlite3";
+import type Database from "better-sqlite3-multiple-ciphers";
 
 export type CourseStat = {
   id: string;
@@ -31,6 +31,7 @@ export function courseStats(db: Database.Database): CourseStat[] {
 export type FirearmStat = {
   id: string;
   make_model: string;
+  label: string;
   shots_fired: number;
   sessions: number;
   avg: number | null;
@@ -41,7 +42,7 @@ export type FirearmStat = {
 export function firearmStats(db: Database.Database): FirearmStat[] {
   return db
     .prepare(
-      `select f.id, f.make_model, f.shots_fired,
+      `select f.id, f.make_model, firearm_label(f.make_model, f.nickname) as label, f.shots_fired,
          (select count(*) from range_log r where r.firearm_id = f.id) as sessions,
          (select round(avg(final_score_percent), 1) from range_log r where r.firearm_id = f.id) as avg,
          (select max(final_score_percent) from range_log r where r.firearm_id = f.id) as best,

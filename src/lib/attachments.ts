@@ -1,8 +1,9 @@
-import type Database from "better-sqlite3";
+import type Database from "better-sqlite3-multiple-ciphers";
 import fs from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 import { dataDir } from "@/lib/db";
+import { sealFile } from "@/lib/security-state";
 
 export type OwnerType = "firearm" | "accessory";
 export type AttachmentKind = "receipt" | "photo" | "bill_of_sale" | "document";
@@ -59,7 +60,7 @@ export async function saveAttachment(
   fs.mkdirSync(dir, { recursive: true });
   const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_").slice(-80) || "file";
   const storedName = `${randomUUID()}-${safeName}`;
-  fs.writeFileSync(path.join(dir, storedName), Buffer.from(await file.arrayBuffer()));
+  fs.writeFileSync(path.join(dir, storedName), sealFile(Buffer.from(await file.arrayBuffer())));
   const id = randomUUID();
   db.prepare(
     `insert into attachments (id, owner_type, owner_id, kind, file_path, original_name) values (?, ?, ?, ?, ?, ?)`
