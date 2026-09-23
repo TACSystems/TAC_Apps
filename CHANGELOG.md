@@ -17,7 +17,8 @@ All notable changes to TAC-LOG, newest first.
 ### Security
 - Local server lockdown: a per-launch secret and Host checks, so only the TAC-LOG window can talk to its built-in server.
 - Password-protected (encrypted) backups.
-- Optional encryption of the database itself, with a printed recovery key.
+- Optional encryption of the database itself, with a printed recovery key. When encryption is on, a password (8+ characters) replaces the PIN.
+- Consistent wrong-attempt cooldown for the PIN, password, recovery key, and backup password. Waits escalate from 30 seconds up to 60 minutes, with a live countdown, and restarting the app no longer resets it.
 - Auto-lock when the computer sleeps or the screen locks.
 - Electron hardening: the server runs in a sandboxed utility process, and debugging and run-as-Node switches are turned off in shipped builds.
 
