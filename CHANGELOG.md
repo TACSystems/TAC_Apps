@@ -6,6 +6,9 @@ All notable changes to TAC-LOG, newest first.
 
 ### Added
 - Firearm nicknames, with a setting to show the nickname, the make/model, or both.
+- Automatic backups on a schedule to a folder you choose, keeping the most recent copies, plus a backup before every database upgrade.
+- US date format (MM/DD/YYYY) option.
+- "What's New" screen in Settings → About showing this changelog.
 - New brand identity: amber stencil TL icon on olive (rounded tile on macOS), Courier New throughout, "TAC-LOG" header, "Powered by Precision Systems" in the footer and About.
 
 ### Changed
