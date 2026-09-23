@@ -41,6 +41,24 @@ fs.mkdirSync(seedOutDir, { recursive: true });
 
 fs.cpSync(standaloneDir, serverOut, { recursive: true });
 
+for (const stray of ["data", "src", "electron", "scripts", "release", "sql", "tsconfig.tsbuildinfo", "package-lock.json", "AGENTS.md", "CLAUDE.md", "README.md", "SETUP.md", "eslint.config.mjs", "next.config.ts", "node_modules/@img", "node_modules/sharp"]) {
+  fs.rmSync(path.join(serverOut, stray), { recursive: true, force: true });
+}
+
+const hashedModules = path.join(serverOut, ".next", "node_modules");
+if (fs.existsSync(hashedModules)) {
+  for (const entry of fs.readdirSync(hashedModules)) {
+    const full = path.join(hashedModules, entry);
+    if (!fs.lstatSync(full).isSymbolicLink()) continue;
+    const target = fs.realpathSync(full);
+    const pkg = JSON.parse(fs.readFileSync(path.join(target, "package.json"), "utf8")).name;
+    fs.rmSync(full, { force: true });
+    fs.mkdirSync(full, { recursive: true });
+    fs.writeFileSync(path.join(full, "package.json"), JSON.stringify({ name: entry, main: "index.js" }, null, 2));
+    fs.writeFileSync(path.join(full, "index.js"), `module.exports = require(${JSON.stringify(pkg)});\n`);
+  }
+}
+
 // Per the Next.js standalone-output docs, static assets and the public/
 // folder aren't included automatically — copy them in ourselves.
 fs.mkdirSync(path.join(serverOut, ".next", "static"), { recursive: true });
