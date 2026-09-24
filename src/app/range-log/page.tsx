@@ -24,9 +24,20 @@ export default async function RangeLogPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Range Log</h1>
-        <Link href="/range-log/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
-          Log a Range Session
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/checklist" className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
+            Range Bag Checklist
+          </Link>
+          <Link href="/timer" className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
+            Par Timer
+          </Link>
+          <Link href="/range-day" className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
+            Range Day
+          </Link>
+          <Link href="/range-log/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
+            Log a Range Session
+          </Link>
+        </div>
       </div>
       <SearchBox
         placeholder="Search by course, firearm, or date…"

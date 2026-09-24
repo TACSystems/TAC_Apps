@@ -253,6 +253,16 @@ create table if not exists documents (
   created_at text not null default (datetime('now'))
 );
 
+create table if not exists checklist_items (
+  id text primary key,
+  list_name text not null default 'Range Bag',
+  section text,
+  text text not null,
+  checked integer not null default 0,
+  sort_order integer not null default 0,
+  created_at text not null default (datetime('now'))
+);
+
 create table if not exists count_adjustments (
   id text primary key,
   kind text not null,

@@ -112,6 +112,26 @@ h1, h2, h3, th {
     left: 0;
     right: 0;
   }
+  .print-checklist > div {
+    border-color: #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .print-checklist h2 {
+    color: #000 !important;
+  }
+  .print-checklist input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid #000;
+    background: #fff;
+  }
+  .print-checklist span {
+    color: #000 !important;
+    text-decoration: none !important;
+  }
   .page-break {
     break-before: page;
   }

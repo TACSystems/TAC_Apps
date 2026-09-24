@@ -20,7 +20,13 @@ export default async function NewRangeSessionPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-semibold">Log a Range Session</h1>
-        <p className="text-sm text-neutral-400">Pick the course of fire you shot.</p>
+        <p className="text-sm text-neutral-400">
+          Pick the course of fire you shot. Shooting several firearms today?{" "}
+          <Link href="/range-day" className="text-brand-amber hover:text-brand-amber-light">
+            Use Range Day
+          </Link>{" "}
+          to log the whole trip at once.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

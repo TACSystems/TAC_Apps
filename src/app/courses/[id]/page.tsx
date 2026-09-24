@@ -52,6 +52,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           <Link href={`/courses/${id}/log`} className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
             Log a Range Session
           </Link>
+          <Link href={`/timer?course=${id}`} className={btn}>
+            Run with Par Timer
+          </Link>
           <Link href={`/courses/${id}/print`} className={btn}>
             Print
           </Link>

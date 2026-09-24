@@ -82,6 +82,9 @@ export default async function HomePage() {
         <Link href="/range-log/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
           Log a Range Session
         </Link>
+        <Link href="/range-day" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
+          Range Day
+        </Link>
         <Link href="/courses/new" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
           Build a Course of Fire
         </Link>
@@ -90,6 +93,12 @@ export default async function HomePage() {
         </Link>
         <Link href="/ammo" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
           Log Ammo Purchase
+        </Link>
+        <Link href="/timer" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
+          Par Timer
+        </Link>
+        <Link href="/checklist" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
+          Range Bag
         </Link>
       </section>
     ),
