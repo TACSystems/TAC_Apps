@@ -5,6 +5,7 @@ import type { RangeLog } from "@/lib/db/types";
 import SearchBox from "@/components/SearchBox";
 import { fd } from "@/lib/display";
 import ClickRow from "@/components/ClickRow";
+import EmptyState from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,18 @@ export default async function RangeLogPage() {
           </Link>
         </div>
       </div>
+      {logs.length === 0 ? (
+        <EmptyState
+          title="No range sessions yet"
+          actions={[
+            { href: "/range-log/new", label: "Log a Range Session", primary: true },
+            { href: "/range-day", label: "Range Day (several firearms)" },
+            { href: "/courses", label: "Browse Courses of Fire" },
+          ]}
+        >
+          Score a course of fire target by target, or use Range Day to log a whole trip at once.
+        </EmptyState>
+      ) : (
       <SearchBox
         placeholder="Search by course, firearm, or date…"
         emptyMessage="No range log entries found."
@@ -78,6 +91,7 @@ export default async function RangeLogPage() {
           ),
         }))}
       />
+      )}
     </div>
   );
 }

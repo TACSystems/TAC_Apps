@@ -13,6 +13,7 @@ import CountCorrector from "@/components/CountCorrector";
 import { ammoAdjustments } from "@/lib/counts";
 import { correctAmmo, removeAdjustment } from "@/app/counts/actions";
 import ClickRow from "@/components/ClickRow";
+import EmptyState from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -81,7 +82,12 @@ export default async function AmmoPage() {
             );
           })}
           {status.length === 0 && (
-            <p className="text-sm text-neutral-500">No ammo purchases or goals logged yet.</p>
+            <div className="sm:col-span-2">
+              <EmptyState title="No ammo tracked yet">
+                Log a purchase below, or set a goal per caliber (e.g. keep 1,000 rounds of 9mm). Rounds you fire come off
+                what&apos;s on hand automatically.
+              </EmptyState>
+            </div>
           )}
         </div>
       </section>

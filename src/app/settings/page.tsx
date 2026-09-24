@@ -20,6 +20,7 @@ import { securityMode, isEncrypted } from "@/lib/security-state";
 import { savedBackupKey } from "@/lib/backup";
 import { getAutoBackup, getAutoBackupStatus } from "@/lib/auto-backup";
 import { DATE_FORMATS, FIREARM_LABEL_MODES, TEXT_SIZES } from "@/lib/settings";
+import HelpTip from "@/components/HelpTip";
 
 export const dynamic = "force-dynamic";
 
@@ -202,7 +203,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
-              &quot;Due soon&quot; at (% of interval)
+              &quot;Due soon&quot; at (% of interval) <HelpTip text="A firearm shows Due Soon once it reaches this share of its cleaning interval, e.g. 80% means 400 of 500 rounds." />
               <input
                 type="number"
                 min={1}
@@ -229,7 +230,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               Update Rounds Fired deducts from ammo on hand by default
             </label>
             <label className="flex flex-col gap-1 text-sm">
-              Flag ammo as low below (% of goal)
+              Flag ammo as low below (% of goal) <HelpTip text="A caliber shows LOW when what you have on hand drops below this percent of its goal." />
               <input
                 type="number"
                 min={1}
@@ -270,7 +271,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </label>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm">
-              Warn about expiring documents (days before)
+              Warn about expiring documents (days before) <HelpTip text="Documents show in the Heads Up bar and on the dashboard this many days before they expire." />
               <input type="number" min={1} max={365} name="docWarnDays" defaultValue={s.docWarnDays} className={input} />
             </label>
             <label className="flex flex-col gap-1 text-sm">
@@ -345,6 +346,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         keywords="version data folder encryption changelog what's new tour help"
         aside={
           <span className="flex gap-4">
+            <Link href="/help" className="text-brand-amber hover:text-brand-amber-light">
+              Help
+            </Link>
             <Link href="/?tour=1" className="text-brand-amber hover:text-brand-amber-light">
               Take the Tour
             </Link>

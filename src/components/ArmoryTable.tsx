@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import StatusBadge from "@/components/StatusBadge";
+import EmptyState from "@/components/EmptyState";
 import ClickRow from "@/components/ClickRow";
 
 export type ArmoryRow = {
@@ -115,6 +116,21 @@ export default function ArmoryTable({ rows }: { rows: ArmoryRow[] }) {
 
   const noun = byStatus.length === 1 ? "firearm" : "firearms";
   const label = filter === "all" ? noun : `${filter} ${noun}`;
+
+  if (rows.length === 0) {
+    return (
+      <EmptyState
+        title="Your armory is empty"
+        actions={[
+          { href: "/inventory/new", label: "+ Add Firearm", primary: true },
+          { href: "/settings#settings-import-export", label: "Import Spreadsheet" },
+        ]}
+      >
+        Add each firearm with its serial number, purchase details, and photos, or bring in your existing FIREARMS
+        INVENTORY spreadsheet in one step.
+      </EmptyState>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3">

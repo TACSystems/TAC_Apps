@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { listTargetTypes } from "@/lib/cof";
+import EmptyState from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,11 @@ export default async function TargetTypesPage() {
             </div>
           </Link>
         ))}
-        {targets.length === 0 && <p className="text-sm text-neutral-500">No target types yet.</p>}
+        {targets.length === 0 && (
+          <EmptyState title="No target types yet" actions={[{ href: "/targets/new", label: "+ New Target Type", primary: true }]}>
+            A target type holds the scoring zones (like X, 10, 9 or A, C, D) that courses of fire use.
+          </EmptyState>
+        )}
       </div>
     </div>
   );

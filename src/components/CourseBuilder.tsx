@@ -21,6 +21,7 @@ import { saveCourseAction } from "@/app/courses/actions";
 import TargetTypeEditor from "@/components/TargetTypeEditor";
 import CategoryPicker from "@/components/CategoryPicker";
 import { clearUnsaved, useUnsaved } from "@/components/UnsavedGuard";
+import HelpTip from "@/components/HelpTip";
 
 type BRow = StringRow & { uid: string };
 type BPhase = { uid: string; title: string; notes: string; total: string; strings: BRow[] };
@@ -312,7 +313,7 @@ export default function CourseBuilder({
             <input value={code} onChange={(e) => setCode(e.target.value)} className={input} placeholder="e.g. DPQ-50" />
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            Passing Score (%)
+            Passing Score (%) <HelpTip text="The minimum final score, as a percent of the maximum possible points, to count as PASS. Leave blank for no pass/fail." />
             <input
               type="number"
               min={0}

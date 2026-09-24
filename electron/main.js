@@ -228,6 +228,7 @@ function buildMenu() {
       { type: "separator" },
       { label: "What's New", click: () => go("/settings/whats-new") },
       { label: "Take the Tour", click: () => go("/?tour=1") },
+      { label: "Help", accelerator: "F1", click: () => go("/help") },
       ...(process.platform === "darwin" ? [] : [{ type: "separator" }, { role: "quit" }]),
     ],
   };

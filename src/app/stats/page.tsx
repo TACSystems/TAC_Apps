@@ -7,6 +7,7 @@ import ScoreTrendChart, { type ChartSeries } from "@/components/ScoreTrendChart"
 import BarList from "@/components/BarList";
 import { caliberCosts, categoryStats, courseStats, firearmStats, overview, roundsByMonth, zoneDistribution } from "@/lib/stats";
 import { getSettings, money } from "@/lib/settings";
+import EmptyState from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +65,18 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
   return (
     <div className="flex flex-col gap-8">
       <h1 className="text-xl font-semibold">Stats</h1>
+      {ov.sessions === 0 && ov.totalRounds === 0 && (
+        <EmptyState
+          title="Nothing to chart yet"
+          actions={[
+            { href: "/range-log/new", label: "Log a Range Session", primary: true },
+            { href: "/inventory", label: "Go to Armory" },
+          ]}
+        >
+          Stats fill in as you log range sessions, rounds fired, and ammo purchases: score trends, pass rates by course and
+          category, rounds per month, and cost per round.
+        </EmptyState>
+      )}
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Tile label="Range sessions" value={ov.sessions.toLocaleString()} />

@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 import { deleteAccessory } from "@/app/inventory/actions";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import ClickRow from "@/components/ClickRow";
+import EmptyState from "@/components/EmptyState";
 
 export default async function AccessoriesPage() {
   const db = getDb();
@@ -63,7 +64,15 @@ export default async function AccessoriesPage() {
           </ClickRow>
         ))}
         {accessories.length === 0 && (
-          <p className="text-sm text-neutral-500">No accessories logged yet.</p>
+          <EmptyState
+            title="No accessories yet"
+            actions={[
+              { href: "/inventory/accessories/new", label: "+ Add Accessory", primary: true },
+              { href: "/settings#settings-import-export", label: "Import Spreadsheet" },
+            ]}
+          >
+            Optics, lights, suppressors, and other gear, with serials, receipts, and which firearm they are mounted on.
+          </EmptyState>
         )}
       </div>
     </div>

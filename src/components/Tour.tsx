@@ -10,14 +10,16 @@ const STEPS: Step[] = [
   { target: null, title: "Welcome to TAC-LOG", body: "A quick look around. Use Next and Back, or press Esc to skip. Everything stays on this computer." },
   { target: "nav-home", title: "Home", body: "Your dashboard: maintenance due, ammo on hand, and recent range sessions. Click a section title to fold it away." },
   { target: "nav-armory", title: "Armory", body: "Every firearm with serials, photos, receipts, accessories, cleaning and malfunction logs. Click any row to open a firearm's profile. The Inventory Report there is ready for your insurance company." },
+  { target: "nav-documents", title: "Documents", body: "Carry permits, NFA stamps, memberships, and licenses, with scans. TAC-LOG warns you before anything expires." },
   { target: "nav-ammo", title: "Ammo", body: "Log purchases with lot numbers and prices, and set a goal per caliber. Rounds you fire come off what's on hand automatically." },
   { target: "nav-courses", title: "Courses of Fire", body: "Build or import qualification courses, tag them Handgun / Rifle / Shotgun, print scorecards, and log a range session against them." },
   { target: "nav-rangelog", title: "Range Log", body: "Every session you've shot, with scores and PASS/FAIL. Click a row to see or edit it." },
   { target: "nav-stats", title: "Stats", body: "Score trends, pass rates by course and category, rounds per month, and ammo cost per round." },
   { target: "nav-controls", title: "Controls", body: "Customize the dropdown lists (calibers, platforms, course categories, and so on) and choose what the dashboard shows." },
   { target: "nav-settings", title: "Settings", body: "Security (PIN or encrypted password), backups, imports, defaults, and display options. There's a search box at the top." },
-  { target: "quick-actions", title: "Quick actions", body: "The most common jobs, one click away: log a range session, build a course, update rounds fired, log an ammo purchase." },
-  { target: null, title: "You're set", body: "Start by adding a firearm or importing your spreadsheet (Settings > Import / Export). Replay this tour any time from Settings > About or the File menu." },
+  { target: "quick-search", title: "Quick search", body: "Press Cmd/Ctrl+K anywhere to jump to a firearm (by name, nickname, or serial), course, document, session, or setting." },
+  { target: "quick-actions", title: "Quick actions", body: "The most common jobs, one click away: log a range session, Range Day for a whole trip, build a course, update rounds fired, log ammo, the par timer, and your range bag checklist." },
+  { target: null, title: "You're set", body: "Start by adding a firearm or importing your spreadsheet (Settings > Import / Export). Help (in Settings › About, the File menu, or Cmd/Ctrl+K) has short guides for everything. Replay this tour any time from Settings › About or the File menu." },
 ];
 
 export default function Tour({ onDone }: { onDone?: () => void }) {

@@ -1,6 +1,7 @@
 import type { AmmoPurchase } from "@/lib/db/types";
 import SelectOrOther from "@/components/SelectOrOther";
 import SuggestInput from "@/components/SuggestInput";
+import HelpTip from "@/components/HelpTip";
 
 const input = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";
 
@@ -44,7 +45,7 @@ export default function AmmoPurchaseFields({
         <input type="number" name="grain" defaultValue={purchase?.grain ?? ""} className={input} />
       </label>
       <label className="flex flex-col gap-1 text-sm">
-        Lot #
+        Lot # <HelpTip text="The lot number printed on the box. Handy for tracing a bad batch or matching your zero to a lot." />
         <input name="lot_number" defaultValue={purchase?.lot_number ?? ""} className={input} />
       </label>
       <label className="flex flex-col gap-1 text-sm">

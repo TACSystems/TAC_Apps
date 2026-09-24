@@ -2,6 +2,27 @@
 
 All notable changes to TAC-LOG, newest first.
 
+## [0.7.0] — 2026-09-24
+
+### Added
+- **Count corrections:** "Correct count" on each caliber (Ammo) and on each firearm's Shots Fired sets the real number. It's saved as a dated correction you can remove, and history, stats, and cost per round stay intact. Correcting a firearm doesn't change its cleaning counter.
+- **Settings › Counts:** correct many firearms or calibers at once, or fill with 0. Confirm by typing RESET; a safety copy of the database is saved first (and an automatic backup runs if a folder is set).
+- **Part Counters:** track rounds on a barrel, recoil spring, and so on, with an optional replace-at count. "Replaced" starts the counter over and logs the swap in maintenance.
+- **Permits & Documents** (new Documents tab): carry permits, NFA tax stamps and Form 4 status, memberships, licenses, with scans. Expiration warnings on the dashboard, adjustable in Settings › Reminders.
+- **Heads Up bar:** when TAC-LOG opens or unlocks, a dismissible bar lists cleaning due, low ammo, expiring documents, and parts due. It can be turned off.
+- **Range Day:** log a whole trip on one screen, with every firearm, rounds, caliber, lot, and an optional course and score. Round counts, cleaning counters, ammo on hand, and the range log update together.
+- **Par Timer:** run a course string by string with a random-delay start beep and a par beep at each string's time limit, or use the free timer for dry fire. Space starts and stops.
+- **Range Bag Checklist:** a ready-made packing list you can edit, tick off, reset, and print. Add more lists (e.g. Hunting).
+- **Quick search (Cmd/Ctrl+K):** jump to any firearm (name, nickname, serial), accessory, course, document, range session, page, or setting.
+- **Help page** with short guides and an FAQ (works offline), plus "?" tips on fields that aren't obvious.
+- **Helpful empty screens** that say what to do next, with buttons.
+- **Light theme** and a **larger text** option (Settings › Display).
+- File menu: Help (F1).
+
+### Changed
+- Settings: "Courses of Fire" and "Spreadsheets" are combined into one **Import / Export** section.
+- The tour covers Documents and quick search.
+
 ## [0.6.0] — 2026-09-24
 
 ### Added

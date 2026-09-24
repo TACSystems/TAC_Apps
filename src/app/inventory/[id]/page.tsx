@@ -45,6 +45,7 @@ import { todayISO } from "@/lib/settings-shared";
 import CountCorrector from "@/components/CountCorrector";
 import { firearmAdjustments, listCounters } from "@/lib/counts";
 import { correctFirearm, createCounter, removeAdjustment, removeCounter, replaceCounter } from "@/app/counts/actions";
+import HelpTip from "@/components/HelpTip";
 
 export default async function FirearmDetailPage({
   params,
@@ -254,7 +255,7 @@ export default async function FirearmDetailPage({
           />
           <label className="flex items-center gap-2 text-xs normal-case sm:col-span-2">
             <input type="checkbox" name="deduct_from_ammo" defaultChecked={settings.deductManualRoundsByDefault} />
-            Deduct from ammo on hand
+            Deduct from ammo on hand <HelpTip text="Also subtract these rounds from Ammo On Hand for this caliber. Uncheck for rounds you did not buy, like range rental ammo." />
           </label>
           <SubmitButton
             pendingLabel="Recording…"
@@ -387,7 +388,7 @@ export default async function FirearmDetailPage({
               <input type="number" name="rounds_since" min={0} defaultValue={0} className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
             </label>
             <label className="flex flex-col gap-1 text-xs">
-              Replace every (rounds)
+              Replace every (rounds) <HelpTip text="Optional. The counter turns red and shows in the Heads Up bar when the part reaches this many rounds." />
               <input type="number" name="interval_rounds" min={1} placeholder="Optional" className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
             </label>
             <datalist id="counter-parts">
