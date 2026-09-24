@@ -122,6 +122,31 @@ function seedAccessoryMounts(db: Database.Database) {
   `);
 }
 
+function widenAttachmentOwners(db: Database.Database) {
+  const row = db.prepare(`select sql from sqlite_master where type = 'table' and name = 'attachments'`).get() as
+    | { sql: string }
+    | undefined;
+  if (!row || row.sql.includes("'accessory','document'")) return;
+  db.transaction(() => {
+    db.exec(`
+      create table attachments_new (
+        id text primary key,
+        owner_type text not null check (owner_type in ('firearm','accessory','document')),
+        owner_id text not null,
+        kind text not null default 'receipt' check (kind in ('receipt','photo','bill_of_sale','document')),
+        file_path text not null,
+        original_name text,
+        uploaded_at text not null default (datetime('now'))
+      );
+      insert into attachments_new (id, owner_type, owner_id, kind, file_path, original_name, uploaded_at)
+        select id, owner_type, owner_id, kind, file_path, original_name, uploaded_at from attachments;
+      drop table attachments;
+      alter table attachments_new rename to attachments;
+      create index if not exists attachments_owner on attachments(owner_type, owner_id);
+    `);
+  })();
+}
+
 function dropGroupTables(db: Database.Database) {
   db.exec(`
     drop table if exists group_range_log_zone_counts;
@@ -228,6 +253,7 @@ function initDb(): Database.Database {
   migrateScoringZonesToTargetTypes(db);
   dropGroupTables(db);
   migrateReceiptImages(db);
+  widenAttachmentOwners(db);
   seedAccessoryMounts(db);
 
   const courseCount = (db.prepare("select count(*) as n from courses_of_fire").get() as { n: number }).n;

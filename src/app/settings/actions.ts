@@ -33,6 +33,9 @@ export async function saveSettingsForm(formData: FormData) {
     graderDateFromSession: formData.get("graderDateFromSession") === "on",
     defaultAmmoManufacturer: get("defaultAmmoManufacturer"),
     defaultAmmoType: get("defaultAmmoType"),
+    launchReminders: formData.get("launchReminders") === "on",
+    docWarnDays: Number(get("docWarnDays")),
+    docUrgentDays: Number(get("docUrgentDays")),
   };
   updateSettings(getDb(), patch);
   revalidatePath("/", "layout");

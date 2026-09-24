@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Collapsible from "@/components/Collapsible";
+import DocStateBadge from "@/components/DocStateBadge";
+import { expiringDocuments } from "@/lib/documents";
 import SectionTools from "@/components/SectionTools";
 import CategorizeBanner from "@/components/CategorizeBanner";
 import TourOffer from "@/components/TourOffer";
@@ -47,6 +49,8 @@ export default async function HomePage() {
   const settings = getSettings(db);
   const layout = settings.home;
   const collapsed = new Set(settings.dashboardCollapsed);
+  const expiring = expiringDocuments(db, settings.docWarnDays, settings.docUrgentDays);
+  const docCount = (db.prepare(`select count(*) as n from documents`).get() as { n: number }).n;
   const schedule = maintenanceSchedule(db, {
     soonThreshold: settings.dueSoonPercent / 100,
     includeStored: layout.includeStored,
@@ -290,6 +294,48 @@ export default async function HomePage() {
             <p className="text-sm text-neutral-500">No range sessions logged yet.</p>
           )}
         </div>
+      </Collapsible>
+    ),
+    documents: (
+      <Collapsible
+        id="documents"
+        title="Permits & Documents"
+        persist
+        defaultOpen={!collapsed.has("documents")}
+        aside={
+          <Link href="/documents" className="text-sm text-brand-amber hover:text-brand-amber-light">
+            All documents →
+          </Link>
+        }
+      >
+        {docCount === 0 ? (
+          <p className="text-sm text-neutral-500">
+            Track carry permits, NFA stamps, and memberships to get a warning before they expire.{" "}
+            <Link href="/documents/new" className="text-brand-amber hover:text-brand-amber-light">
+              Add one
+            </Link>
+            .
+          </p>
+        ) : expiring.length === 0 ? (
+          <p className="text-sm text-neutral-500">
+            {docCount} document{docCount === 1 ? "" : "s"} on file. Nothing expires in the next {settings.docWarnDays} days.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {expiring.map((d) => (
+              <Link
+                key={d.id}
+                href={`/documents/${d.id}`}
+                className="flex flex-wrap items-center justify-between gap-2 border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm hover:border-neutral-600"
+              >
+                <span>
+                  {d.title} <span className="text-neutral-500">· {d.doc_type}</span>
+                </span>
+                <DocStateBadge state={d.state} days={d.days} />
+              </Link>
+            ))}
+          </div>
+        )}
       </Collapsible>
     ),
   };

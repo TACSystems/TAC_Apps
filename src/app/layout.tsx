@@ -8,6 +8,8 @@ import { getDb } from "@/lib/db";
 import { isUnlocked, lockoutSeconds, securityMode } from "@/lib/security-state";
 import { getSettings } from "@/lib/settings";
 import { whatsNewPending } from "@/lib/changelog";
+import LaunchReminders from "@/components/LaunchReminders";
+import { collectReminders, remindersDismissed } from "@/lib/reminders";
 
 export const metadata: Metadata = {
   title: "TAC-LOG",
@@ -31,6 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const db = getDb();
   const settings = getSettings(db);
   const whatsNew = whatsNewPending(db);
+  const reminders = settings.launchReminders && !remindersDismissed() ? collectReminders(db, settings) : [];
 
   return (
     <html lang="en">
@@ -38,6 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NavBar showLock={mode !== "none"} />
         {mode !== "none" && <IdleLock minutes={settings.autoLockMinutes} />}
         {whatsNew && <WhatsNewNotice version={whatsNew} />}
+        <LaunchReminders items={reminders} />
         <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6">{children}</main>
         <footer className="border-t border-neutral-800 py-3 text-center text-[11px] tracking-[0.25em] text-neutral-500 print:hidden">
           POWERED BY PRECISION SYSTEMS

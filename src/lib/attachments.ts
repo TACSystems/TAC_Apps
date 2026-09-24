@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 import { dataDir } from "@/lib/db";
 import { sealFile } from "@/lib/security-state";
 
-export type OwnerType = "firearm" | "accessory";
+export type OwnerType = "firearm" | "accessory" | "document";
 export type AttachmentKind = "receipt" | "photo" | "bill_of_sale" | "document";
 
 export type Attachment = {
@@ -94,5 +94,6 @@ export function deleteAttachmentsFor(db: Database.Database, ownerType: OwnerType
 }
 
 export function ownerPath(ownerType: OwnerType, ownerId: string) {
+  if (ownerType === "document") return `/documents/${ownerId}`;
   return ownerType === "firearm" ? `/inventory/${ownerId}` : `/inventory/accessories/${ownerId}`;
 }

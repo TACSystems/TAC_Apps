@@ -27,7 +27,7 @@ create table if not exists firearms (
 
 create table if not exists attachments (
   id text primary key,
-  owner_type text not null check (owner_type in ('firearm','accessory')),
+  owner_type text not null check (owner_type in ('firearm','accessory','document')),
   owner_id text not null,
   kind text not null default 'receipt' check (kind in ('receipt','photo','bill_of_sale','document')),
   file_path text not null,
@@ -236,6 +236,21 @@ create table if not exists rounds_fired_log (
 create table if not exists app_settings (
   key text primary key,
   value text not null
+);
+
+create table if not exists documents (
+  id text primary key,
+  doc_type text not null,
+  title text not null,
+  issuer text,
+  number text,
+  holder text,
+  firearm_id text references firearms(id) on delete set null,
+  status text,
+  issued_date text,
+  expires_date text,
+  notes text,
+  created_at text not null default (datetime('now'))
 );
 
 create table if not exists count_adjustments (

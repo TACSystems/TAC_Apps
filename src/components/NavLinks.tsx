@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const MAIN = [
   { href: "/", label: "Home", tour: "nav-home" },
   { href: "/inventory", label: "Armory", tour: "nav-armory" },
+  { href: "/documents", label: "Documents", tour: "nav-documents" },
   { href: "/ammo", label: "Ammo", tour: "nav-ammo" },
   { href: "/courses", label: "Courses of Fire", tour: "nav-courses" },
   { href: "/range-log", label: "Range Log", tour: "nav-rangelog" },

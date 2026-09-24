@@ -110,6 +110,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             ["range-sessions", "Range Sessions"],
             ["rounds-fired", "Rounds Fired Log"],
             ["maintenance", "Maintenance Log"],
+            ["documents", "Permits & Documents"],
           ].map(([type, label]) => (
             <a key={type} href={`/api/csv?type=${type}`} className={btn}>
               {label}
@@ -237,6 +238,26 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                 <option key={o} value={o} />
               ))}
             </datalist>
+          </div>
+          <SubmitButton pendingLabel="Saving…" className="mt-4 w-fit bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light">
+            Save Settings
+          </SubmitButton>
+        </Collapsible>
+
+        <Collapsible id="settings-reminders" title="Reminders" keywords="launch reminders heads up expiring permit documents warning days" defaultOpen={formOpen}>
+          <label className="mb-3 flex items-center gap-2 text-sm normal-case">
+            <input type="checkbox" name="launchReminders" defaultChecked={s.launchReminders} />
+            Show a Heads Up bar when TAC-LOG opens or unlocks (cleaning due, low ammo, expiring documents, parts due)
+          </label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm">
+              Warn about expiring documents (days before)
+              <input type="number" min={1} max={365} name="docWarnDays" defaultValue={s.docWarnDays} className={input} />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Show as urgent (days before)
+              <input type="number" min={0} max={365} name="docUrgentDays" defaultValue={s.docUrgentDays} className={input} />
+            </label>
           </div>
           <SubmitButton pendingLabel="Saving…" className="mt-4 w-fit bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light">
             Save Settings

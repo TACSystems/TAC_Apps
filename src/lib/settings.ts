@@ -43,6 +43,9 @@ export function normalizeSettings(raw: Partial<AppSettings> & Record<string, unk
       ? (raw.dashboardCollapsed as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 20)
       : d.dashboardCollapsed,
     userName: str(raw.userName, d.userName, 40),
+    docWarnDays: clampNum(raw.docWarnDays, 1, 365, d.docWarnDays),
+    docUrgentDays: clampNum(raw.docUrgentDays, 0, 365, d.docUrgentDays),
+    launchReminders: raw.launchReminders === undefined ? d.launchReminders : Boolean(raw.launchReminders),
     tourStatus: ["new", "offer", "done"].includes(String(raw.tourStatus)) ? (raw.tourStatus as AppSettings["tourStatus"]) : d.tourStatus,
   };
 }

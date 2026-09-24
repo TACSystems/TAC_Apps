@@ -45,6 +45,11 @@ const EXPORTS: Record<string, { headers: string[]; sql: string }> = {
     sql: `select m.date, f.make_model, m.type, m.shots_fired_at_time, m.notes
           from maintenance_log m join firearms f on f.id = m.firearm_id order by m.date desc`,
   },
+  documents: {
+    headers: ["TYPE", "NAME", "ISSUED BY", "NUMBER", "HOLDER", "FIREARM", "STATUS", "ISSUED", "EXPIRES", "NOTES"],
+    sql: `select d.doc_type, d.title, d.issuer, d.number, d.holder, f.make_model, d.status, d.issued_date, d.expires_date, d.notes
+          from documents d left join firearms f on f.id = d.firearm_id order by d.expires_date`,
+  },
 };
 
 export async function GET(req: NextRequest) {

@@ -34,6 +34,7 @@ declare global {
   var __taclogSecurity: SecurityFile | undefined;
   var __taclogUnlocked: boolean | undefined;
   var __taclogDataKey: Buffer | undefined;
+  var __taclogRemindersDismissed: boolean | undefined;
 }
 
 export function securityDir() {
@@ -128,6 +129,7 @@ export function setUnlocked(dataKey?: Buffer) {
 }
 
 export function clearUnlocked() {
+  global.__taclogRemindersDismissed = false;
   global.__taclogUnlocked = false;
   global.__taclogDataKey = undefined;
 }

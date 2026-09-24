@@ -4,6 +4,7 @@ export const HOME_SECTIONS = {
   maintenance: "Maintenance Schedule",
   ammo: "Ammo On Hand",
   recent_sessions: "Recent Range Sessions",
+  documents: "Permits & Documents",
 } as const;
 
 export type HomeSectionKey = keyof typeof HOME_SECTIONS;
@@ -35,6 +36,9 @@ export type AppSettings = {
   dashboardCollapsed: string[];
   tourStatus: "new" | "offer" | "done";
   userName: string;
+  docWarnDays: number;
+  docUrgentDays: number;
+  launchReminders: boolean;
 };
 
 export type FirearmLabelMode = "make_model" | "nickname" | "both" | "make_model_nickname";
@@ -60,6 +64,7 @@ export const DEFAULT_HOME: HomeLayout = {
     { key: "maintenance", visible: true },
     { key: "ammo", visible: true },
     { key: "recent_sessions", visible: true },
+    { key: "documents", visible: true },
   ],
   recentCount: 5,
   maintenanceDueOnly: false,
@@ -86,6 +91,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   dashboardCollapsed: [],
   tourStatus: "offer",
   userName: "",
+  docWarnDays: 60,
+  docUrgentDays: 30,
+  launchReminders: true,
 };
 
 export function normalizeHome(raw: unknown): HomeLayout {

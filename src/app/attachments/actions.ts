@@ -10,7 +10,7 @@ import {
   type OwnerType,
 } from "@/lib/attachments";
 
-const OWNER_TYPES: OwnerType[] = ["firearm", "accessory"];
+const OWNER_TYPES: OwnerType[] = ["firearm", "accessory", "document"];
 const KINDS: AttachmentKind[] = ["receipt", "photo", "bill_of_sale", "document"];
 
 export async function uploadAttachment(
@@ -21,7 +21,7 @@ export async function uploadAttachment(
 ) {
   if (!OWNER_TYPES.includes(ownerType) || !KINDS.includes(kind)) return;
   const db = getDb();
-  const table = ownerType === "firearm" ? "firearms" : "accessories";
+  const table = ownerType === "firearm" ? "firearms" : ownerType === "document" ? "documents" : "accessories";
   if (!db.prepare(`select 1 from ${table} where id = ?`).get(ownerId)) return;
   for (const file of formData.getAll("file")) {
     if (file instanceof File && file.size > 0) await saveAttachment(db, ownerType, ownerId, kind, file);
