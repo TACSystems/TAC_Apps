@@ -32,12 +32,17 @@ function installGlobal() {
       if (!a || a.target === "_blank" || a.hasAttribute("download")) return;
       const url = new URL(a.href, location.href);
       if (url.origin !== location.origin || (url.pathname === location.pathname && url.search === location.search)) return;
-      if (!window.confirm(MESSAGE)) {
-        e.preventDefault();
-        e.stopPropagation();
-      } else {
+      e.preventDefault();
+      e.stopPropagation();
+      const href = a.href;
+      const ask = window.taclogConfirm;
+      const proceed = (ok: boolean) => {
+        if (!ok) return;
         registry().clear();
-      }
+        window.dispatchEvent(new CustomEvent("taclog:navigate", { detail: href }));
+      };
+      if (ask) ask({ title: "Unsaved changes", message: MESSAGE, confirmLabel: "Leave page", cancelLabel: "Stay", danger: true }).then(proceed);
+      else proceed(true);
     },
     true
   );

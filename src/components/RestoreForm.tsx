@@ -3,10 +3,12 @@
 import PasswordInput from "@/components/PasswordInput";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useDialogs } from "@/components/Dialogs";
 import FileDrop from "@/components/FileDrop";
 
 export default function RestoreForm() {
   const router = useRouter();
+  const { confirm } = useDialogs();
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [needsPassword, setNeedsPassword] = useState(false);
@@ -21,10 +23,12 @@ export default function RestoreForm() {
       return;
     }
     if (
-      !window.confirm(
-        `Restore from "${file.name}"? This replaces everything currently in TAC-LOG with the backup's contents. ` +
-          `Your current data is set aside in a "pre-restore" folder first, so it isn't lost.`
-      )
+      !(await confirm({
+        title: "Restore backup",
+        message: `Restore from "${file.name}"? This replaces everything currently in TAC-LOG with the backup's contents. Your current data is set aside in a "pre-restore" folder first, so it isn't lost.`,
+        confirmLabel: "Restore",
+        danger: true,
+      }))
     ) {
       return;
     }

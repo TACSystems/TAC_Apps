@@ -17,31 +17,24 @@ import { isEncrypted } from "@/lib/security-state";
 type Result = { ok: boolean; error?: string; message?: string };
 
 export async function saveSettingsForm(formData: FormData) {
+  const has = (k: string) => formData.has(k);
   const get = (k: string) => String(formData.get(k) ?? "");
-  const patch: Partial<AppSettings> = {
-    defaultShooterName: get("defaultShooterName"),
-    defaultGraderName: get("defaultGraderName"),
-    defaultRangeLocation: get("defaultRangeLocation"),
-    defaultCleanIntervalRounds: get("defaultCleanIntervalRounds") ? Number(get("defaultCleanIntervalRounds")) : null,
-    defaultCleanIntervalDays: get("defaultCleanIntervalDays") ? Number(get("defaultCleanIntervalDays")) : null,
-    dueSoonPercent: Number(get("dueSoonPercent")),
-    deductManualRoundsByDefault: formData.get("deductManualRoundsByDefault") === "on",
-    lowAmmoPercent: Number(get("lowAmmoPercent")),
-    currencySymbol: get("currencySymbol"),
-    firearmLabel: get("firearmLabel") as AppSettings["firearmLabel"],
-    dateFormat: get("dateFormat") as AppSettings["dateFormat"],
-    graderDateFromSession: formData.get("graderDateFromSession") === "on",
-    defaultAmmoManufacturer: get("defaultAmmoManufacturer"),
-    defaultAmmoType: get("defaultAmmoType"),
-    launchReminders: formData.get("launchReminders") === "on",
-    theme: get("theme") === "light" ? "light" : "dark",
-    textSize: get("textSize") as AppSettings["textSize"],
-    docWarnDays: Number(get("docWarnDays")),
-    docUrgentDays: Number(get("docUrgentDays")),
-  };
-  updateSettings(getDb(), patch);
+  const checkboxes = new Set(formData.getAll("__cb").map(String));
+  const patch: Record<string, unknown> = {};
+  const text = ["defaultShooterName", "defaultGraderName", "defaultRangeLocation", "currencySymbol", "defaultAmmoManufacturer", "defaultAmmoType", "firearmLabel", "dateFormat", "textSize"];
+  const nums = ["dueSoonPercent", "lowAmmoPercent", "docWarnDays", "docUrgentDays"];
+  const optNums = ["defaultCleanIntervalRounds", "defaultCleanIntervalDays"];
+  for (const k of text) if (has(k)) patch[k] = get(k);
+  for (const k of nums) if (has(k)) patch[k] = Number(get(k));
+  for (const k of optNums) if (has(k)) patch[k] = get(k) ? Number(get(k)) : null;
+  if (has("theme")) patch.theme = get("theme") === "light" ? "light" : "dark";
+  for (const k of checkboxes) patch[k] = formData.get(k) === "on";
+  updateSettings(getDb(), patch as Partial<AppSettings>);
   revalidatePath("/", "layout");
-  redirect("/settings?saved=1");
+  const back = get("__return");
+  const section = get("__section");
+  const target = back.startsWith("/") && !back.startsWith("//") ? back : "/settings";
+  redirect(`${target}?saved=${encodeURIComponent(section)}`);
 }
 
 export async function dismissWhatsNew() {

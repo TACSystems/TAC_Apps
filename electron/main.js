@@ -197,24 +197,28 @@ function go(route) {
   }
 }
 
+function toast(text, tone, detail) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const payload = JSON.stringify({ text, tone, detail });
+  mainWindow.webContents
+    .executeJavaScript(`window.dispatchEvent(new CustomEvent("taclog:toast", { detail: ${payload} }))`)
+    .catch(() => {});
+}
+
 async function backupNow() {
+  toast("Backing up…", "info");
   const res = await callServer("/api/backup-now");
-  if (!res) return;
-  if (res.needsFolder) {
-    const r = await dialog.showMessageBox(mainWindow, {
-      type: "info",
-      message: "Choose a backup folder first",
-      detail: "Pick a folder for backups under Settings > Backup > Automatic Backups.",
-      buttons: ["Open Settings", "Cancel"],
-    });
-    if (r.response === 0) go("/settings#settings-backup");
+  if (!res) {
+    toast("Backup failed. TAC-LOG might be locked.", "error");
     return;
   }
-  dialog.showMessageBox(mainWindow, {
-    type: res.ok ? "info" : "warning",
-    message: res.ok ? "Backup complete" : "Backup failed",
-    detail: res.ok ? res.file : res.error || "Unknown error.",
-  });
+  if (res.needsFolder) {
+    go("/settings#settings-backup");
+    setTimeout(() => toast("Choose a backup folder first, under Automatic Backups.", "info"), 1200);
+    return;
+  }
+  if (res.ok) toast("Backup complete.", "ok", res.file);
+  else toast("Backup failed.", "error", res.error || "Unknown error.");
 }
 
 function buildMenu() {

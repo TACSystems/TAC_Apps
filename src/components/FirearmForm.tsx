@@ -130,7 +130,9 @@ export default function FirearmForm({
       </label>
 
       <label className="flex flex-col gap-1 text-sm">
-        Clean Every (rounds) <HelpTip text="Cleaning is due after this many rounds since the last Cleaning entry. Leave blank to track by days only." />
+        <span>
+          Clean Every (rounds) <HelpTip text="Cleaning is due after this many rounds since the last Cleaning entry. Leave blank to track by days only." />
+        </span>
         <input
           type="number"
           name="clean_interval_rounds"
@@ -141,7 +143,9 @@ export default function FirearmForm({
       </label>
 
       <label className="flex flex-col gap-1 text-sm">
-        Clean Every (days) <HelpTip text="Cleaning is due this many days after the last Cleaning entry, even if you have not shot it (good for carry guns). Leave blank to track by rounds only." />
+        <span>
+          Clean Every (days) <HelpTip text="Cleaning is due this many days after the last Cleaning entry, even if you have not shot it (good for carry guns). Leave blank to track by rounds only." />
+        </span>
         <input
           type="number"
           name="clean_interval_days"

@@ -1,132 +1,105 @@
+import type { ReactNode } from "react";
 import { getDb } from "@/lib/db";
-import { getDropdownOptionRows } from "@/lib/db/dropdown-options";
-import { DEFAULT_OPTIONS, DROPDOWN_CATEGORIES, DROPDOWN_USED_IN, type DropdownCategory } from "@/lib/options";
 import { getSettings } from "@/lib/settings";
+import { getDropdownOptions } from "@/lib/db/dropdown-options";
+import { ammoStatus } from "@/lib/ammo";
+import type { DropdownCategory } from "@/lib/options";
 import HomeLayoutEditor from "@/components/HomeLayoutEditor";
-import {
-  addDropdownOption,
-  deleteDropdownOption,
-  moveDropdownOption,
-  renameDropdownOption,
-  restoreDropdownDefaults,
-  sortDropdownAlpha,
-} from "./actions";
+import DropdownListEditor from "@/components/DropdownListEditor";
+import Collapsible from "@/components/Collapsible";
+import SectionTools from "@/components/SectionTools";
+import BulkCounts from "@/components/BulkCounts";
+import { AmmoDefaultsForm, DocumentWarningsForm, MaintenanceDefaultsForm, RangeDefaultsForm } from "@/components/SettingsForms";
 
 export const dynamic = "force-dynamic";
 
-const iconBtn = "border border-neutral-700 px-2 py-0.5 text-xs hover:bg-neutral-800 disabled:opacity-30";
+function Group({ id, title, blurb, children }: { id: string; title: string; blurb: string; children: ReactNode }) {
+  return (
+    <section id={id} className="flex flex-col gap-2">
+      <div className="mt-3 flex items-baseline gap-3 border-b border-neutral-800 pb-1">
+        <h2 className="text-base text-brand-amber">{title}</h2>
+        <span className="text-xs text-neutral-500">{blurb}</span>
+      </div>
+      {children}
+    </section>
+  );
+}
 
-export default async function ControlsPage({ searchParams }: { searchParams: Promise<{ open?: string }> }) {
-  const { open } = await searchParams;
+export default async function ControlsPage({ searchParams }: { searchParams: Promise<{ open?: string; saved?: string }> }) {
+  const { open, saved } = await searchParams;
   const db = getDb();
-  const settings = getSettings(db);
-  const categories = Object.keys(DROPDOWN_CATEGORIES) as DropdownCategory[];
+  const s = getSettings(db);
+  const list = (c: DropdownCategory) => <DropdownListEditor key={c} category={c} open={open === c} />;
+  const firearms = (
+    db
+      .prepare(`select id, shots_fired, firearm_label(make_model, nickname) as label from firearms where status != 'sold' order by make_model`)
+      .all() as { id: string; shots_fired: number; label: string }[]
+  ).map((f) => ({ key: f.id, label: f.label, current: f.shots_fired }));
+  const calibers = ammoStatus(db, s.lowAmmoPercent).map((a) => ({ key: a.caliber, label: a.caliber, current: a.on_hand }));
+  const ret = "/controls";
 
   return (
-    <div className="flex flex-col gap-8">
+    <div data-scope="controls" className="flex max-w-5xl flex-col gap-3">
       <div>
         <h1 className="text-xl font-semibold">Controls</h1>
         <p className="text-sm text-neutral-400">
-          Customize the home page and the options offered in dropdowns across the app. Backup, restore, course
-          imports, and defaults live in Settings.
+          Customize each page of TAC-LOG: its dropdown lists, defaults, and layout. App-wide things (security, backups,
+          import/export, display) live in Settings.
         </p>
       </div>
+      <SectionTools scope="controls" search />
 
-      <section className="border border-neutral-800 bg-neutral-900 p-4">
-        <h2 className="mb-1 font-medium text-neutral-200">Home Page Layout</h2>
-        <p className="mb-3 text-sm text-neutral-400">Choose which sections appear on the home page and in what order.</p>
-        <HomeLayoutEditor initial={settings.home} />
-      </section>
+      <Group id="page-home" title="Home" blurb="The dashboard">
+        <Collapsible id="controls-home-layout" title="Dashboard Layout" keywords="home page sections order show hide recent sessions" defaultOpen={saved === "home"}>
+          <p className="mb-3 text-sm text-neutral-400">Choose which sections appear on the dashboard and in what order.</p>
+          <HomeLayoutEditor initial={s.home} />
+        </Collapsible>
+      </Group>
 
-      <section className="flex flex-col gap-3">
-        <div>
-          <h2 className="font-medium text-neutral-200">Dropdown Lists</h2>
-          <p className="text-sm text-neutral-400">
-            Removing or renaming an option only changes future dropdown lists. It never changes anything already
-            saved. Every dropdown still lets you type your own value.
-          </p>
-        </div>
+      <Group id="page-armory" title="Armory" blurb="Firearms, accessories, maintenance">
+        <Collapsible id="controls-maintenance" title="Cleaning & Maintenance Defaults" keywords="cleaning interval rounds days due soon new firearm" defaultOpen={saved === "maintenance"}>
+          <MaintenanceDefaultsForm s={s} saved={saved === "maintenance"} returnTo={ret} />
+        </Collapsible>
+        <Collapsible id="controls-firearm-counts" title="Correct Rounds Fired (several firearms)" keywords="reset rounds fired shot count correct zero bulk">
+          <p className="mb-3 text-sm text-neutral-400">To correct a single firearm, use Correct count on its page.</p>
+          <BulkCounts firearms={firearms} />
+        </Collapsible>
+        {(["platform", "caliber", "accessory_type", "maintenance_type", "malfunction_type", "zero_distance"] as DropdownCategory[]).map(list)}
+      </Group>
 
-        {categories.map((category) => {
-          const rows = getDropdownOptionRows(db, category);
-          const missingDefaults = DEFAULT_OPTIONS[category].filter((d) => !rows.some((r) => r.value === d)).length;
-          return (
-            <details
-              key={category}
-              id={`dd-${category}`}
-              open={open === category}
-              className="border border-neutral-800 bg-neutral-900 open:bg-neutral-900"
-            >
-              <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3">
-                <span className="font-medium text-neutral-200">{DROPDOWN_CATEGORIES[category]}</span>
-                <span className="text-xs text-neutral-500">
-                  {rows.length} option{rows.length === 1 ? "" : "s"} · {DROPDOWN_USED_IN[category]}
-                </span>
-              </summary>
-              <div className="flex flex-col gap-2 border-t border-neutral-800 p-4">
-                {rows.map((r, i) => (
-                  <div key={r.id} className="flex flex-wrap items-center gap-2">
-                    <form action={renameDropdownOption.bind(null, category, r.id)} className="flex gap-1">
-                      <input
-                        name="value"
-                        defaultValue={r.value}
-                        className="w-64 border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm normal-case"
-                      />
-                      <button type="submit" className={iconBtn} title="Save rename">
-                        ✓
-                      </button>
-                    </form>
-                    <form action={moveDropdownOption.bind(null, category, r.id, -1)}>
-                      <button type="submit" className={iconBtn} disabled={i === 0} title="Move up">
-                        ↑
-                      </button>
-                    </form>
-                    <form action={moveDropdownOption.bind(null, category, r.id, 1)}>
-                      <button type="submit" className={iconBtn} disabled={i === rows.length - 1} title="Move down">
-                        ↓
-                      </button>
-                    </form>
-                    <form action={deleteDropdownOption.bind(null, category, r.id)}>
-                      <button type="submit" className={`${iconBtn} text-red-300`} aria-label={`Remove ${r.value}`}>
-                        Remove
-                      </button>
-                    </form>
-                  </div>
-                ))}
-                {rows.length === 0 && <p className="text-sm text-neutral-500">No options yet.</p>}
+      <Group id="page-ammo" title="Ammo" blurb="Purchases, goals, on hand">
+        <Collapsible id="controls-ammo" title="Ammo Defaults & Thresholds" keywords="low ammo threshold deduct manufacturer type default purchase" defaultOpen={saved === "ammo"}>
+          <AmmoDefaultsForm
+            s={s}
+            saved={saved === "ammo"}
+            returnTo={ret}
+            manufacturers={getDropdownOptions(db, "ammo_manufacturer")}
+            ammoTypes={getDropdownOptions(db, "ammo_type")}
+          />
+        </Collapsible>
+        <Collapsible id="controls-ammo-counts" title="Correct Ammo On Hand (several calibers)" keywords="reset ammo on hand count correct zero bulk">
+          <p className="mb-3 text-sm text-neutral-400">To correct a single caliber, use Correct count on the Ammo page.</p>
+          <BulkCounts calibers={calibers} />
+        </Collapsible>
+        {(["ammo_type", "ammo_manufacturer"] as DropdownCategory[]).map(list)}
+      </Group>
 
-                <form action={addDropdownOption.bind(null, category)} className="mt-2 flex gap-2">
-                  <input
-                    name="value"
-                    required
-                    placeholder="Add a new option…"
-                    className="w-64 border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm normal-case"
-                  />
-                  <button type="submit" className="bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light">
-                    Add
-                  </button>
-                </form>
-                <div className="flex gap-2">
-                  {rows.length > 1 && (
-                    <form action={sortDropdownAlpha.bind(null, category)}>
-                      <button type="submit" className={iconBtn}>
-                        Sort A → Z
-                      </button>
-                    </form>
-                  )}
-                  {missingDefaults > 0 && (
-                    <form action={restoreDropdownDefaults.bind(null, category)}>
-                      <button type="submit" className={iconBtn}>
-                        Restore {missingDefaults} default option{missingDefaults === 1 ? "" : "s"}
-                      </button>
-                    </form>
-                  )}
-                </div>
-              </div>
-            </details>
-          );
-        })}
-      </section>
+      <Group id="page-courses" title="Courses of Fire" blurb="Builder and categories">
+        {(["course_category", "position"] as DropdownCategory[]).map(list)}
+      </Group>
+
+      <Group id="page-range" title="Range Sessions" blurb="Log a Range Session, Range Day">
+        <Collapsible id="controls-range-defaults" title="Range Session Defaults" keywords="shooter grader range location defaults grader date" defaultOpen={saved === "range"}>
+          <RangeDefaultsForm s={s} saved={saved === "range"} returnTo={ret} />
+        </Collapsible>
+        {(["range_location", "weather"] as DropdownCategory[]).map(list)}
+      </Group>
+
+      <Group id="page-documents" title="Documents" blurb="Permits and licenses">
+        <Collapsible id="controls-documents" title="Expiration Warnings" keywords="expiring permit documents warning days urgent" defaultOpen={saved === "documents"}>
+          <DocumentWarningsForm s={s} saved={saved === "documents"} returnTo={ret} />
+        </Collapsible>
+      </Group>
     </div>
   );
 }

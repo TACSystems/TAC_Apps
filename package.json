@@ -1,7 +1,7 @@
 {
   "name": "firearms-app",
   "productName": "TAC-LOG",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Personal firearm inventory, ammo tracking, courses of fire, and range session scoring \u2014 by Precision Systems",
   "author": "Precision Systems",
   "private": true,

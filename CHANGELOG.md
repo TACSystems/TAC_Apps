@@ -2,6 +2,17 @@
 
 All notable changes to TAC-LOG, newest first.
 
+## [0.7.1] — 2026-09-24
+
+### Changed
+- **Settings vs Controls:** Settings now manages the app itself (security, backups, restore, import/export, display, Heads Up bar, About). Controls customizes the pages, organized by page (Home, Armory, Ammo, Courses of Fire, Range Sessions, Documents), with its own search and Expand / Collapse All. It now holds all the dropdown lists plus the defaults, thresholds, dashboard layout, and bulk count corrections that used to be in Settings.
+- Confirmations (deletes, restore, leaving with unsaved changes, and so on) and Back Up Now results now appear in TAC-LOG's own style instead of the Mac or Windows system boxes.
+- The version number shows under "Powered by Precision Systems" in the footer.
+
+### Fixed
+- The "?" help icons sit on the same line as their label instead of on a line of their own.
+- Saving one section of settings no longer touches the other sections.
+
 ## [0.7.0] — 2026-09-24
 
 ### Added

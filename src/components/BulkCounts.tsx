@@ -98,11 +98,11 @@ function Table({ kind, title, rows, unit }: { kind: "firearm" | "ammo"; title: s
   );
 }
 
-export default function BulkCounts({ firearms, calibers }: { firearms: Row[]; calibers: Row[] }) {
+export default function BulkCounts({ firearms, calibers }: { firearms?: Row[]; calibers?: Row[] }) {
   return (
     <div className="flex flex-col gap-6">
-      <Table kind="firearm" title="Rounds Fired per Firearm" rows={firearms} unit="lifetime rounds" />
-      <Table kind="ammo" title="Ammo On Hand per Caliber" rows={calibers} unit="rounds on hand" />
+      {firearms && <Table kind="firearm" title="Rounds Fired per Firearm" rows={firearms} unit="lifetime rounds" />}
+      {calibers && <Table kind="ammo" title="Ammo On Hand per Caliber" rows={calibers} unit="rounds on hand" />}
     </div>
   );
 }

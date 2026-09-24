@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialogs } from "@/components/Dialogs";
 import PasswordInput from "@/components/PasswordInput";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -75,6 +76,7 @@ export default function SecuritySettings({
   autoLockMinutes: number;
 }) {
   const router = useRouter();
+  const { confirm: ask } = useDialogs();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -144,7 +146,7 @@ export default function SecuritySettings({
                     type="button"
                     disabled={pending}
                     onClick={() => {
-                      if (window.confirm("Remove the PIN? TAC-LOG will open without asking.")) run(() => removePin(current));
+                      ask("Remove the PIN? TAC-LOG will open without asking.").then((ok) => ok && run(() => removePin(current)));
                     }}
                     className={danger}
                   >
@@ -208,7 +210,7 @@ export default function SecuritySettings({
                 type="button"
                 disabled={pending}
                 onClick={() => {
-                  if (window.confirm("Create a new recovery key? The old one stops working.")) run(() => newRecoveryKey(current));
+                  ask("Create a new recovery key? The old one stops working.").then((ok) => ok && run(() => newRecoveryKey(current)));
                 }}
                 className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800"
               >
@@ -218,7 +220,7 @@ export default function SecuritySettings({
                 type="button"
                 disabled={pending}
                 onClick={() => {
-                  if (window.confirm("Turn off encryption? Your data will be stored unencrypted on this computer.")) run(() => disableEncryption(current));
+                  ask("Turn off encryption? Your data will be stored unencrypted on this computer.").then((ok) => ok && run(() => disableEncryption(current)));
                 }}
                 className={danger}
               >

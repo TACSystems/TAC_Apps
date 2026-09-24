@@ -45,7 +45,9 @@ export default function AmmoPurchaseFields({
         <input type="number" name="grain" defaultValue={purchase?.grain ?? ""} className={input} />
       </label>
       <label className="flex flex-col gap-1 text-sm">
-        Lot # <HelpTip text="The lot number printed on the box. Handy for tracing a bad batch or matching your zero to a lot." />
+        <span>
+          Lot # <HelpTip text="The lot number printed on the box. Handy for tracing a bad batch or matching your zero to a lot." />
+        </span>
         <input name="lot_number" defaultValue={purchase?.lot_number ?? ""} className={input} />
       </label>
       <label className="flex flex-col gap-1 text-sm">

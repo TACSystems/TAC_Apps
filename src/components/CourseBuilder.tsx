@@ -20,6 +20,7 @@ import {
 import { saveCourseAction } from "@/app/courses/actions";
 import TargetTypeEditor from "@/components/TargetTypeEditor";
 import CategoryPicker from "@/components/CategoryPicker";
+import { useDialogs } from "@/components/Dialogs";
 import { clearUnsaved, useUnsaved } from "@/components/UnsavedGuard";
 import HelpTip from "@/components/HelpTip";
 
@@ -74,6 +75,7 @@ export default function CourseBuilder({
   categoryOptions?: string[];
 }) {
   const router = useRouter();
+  const { confirm } = useDialogs();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -313,7 +315,9 @@ export default function CourseBuilder({
             <input value={code} onChange={(e) => setCode(e.target.value)} className={input} placeholder="e.g. DPQ-50" />
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            Passing Score (%) <HelpTip text="The minimum final score, as a percent of the maximum possible points, to count as PASS. Leave blank for no pass/fail." />
+            <span>
+              Passing Score (%) <HelpTip text="The minimum final score, as a percent of the maximum possible points, to count as PASS. Leave blank for no pass/fail." />
+            </span>
             <input
               type="number"
               min={0}
@@ -532,8 +536,8 @@ export default function CourseBuilder({
                     type="button"
                     className={`${smallBtn} text-red-300`}
                     disabled={phases.length === 1}
-                    onClick={() => {
-                      if (window.confirm(`Remove "${phase.title}" and its ${phase.strings.length} row(s)?`)) {
+                    onClick={async () => {
+                      if (await confirm({ message: `Remove "${phase.title}" and its ${phase.strings.length} row(s)?`, confirmLabel: "Remove" })) {
                         setPhases((ps) => ps.filter((p) => p.uid !== phase.uid));
                       }
                     }}

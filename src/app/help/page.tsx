@@ -75,17 +75,17 @@ export default function HelpPage() {
         <ul>
           <li>Ammo on hand = purchases − rounds logged as fired (range sessions and Update Rounds Fired with Deduct checked) ± corrections.</li>
           <li><b>Correct count</b> (on each caliber on the Ammo page, or on a firearm&apos;s Shots Fired) sets the real number. It&apos;s saved as a dated correction you can remove, so history and stats stay intact.</li>
-          <li><b>Settings › Counts</b> corrects many at once. Type RESET to confirm. A safety copy of the database is saved first.</li>
+          <li><b>Controls › Armory / Ammo</b> have bulk corrections for many at once. Type RESET to confirm. A safety copy of the database is saved first.</li>
           <li><b>Part Counters</b> (on a firearm) track rounds on a barrel, spring, and so on. Replaced starts the counter over and logs the swap.</li>
         </ul>
       </Guide>
 
       <Guide id="maintenance" title="Cleaning & Maintenance" keywords="cleaning due soon interval maintenance schedule log">
-        <p>Set Clean Every (rounds and/or days) on a firearm. The dashboard&apos;s Maintenance Schedule shows what&apos;s due and due soon (the threshold is in Settings › Maintenance). Only entries of type Cleaning reset the counter. Log Cleaning on the dashboard does it in one click.</p>
+        <p>Set Clean Every (rounds and/or days) on a firearm. The dashboard&apos;s Maintenance Schedule shows what&apos;s due and due soon (the threshold is in Controls › Armory). Only entries of type Cleaning reset the counter. Log Cleaning on the dashboard does it in one click.</p>
       </Guide>
 
       <Guide id="documents" title="Permits & Documents" keywords="permit carry license nfa tax stamp form 4 membership hunting expire expiration reminder scan">
-        <p>Track carry permits, NFA tax stamps and Form 4 status, memberships, and licenses under <A href="/documents">Documents</A>. Attach scans of each. TAC-LOG warns you on the dashboard and in the Heads Up bar before anything expires. Set how early under Settings › Reminders.</p>
+        <p>Track carry permits, NFA tax stamps and Form 4 status, memberships, and licenses under <A href="/documents">Documents</A>. Attach scans of each. TAC-LOG warns you on the dashboard and in the Heads Up bar before anything expires. Set how early under Controls › Documents.</p>
       </Guide>
 
       <Guide id="backups" title="Backups & Restore" keywords="backup restore automatic folder password tlbak zip usb onedrive icloud">
@@ -114,6 +114,11 @@ export default function HelpPage() {
           <li>Settings › Restore › choose the backup file. Everything comes across, including photos and documents.</li>
           <li>If you use database encryption, turn it on again on the new computer and print the new recovery key.</li>
         </ol>
+      </Guide>
+
+      <Guide id="settings-controls" title="Settings vs Controls" keywords="settings controls where customize dropdown defaults lists">
+        <p><b>Controls</b> customizes the pages of TAC-LOG, organized by page: dropdown lists, defaults, thresholds, the dashboard layout, and bulk count corrections.</p>
+        <p><b>Settings</b> manages the app itself: security, backups, restore, import/export, display (theme, text size, date format, name display), the Heads Up bar, and About.</p>
       </Guide>
 
       <Guide id="shortcuts" title="Keyboard Shortcuts" keywords="keyboard shortcut hotkey cmd ctrl k l search">

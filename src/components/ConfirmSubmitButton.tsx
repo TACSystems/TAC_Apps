@@ -2,19 +2,17 @@
 
 import { useFormStatus } from "react-dom";
 import type { ButtonHTMLAttributes, MouseEvent } from "react";
+import { useDialogs } from "@/components/Dialogs";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   confirmMessage: string;
+  confirmLabel?: string;
   pendingLabel?: string;
 };
 
-/**
- * A submit button for a destructive server action — asks for confirmation
- * before the form actually submits, and shows a pending state while the
- * action runs. Must be rendered inside the <form> whose action it submits.
- */
 export default function ConfirmSubmitButton({
   confirmMessage,
+  confirmLabel,
   children,
   pendingLabel,
   className,
@@ -22,13 +20,16 @@ export default function ConfirmSubmitButton({
   ...rest
 }: Props) {
   const { pending } = useFormStatus();
+  const { confirm } = useDialogs();
 
-  function handleClick(e: MouseEvent<HTMLButtonElement>) {
-    if (!window.confirm(confirmMessage)) {
-      e.preventDefault();
-      return;
-    }
+  async function handleClick(e: MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    const button = e.currentTarget;
+    const form = button.form;
+    const label = confirmLabel ?? (typeof children === "string" ? children : undefined);
+    if (!(await confirm({ message: confirmMessage, confirmLabel: label }))) return;
     onClick?.(e);
+    form?.requestSubmit(button);
   }
 
   return (
@@ -39,7 +40,7 @@ export default function ConfirmSubmitButton({
       className={`${className ?? ""} disabled:cursor-not-allowed disabled:opacity-60`}
       {...rest}
     >
-      {pending ? pendingLabel ?? "Deleting…" : children}
+      {pending ? pendingLabel ?? "Working…" : children}
     </button>
   );
 }

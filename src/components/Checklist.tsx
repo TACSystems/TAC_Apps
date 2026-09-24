@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialogs } from "@/components/Dialogs";
 import { useOptimistic, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ChecklistItem } from "@/lib/checklist";
@@ -9,6 +10,7 @@ const input = "border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-sm norm
 
 export default function Checklist({ list, items, sections }: { list: string; items: ChecklistItem[]; sections: string[] }) {
   const router = useRouter();
+  const { confirm } = useDialogs();
   const [, startTransition] = useTransition();
   const [opt, setOpt] = useOptimistic(items, (state, patch: { id: string; checked: boolean }) =>
     state.map((i) => (i.id === patch.id ? { ...i, checked: patch.checked ? 1 : 0 } : i))
@@ -65,7 +67,7 @@ export default function Checklist({ list, items, sections }: { list: string; ite
           <button
             type="button"
             onClick={() => {
-              if (window.confirm(`Delete the whole "${list}" list?`)) startTransition(async () => { await deleteList(list); router.push("/checklist"); });
+              confirm(`Delete the whole "${list}" list?`).then((ok) => ok && startTransition(async () => { await deleteList(list); router.push("/checklist"); }));
             }}
             className="border border-red-900 bg-red-950 px-3 py-1.5 text-xs text-red-200"
           >

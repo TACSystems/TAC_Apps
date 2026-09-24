@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialogs } from "@/components/Dialogs";
 import PasswordInput from "@/components/PasswordInput";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,7 @@ export default function BackupSettings({
   lastError: string | null;
 }) {
   const router = useRouter();
+  const { confirm } = useDialogs();
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [freq, setFreq] = useState(frequency);
@@ -90,7 +92,7 @@ export default function BackupSettings({
                 disabled={pending}
                 className={btn}
                 onClick={() => {
-                  if (window.confirm("Remove the backup password? New backups will not be encrypted.")) run(() => clearBackupPassword());
+                  confirm("Remove the backup password? New backups will not be encrypted.").then((ok) => ok && run(() => clearBackupPassword()));
                 }}
               >
                 Remove
