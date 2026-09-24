@@ -2,10 +2,10 @@ import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { CourseOfFire, RangeLog } from "@/lib/db/types";
 import CourseSelect from "@/components/CourseSelect";
-import { dateFormat } from "@/lib/display";
+import { dateFormat, fd } from "@/lib/display";
 import ScoreTrendChart, { type ChartSeries } from "@/components/ScoreTrendChart";
 import BarList from "@/components/BarList";
-import { caliberCosts, courseStats, firearmStats, overview, roundsByMonth, zoneDistribution } from "@/lib/stats";
+import { caliberCosts, categoryStats, courseStats, firearmStats, overview, roundsByMonth, zoneDistribution } from "@/lib/stats";
 import { getSettings, money } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +30,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
   const ov = overview(db);
   const months = roundsByMonth(db, 12);
   const byCourse = courseStats(db);
+  const byCategory = categoryStats(db);
   const byFirearm = firearmStats(db);
   const costs = caliberCosts(db);
 
@@ -121,6 +122,36 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
       </section>
 
       <section>
+        <h2 className="mb-2 font-medium text-neutral-200">By Category</h2>
+        <div className="overflow-x-auto border border-neutral-800">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-neutral-900 text-neutral-400">
+              <tr>
+                <th className={th}>Category</th>
+                <th className={th}>Sessions</th>
+                <th className={th}>Average</th>
+                <th className={th}>Best</th>
+                <th className={th}>Pass rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {byCategory.map((c) => (
+                <tr key={c.category}>
+                  <td className={td}>{c.category}</td>
+                  <td className={td}>{c.sessions}</td>
+                  <td className={td}>{c.avg != null ? `${c.avg}%` : "—"}</td>
+                  <td className={td}>{c.best != null ? `${c.best}%` : "—"}</td>
+                  <td className={td}>{c.graded ? `${Math.round((c.passed / c.graded) * 100)}% (${c.passed}/${c.graded})` : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {byCategory.length === 0 && <p className="px-3 py-6 text-center text-sm text-neutral-500">No range sessions on a course yet.</p>}
+        </div>
+        <p className="mt-1 text-xs text-neutral-500">A course in more than one category counts toward each.</p>
+      </section>
+
+      <section>
         <h2 className="mb-2 font-medium text-neutral-200">By Course</h2>
         <div className="overflow-x-auto border border-neutral-800">
           <table className="w-full text-left text-sm">
@@ -146,7 +177,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                   <td className={td}>{c.avg != null ? `${c.avg}%` : "—"}</td>
                   <td className={td}>{c.best != null ? `${c.best}%` : "—"}</td>
                   <td className={td}>{c.graded ? `${Math.round((c.passed / c.graded) * 100)}% (${c.passed}/${c.graded})` : "—"}</td>
-                  <td className={td}>{c.last ?? "—"}</td>
+                  <td className={td}>{fd(c.last) || "—"}</td>
                 </tr>
               ))}
             </tbody>

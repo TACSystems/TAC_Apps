@@ -111,6 +111,7 @@ export type CourseOfFire = {
   passing_score_percent: number | null;
   columns_json: string | null;
   scorecard_json: string | null;
+  categories_json: string | null;
   notes: string | null;
 };
 

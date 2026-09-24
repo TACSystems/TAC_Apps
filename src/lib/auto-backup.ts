@@ -4,6 +4,7 @@ import path from "path";
 import { dataDir, getDb } from "@/lib/db";
 import { createBackup } from "@/lib/backup";
 import { isUnlocked } from "@/lib/security-state";
+import { todayISO } from "@/lib/settings-shared";
 
 export type AutoBackupFrequency = "off" | "daily" | "weekly";
 
@@ -144,7 +145,7 @@ export function preMigrationBackup(db: Database.Database) {
   const dir = path.join(dataDir(), "pre-upgrade");
   fs.mkdirSync(dir, { recursive: true });
   db.pragma("wal_checkpoint(TRUNCATE)");
-  const stamp = new Date().toISOString().slice(0, 10);
+  const stamp = todayISO();
   const name = `firearms-${previous ?? "0.4"}-before-${current}-${stamp}.db`;
   fs.copyFileSync(path.join(dataDir(), "firearms.db"), path.join(dir, name));
   const copies = fs.readdirSync(dir).filter((f) => f.endsWith(".db")).sort((a, b) => {

@@ -151,6 +151,7 @@ create table if not exists courses_of_fire (
   passing_score_percent real,
   columns_json text,
   scorecard_json text,
+  categories_json text,
   notes text
 );
 

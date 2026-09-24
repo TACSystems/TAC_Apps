@@ -9,6 +9,7 @@ import AmmoPurchaseFields from "@/components/AmmoPurchaseFields";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import Link from "next/link";
 import { fd } from "@/lib/display";
+import ClickRow from "@/components/ClickRow";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +103,8 @@ export default async function AmmoPage() {
         <h2 className="mb-2 font-medium text-neutral-200">Log a Purchase</h2>
         <form action={createAmmoPurchase} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <AmmoPurchaseFields
+            defaultManufacturer={settings.defaultAmmoManufacturer}
+            defaultType={settings.defaultAmmoType}
             manufacturerOptions={manufacturerOptions}
             ammoTypeOptions={ammoTypeOptions}
             caliberOptions={caliberOptions}
@@ -134,7 +137,7 @@ export default async function AmmoPage() {
             </thead>
             <tbody>
               {purchases.map((p) => (
-                <tr key={p.id} className="border-t border-neutral-800">
+                <ClickRow key={p.id} href={`/ammo/purchases/${p.id}`} className="border-t border-neutral-800 hover:bg-neutral-900">
                   <td className="px-3 py-2">{fd(p.date_purchased)}</td>
                   <td className="px-3 py-2">{p.caliber}</td>
                   <td className="px-3 py-2">{p.manufacturer}</td>
@@ -162,7 +165,7 @@ export default async function AmmoPage() {
                       </form>
                     </div>
                   </td>
-                </tr>
+                </ClickRow>
               ))}
             </tbody>
           </table>

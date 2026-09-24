@@ -9,7 +9,11 @@ export default function AmmoPurchaseFields({
   manufacturerOptions,
   ammoTypeOptions,
   caliberOptions,
+  defaultManufacturer,
+  defaultType,
 }: {
+  defaultManufacturer?: string;
+  defaultType?: string;
   purchase?: AmmoPurchase;
   manufacturerOptions: string[];
   ammoTypeOptions: string[];
@@ -23,13 +27,13 @@ export default function AmmoPurchaseFields({
           name="manufacturer"
           listId="ammo-manufacturers"
           options={manufacturerOptions}
-          defaultValue={purchase?.manufacturer}
+          defaultValue={purchase ? purchase.manufacturer : defaultManufacturer || undefined}
           className={input}
         />
       </label>
       <label className="flex flex-col gap-1 text-sm">
         Ammo Type
-        <SelectOrOther name="ammo_type" options={ammoTypeOptions} defaultValue={purchase?.ammo_type} />
+        <SelectOrOther name="ammo_type" options={ammoTypeOptions} defaultValue={purchase ? purchase.ammo_type : defaultType || undefined} />
       </label>
       <label className="flex flex-col gap-1 text-sm">
         Caliber

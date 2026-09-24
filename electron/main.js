@@ -190,12 +190,53 @@ async function lockApp() {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.reload();
 }
 
+function go(route) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.loadURL(`${origin()}${route}`);
+    mainWindow.show();
+  }
+}
+
+async function backupNow() {
+  const res = await callServer("/api/backup-now");
+  if (!res) return;
+  if (res.needsFolder) {
+    const r = await dialog.showMessageBox(mainWindow, {
+      type: "info",
+      message: "Choose a backup folder first",
+      detail: "Pick a folder for backups under Settings > Backup > Automatic Backups.",
+      buttons: ["Open Settings", "Cancel"],
+    });
+    if (r.response === 0) go("/settings#settings-backup");
+    return;
+  }
+  dialog.showMessageBox(mainWindow, {
+    type: res.ok ? "info" : "warning",
+    message: res.ok ? "Backup complete" : "Backup failed",
+    detail: res.ok ? res.file : res.error || "Unknown error.",
+  });
+}
+
 function buildMenu() {
+  const fileMenu = {
+    label: "File",
+    submenu: [
+      { label: "Back Up Now", accelerator: "CmdOrCtrl+Shift+B", click: () => backupNow() },
+      { label: "Open Data Folder", click: () => shell.openPath(dataDir()) },
+      { type: "separator" },
+      { label: "Lock", accelerator: "CmdOrCtrl+L", click: () => lockApp() },
+      { type: "separator" },
+      { label: "What's New", click: () => go("/settings/whats-new") },
+      { label: "Take the Tour", click: () => go("/?tour=1") },
+      ...(process.platform === "darwin" ? [] : [{ type: "separator" }, { role: "quit" }]),
+    ],
+  };
   const template = [
     {
       label: "TAC-LOG",
-      submenu: [{ role: "about" }, { type: "separator" }, { label: "Lock", accelerator: "CmdOrCtrl+L", click: () => lockApp() }, { type: "separator" }, { role: "quit" }],
+      submenu: [{ role: "about" }, { type: "separator" }, { role: "hide" }, { role: "hideOthers" }, { role: "unhide" }, { type: "separator" }, { role: "quit" }],
     },
+    fileMenu,
     {
       label: "Edit",
       submenu: [
@@ -221,7 +262,7 @@ function buildMenu() {
       ],
     },
   ];
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+  Menu.setApplicationMenu(Menu.buildFromTemplate(process.platform === "darwin" ? template : template.slice(1)));
 }
 
 function hardenContents(contents) {

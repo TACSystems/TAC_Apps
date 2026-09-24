@@ -29,6 +29,7 @@ export default async function RangeLogPrintPage({ params }: { params: Promise<{ 
     code: "—",
     name: "Range Log",
     notes: null,
+    categories: [],
     total_rounds: log.rounds_fired,
     target_type_id: null,
     passing_score_percent: log.passing_score_percent,

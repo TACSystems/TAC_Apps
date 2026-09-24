@@ -38,9 +38,11 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
           columns: course.columns,
           scorecard: course.scorecard,
           phases: course.phases,
+          categories: course.categories,
         }}
         targets={targets}
         positionOptions={getDropdownOptions(db, "position")}
+        categoryOptions={getDropdownOptions(db, "course_category")}
         mode="edit"
       />
     </div>

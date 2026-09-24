@@ -29,6 +29,12 @@ export type AppSettings = {
   autoLockMinutes: number;
   firearmLabel: FirearmLabelMode;
   dateFormat: DateFormat;
+  graderDateFromSession: boolean;
+  defaultAmmoManufacturer: string;
+  defaultAmmoType: string;
+  dashboardCollapsed: string[];
+  tourStatus: "new" | "offer" | "done";
+  userName: string;
 };
 
 export type FirearmLabelMode = "make_model" | "nickname" | "both" | "make_model_nickname";
@@ -74,6 +80,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoLockMinutes: 0,
   firearmLabel: "both",
   dateFormat: "us",
+  graderDateFromSession: true,
+  defaultAmmoManufacturer: "",
+  defaultAmmoType: "",
+  dashboardCollapsed: [],
+  tourStatus: "offer",
+  userName: "",
 };
 
 export function normalizeHome(raw: unknown): HomeLayout {
@@ -140,4 +152,9 @@ export function formatDateTime(value: string | null | undefined, format: DateFor
   h = h % 12 || 12;
   const time = format === "us" ? `${h}:${p(d.getMinutes())} ${ampm}` : `${p(d.getHours())}:${p(d.getMinutes())}`;
   return `${formatDate(iso, format)} ${time}`;
+}
+
+export function todayISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }

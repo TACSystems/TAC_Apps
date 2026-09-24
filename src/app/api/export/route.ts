@@ -1,6 +1,7 @@
 import { lockedResponse } from "@/lib/api-guard";
 import { NextResponse } from "next/server";
 import { createBackup } from "@/lib/backup";
+import { todayISO } from "@/lib/settings-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function GET() {
     return new NextResponse(err instanceof Error ? err.message : "Backup failed.", { status: 400 });
   }
   const { buffer, encrypted } = result;
-  const stamp = new Date().toISOString().slice(0, 10);
+  const stamp = todayISO();
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
       "Content-Type": encrypted ? "application/octet-stream" : "application/zip",

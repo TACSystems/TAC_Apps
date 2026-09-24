@@ -25,6 +25,7 @@ export default async function LogRunPage({ params }: { params: Promise<{ id: str
   if (settings.defaultShooterName) defaults.shooter_name = settings.defaultShooterName;
   if (settings.defaultGraderName) defaults.grader_name = settings.defaultGraderName;
   if (settings.defaultRangeLocation) defaults.range_location = settings.defaultRangeLocation;
+  const matchCategories = course.categories;
   const suggestions = {
     range_location: getDropdownOptions(db, "range_location"),
     weather_conditions: getDropdownOptions(db, "weather"),
@@ -58,6 +59,8 @@ export default async function LogRunPage({ params }: { params: Promise<{ id: str
       </div>
       {course.target ? (
         <ScoringForm
+          matchCategories={matchCategories}
+          graderDateFollows={settings.graderDateFromSession}
           zones={course.target.zones}
           fields={fields}
           firearms={firearms}

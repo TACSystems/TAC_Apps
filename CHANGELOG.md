@@ -2,6 +2,26 @@
 
 All notable changes to TAC-LOG, newest first.
 
+## [0.6.0] — 2026-09-24
+
+### Added
+- Course of Fire categories: tag each course Handgun, Rifle, Shotgun, or any mix with checkboxes. The list is editable in Controls (add Carbine, PCC, and so on). Tags show on every course, and the Courses of Fire page has category filters and search.
+- One-time "Categorize Courses" screen for existing courses, with suggestions pre-ticked from each course's content.
+- Import several course files at once. A review screen lists every course with category checkboxes, flags courses that will update an existing one, and won't import until each has a category. Exported course files now include categories.
+- When logging a range session, firearms that match the course's category are listed first.
+- Stats by category: sessions, average, best, and pass rate.
+- Home button at the front of the tab bar, with the current tab highlighted.
+- Settings sections fold open and closed, with a search box and Expand All / Collapse All.
+- Dashboard sections fold open and closed, and TAC-LOG remembers which you left open.
+- Click anywhere on a row to open it: Armory, Range Log, Accessories, and Ammo purchases.
+- New defaults: Grader Date follows the session date; default ammo manufacturer and type for Log Ammo Purchase.
+- "Add Another Like This" on a firearm copies it without the serial number, purchase details, or logs.
+- First-run setup (your name, date format, optional PIN) and a skippable tour of every tab. Replay it from Settings > About or File > Take the Tour.
+- File menu: Back Up Now, Open Data Folder, Lock, What's New, Take the Tour.
+
+### Fixed
+- "Today" in date fields used UTC, so evening entries in the US could default to tomorrow's date. Dates now use your computer's local date.
+
 ## [0.5.1] — 2026-09-23
 
 ### Added

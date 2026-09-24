@@ -5,6 +5,7 @@ import { loadCourse } from "@/lib/cof";
 import { CourseStrings } from "@/components/CourseSheet";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import { deleteCourse } from "../actions";
+import CategoryTags from "@/components/CategoryTags";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
             ← Courses of Fire
           </Link>
           <h1 className="text-xl font-semibold">{course.name}</h1>
+          <div className="my-1">
+            <CategoryTags categories={course.categories} />
+          </div>
           <p className="text-sm text-neutral-400">
             {course.code} · {course.effective_total_rounds} rounds
             {course.target ? (

@@ -36,6 +36,14 @@ export function normalizeSettings(raw: Partial<AppSettings> & Record<string, unk
       ? (raw.firearmLabel as AppSettings["firearmLabel"])
       : d.firearmLabel,
     dateFormat: ["us", "iso", "eu"].includes(String(raw.dateFormat)) ? (raw.dateFormat as AppSettings["dateFormat"]) : d.dateFormat,
+    graderDateFromSession: raw.graderDateFromSession === undefined ? d.graderDateFromSession : Boolean(raw.graderDateFromSession),
+    defaultAmmoManufacturer: str(raw.defaultAmmoManufacturer, d.defaultAmmoManufacturer),
+    defaultAmmoType: str(raw.defaultAmmoType, d.defaultAmmoType),
+    dashboardCollapsed: Array.isArray(raw.dashboardCollapsed)
+      ? (raw.dashboardCollapsed as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 20)
+      : d.dashboardCollapsed,
+    userName: str(raw.userName, d.userName, 40),
+    tourStatus: ["new", "offer", "done"].includes(String(raw.tourStatus)) ? (raw.tourStatus as AppSettings["tourStatus"]) : d.tourStatus,
   };
 }
 

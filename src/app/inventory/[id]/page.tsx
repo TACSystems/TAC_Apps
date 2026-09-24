@@ -41,6 +41,7 @@ import type {
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { label, fd } from "@/lib/display";
+import { todayISO } from "@/lib/settings-shared";
 
 export default async function FirearmDetailPage({
   params,
@@ -144,6 +145,10 @@ export default async function FirearmDetailPage({
               <p className="text-sm text-neutral-400">{firearm.make_model}</p>
             )}
           </div>
+          <div className="flex flex-wrap gap-2">
+          <Link href={`/inventory/new?from=${firearm.id}`} className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700">
+            Add Another Like This
+          </Link>
           <form action={deleteWithId}>
             <ConfirmSubmitButton
               confirmMessage={`Delete ${label(firearm)}? This also removes its photos, receipts, sale records, maintenance, malfunction, and zero log entries. Its accessories and range log history stay on file but will no longer show a linked firearm. This cannot be undone.`}
@@ -152,6 +157,7 @@ export default async function FirearmDetailPage({
               Delete
             </ConfirmSubmitButton>
           </form>
+          </div>
         </div>
         <div className="max-w-4xl">
           <FirearmForm
@@ -208,7 +214,7 @@ export default async function FirearmDetailPage({
               type="date"
               name="date"
               required
-              defaultValue={new Date().toISOString().slice(0, 10)}
+              defaultValue={todayISO()}
               className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
             />
           </label>
@@ -356,7 +362,7 @@ export default async function FirearmDetailPage({
             type="date"
             name="date"
             required
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            defaultValue={todayISO()}
             className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
           />
           <select name="type" defaultValue="Cleaning" className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm">
@@ -394,7 +400,7 @@ export default async function FirearmDetailPage({
             type="date"
             name="date"
             required
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            defaultValue={todayISO()}
             className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
           />
           <input
@@ -442,7 +448,7 @@ export default async function FirearmDetailPage({
             type="date"
             name="date"
             required
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            defaultValue={todayISO()}
             className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
           />
           <SuggestInput

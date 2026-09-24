@@ -18,11 +18,13 @@ import {
   type CourseDef,
   type LoadedCourse,
 } from "./cof-shared";
+import { normalizeCategories } from "@/lib/course-categories";
 
 export * from "./cof-shared";
 
 type CourseRow = {
   id: string;
+  categories_json: string | null;
   code: string;
   name: string;
   total_rounds: number | null;
@@ -140,6 +142,7 @@ export function loadCourse(db: Database.Database, id: string): LoadedCourse | nu
     columns,
     scorecard,
     phases,
+    categories: normalizeCategories(c.categories_json),
     target: loadTargetType(db, c.target_type_id),
     computed_total_rounds: computed,
     effective_total_rounds: c.total_rounds ?? computed,
@@ -212,6 +215,7 @@ export function validateCourseDef(input: unknown): { def: CourseDef } | { error:
       columns,
       scorecard: normalizeScorecard(raw.scorecard),
       phases,
+      categories: normalizeCategories(raw.categories),
     },
   };
 }
@@ -244,6 +248,7 @@ export function saveCourse(db: Database.Database, def: CourseDef): string {
       passing_score_percent: def.passing_score_percent,
       columns_json: JSON.stringify(def.columns),
       scorecard_json: JSON.stringify(def.scorecard),
+      categories_json: def.categories.length ? JSON.stringify(def.categories) : null,
     };
     const exists = db.prepare(`select 1 from courses_of_fire where id = ?`).get(id);
     if (exists) {
@@ -251,15 +256,15 @@ export function saveCourse(db: Database.Database, def: CourseDef): string {
         `update courses_of_fire set code=@code, name=@name, notes=@notes, total_rounds=@total_rounds,
            target_type=@target_type, target_type_id=@target_type_id,
            passing_score_percent=@passing_score_percent, columns_json=@columns_json,
-           scorecard_json=@scorecard_json
+           scorecard_json=@scorecard_json, categories_json=@categories_json
          where id=@id`
       ).run(row);
     } else {
       db.prepare(
         `insert into courses_of_fire (id, code, name, notes, total_rounds, target_type, target_type_id,
-           passing_score_percent, columns_json, scorecard_json)
+           passing_score_percent, columns_json, scorecard_json, categories_json)
          values (@id, @code, @name, @notes, @total_rounds, @target_type, @target_type_id,
-           @passing_score_percent, @columns_json, @scorecard_json)`
+           @passing_score_percent, @columns_json, @scorecard_json, @categories_json)`
       ).run(row);
     }
 
@@ -426,6 +431,7 @@ export type CofPatchCourse = {
   scorecard?: ScorecardConfig;
   phases: CofPatchPhase[];
   scoring_zones: ZoneDef[];
+  categories?: string[];
 };
 
 export type CofPatch = { format?: string; courses: CofPatchCourse[] };
@@ -488,6 +494,7 @@ export function applyCofPatch(db: Database.Database, patch: CofPatch) {
         columns,
         scorecard: course.scorecard ?? DEFAULT_SCORECARD,
         phases,
+        categories: course.categories ?? [],
       });
       if ("error" in checked) throw new Error(`${course.code}: ${checked.error}`);
       saveCourse(db, checked.def);
@@ -509,6 +516,7 @@ export function exportCourse(course: LoadedCourse): CofPatchCourse {
     columns: course.columns,
     scorecard: course.scorecard,
     scoring_zones: course.target?.zones ?? [],
+    categories: course.categories,
     phases: course.phases.map((p, i) => ({
       phase_number: i + 1,
       title: p.title,

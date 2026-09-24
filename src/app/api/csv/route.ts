@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { lockedResponse } from "@/lib/api-guard";
 import { getDb } from "@/lib/db";
 import { toCsv } from "@/lib/xlsx";
+import { todayISO } from "@/lib/settings-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +54,7 @@ export async function GET(req: NextRequest) {
   const spec = EXPORTS[type];
   if (!spec) return NextResponse.json({ error: "Unknown export" }, { status: 404 });
   const rows = getDb().prepare(spec.sql).raw().all() as (string | number | null)[][];
-  const stamp = new Date().toISOString().slice(0, 10);
+  const stamp = todayISO();
   return new NextResponse(toCsv(spec.headers, rows), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",

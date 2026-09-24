@@ -19,6 +19,7 @@ import {
 } from "@/lib/cof-shared";
 import { saveCourseAction } from "@/app/courses/actions";
 import TargetTypeEditor from "@/components/TargetTypeEditor";
+import CategoryPicker from "@/components/CategoryPicker";
 import { clearUnsaved, useUnsaved } from "@/components/UnsavedGuard";
 
 type BRow = StringRow & { uid: string };
@@ -63,11 +64,13 @@ export default function CourseBuilder({
   targets: initialTargets,
   mode,
   positionOptions = [],
+  categoryOptions = [],
 }: {
   initial: CourseDef | null;
   targets: TargetTypeDef[];
   mode: "new" | "edit";
   positionOptions?: string[];
+  categoryOptions?: string[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -78,6 +81,7 @@ export default function CourseBuilder({
 
   const [name, setName] = useState(initial?.name ?? "");
   const [code, setCode] = useState(initial?.code ?? "");
+  const [categories, setCategories] = useState<string[]>(initial?.categories ?? []);
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [totalOverride, setTotalOverride] = useState(
     initial?.total_rounds != null ? String(initial.total_rounds) : ""
@@ -131,6 +135,7 @@ export default function CourseBuilder({
       JSON.stringify({
         name,
         code,
+        categories,
         notes,
         totalOverride,
         targetId,
@@ -144,7 +149,7 @@ export default function CourseBuilder({
           strings: p.strings.map((st) => ({ ...st, uid: undefined })),
         })),
       }),
-    [name, code, notes, totalOverride, targetId, passing, columns, scorecard, phases]
+    [name, code, categories, notes, totalOverride, targetId, passing, columns, scorecard, phases]
   );
   const [baseline] = useState(snapshot);
   const [saved, setSaved] = useState(false);
@@ -248,6 +253,10 @@ export default function CourseBuilder({
 
   function save() {
     setError(null);
+    if (!categories.length) {
+      setError("Pick at least one category (Handgun, Rifle, Shotgun, and so on).");
+      return;
+    }
     const payload: CourseDef = {
       id: mode === "edit" ? initial?.id : undefined,
       name,
@@ -258,6 +267,7 @@ export default function CourseBuilder({
       passing_score_percent: toNum(passing),
       columns,
       scorecard,
+      categories,
       phases: phases.map((p) => ({
         title: p.title,
         notes: p.notes || null,
@@ -331,6 +341,11 @@ export default function CourseBuilder({
             {toNum(totalOverride) != null && toNum(totalOverride) !== computedTotal && (
               <span className="text-brand-amber">Override in use ({effectiveTotal})</span>
             )}
+          </div>
+          <div className="flex flex-col gap-1 text-sm sm:col-span-3">
+            <span className="uppercase tracking-[0.06em]">Category</span>
+            <CategoryPicker options={categoryOptions} value={categories} onChange={setCategories} />
+            <span className="text-xs text-neutral-500">Pick every type the course uses. Edit the list in Controls.</span>
           </div>
           <label className="flex flex-col gap-1 text-sm sm:col-span-3">
             Description / Notes

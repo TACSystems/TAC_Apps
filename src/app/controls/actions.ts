@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { DEFAULT_OPTIONS, DROPDOWN_CATEGORIES, type DropdownCategory } from "@/lib/options";
 import { updateSettings, type HomeLayout } from "@/lib/settings";
+import { normalizeCategories } from "@/lib/course-categories";
 
 function isCategory(c: string): c is DropdownCategory {
   return c in DROPDOWN_CATEGORIES;
@@ -34,8 +35,29 @@ export async function addDropdownOption(category: DropdownCategory, formData: Fo
   done(category);
 }
 
+function retagCourses(db: ReturnType<typeof getDb>, from: string, to: string | null) {
+  const rows = db
+    .prepare(`select id, categories_json from courses_of_fire where categories_json is not null`)
+    .all() as { id: string; categories_json: string }[];
+  const upd = db.prepare(`update courses_of_fire set categories_json = ? where id = ?`);
+  db.transaction(() => {
+    for (const r of rows) {
+      const list = normalizeCategories(r.categories_json);
+      if (!list.some((c) => c.toLowerCase() === from.toLowerCase())) continue;
+      const next = normalizeCategories(list.flatMap((c) => (c.toLowerCase() === from.toLowerCase() ? (to ? [to] : []) : [c])));
+      upd.run(next.length ? JSON.stringify(next) : null, r.id);
+    }
+  })();
+}
+
 export async function deleteDropdownOption(category: string, id: string) {
-  getDb().prepare(`delete from dropdown_options where id = ?`).run(id);
+  const db = getDb();
+  const row = db.prepare(`select value from dropdown_options where id = ?`).get(id) as { value: string } | undefined;
+  db.prepare(`delete from dropdown_options where id = ?`).run(id);
+  if (category === "course_category" && row) {
+    retagCourses(db, row.value, null);
+    revalidatePath("/courses");
+  }
   done(category);
 }
 
@@ -43,9 +65,14 @@ export async function renameDropdownOption(category: string, id: string, formDat
   const value = String(formData.get("value") || "").trim().slice(0, 80);
   if (value) {
     try {
-      getDb().prepare(`update dropdown_options set value = ? where id = ?`).run(value, id);
+      const db = getDb();
+      const row = db.prepare(`select value from dropdown_options where id = ?`).get(id) as { value: string } | undefined;
+      db.prepare(`update dropdown_options set value = ? where id = ?`).run(value, id);
+      if (category === "course_category" && row && row.value !== value) {
+        retagCourses(db, row.value, value);
+        revalidatePath("/courses");
+      }
     } catch {
-      // another option in this list already has that name — leave it unchanged
     }
   }
   done(category);

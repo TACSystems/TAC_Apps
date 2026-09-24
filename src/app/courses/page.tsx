@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { CourseOfFire } from "@/lib/db/types";
+import CourseList from "@/components/CourseList";
+import CategorizeBanner from "@/components/CategorizeBanner";
+import { normalizeCategories } from "@/lib/course-categories";
+import { categorizePromptVisible, courseCategoryOptions } from "@/lib/course-category-store";
 
 export const dynamic = "force-dynamic";
 
@@ -28,43 +32,25 @@ export default async function CoursesPage() {
           </Link>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {courses.map((c) => (
-          <div key={c.id} className="flex flex-col border border-neutral-800 bg-neutral-900 hover:border-neutral-600">
-            <Link href={`/courses/${c.id}`} className="flex-1 p-4">
-              <div className="font-medium">{c.name}</div>
-              <div className="text-sm text-neutral-400">
-                {c.code}
-                {c.total_rounds != null ? ` · ${c.total_rounds} rounds` : ""}
-                {c.target_type ? ` · ${c.target_type}` : ""}
-                {c.passing_score_percent != null ? ` · pass ${c.passing_score_percent}%` : ""}
-              </div>
-              <div className="text-xs text-neutral-500">
-                {c.run_count} range session{c.run_count === 1 ? "" : "s"} logged
-              </div>
-            </Link>
-            <div className="flex gap-4 border-t border-neutral-800 px-4 py-2 text-xs">
-              <Link href={`/courses/${c.id}/log`} className="text-brand-amber hover:text-brand-amber-light">
-                Log a Range Session
-              </Link>
-              <Link href={`/courses/${c.id}/print`} className="text-brand-amber hover:text-brand-amber-light">
-                Print
-              </Link>
-              <Link href={`/courses/${c.id}/edit`} className="text-brand-amber hover:text-brand-amber-light">
-                Edit
-              </Link>
-              <Link href={`/courses/new?from=${c.id}`} className="text-brand-amber hover:text-brand-amber-light">
-                Duplicate
-              </Link>
-            </div>
-          </div>
-        ))}
-        {courses.length === 0 && (
-          <p className="text-sm text-neutral-500">
-            No courses of fire yet. Build one, or import a course file.
-          </p>
-        )}
-      </div>
+      <CategorizeBanner count={categorizePromptVisible(db)} />
+      <CourseList
+        categories={courseCategoryOptions(db)}
+        courses={courses.map((c) => ({
+          id: c.id,
+          name: c.name,
+          code: c.code,
+          runs: c.run_count,
+          categories: normalizeCategories(c.categories_json),
+          meta: [
+            c.code,
+            c.total_rounds != null ? `${c.total_rounds} rounds` : null,
+            c.target_type,
+            c.passing_score_percent != null ? `pass ${c.passing_score_percent}%` : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+        }))}
+      />
     </div>
   );
 }

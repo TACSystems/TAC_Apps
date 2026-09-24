@@ -1,5 +1,6 @@
 import Link from "next/link";
 import LockButton from "@/components/LockButton";
+import NavLinks from "@/components/NavLinks";
 
 export default function NavBar({ showLock = false }: { showLock?: boolean }) {
   return (
@@ -15,29 +16,7 @@ export default function NavBar({ showLock = false }: { showLock?: boolean }) {
         </Link>
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-neutral-400">
-          <Link href="/inventory" className="hover:text-neutral-100">
-            Armory
-          </Link>
-          <Link href="/ammo" className="hover:text-neutral-100">
-            Ammo
-          </Link>
-          <Link href="/courses" className="hover:text-neutral-100">
-            Courses of Fire
-          </Link>
-          <Link href="/range-log" className="hover:text-neutral-100">
-            Range Log
-          </Link>
-          <Link href="/stats" className="hover:text-neutral-100">
-            Stats
-          </Link>
-
-          <span className="mx-1 h-4 w-px bg-neutral-700" aria-hidden="true" />
-          <Link href="/controls" className="hover:text-neutral-100">
-            Controls
-          </Link>
-          <Link href="/settings" className="hover:text-neutral-100">
-            Settings
-          </Link>
+          <NavLinks />
           {showLock && <LockButton />}
         </div>
       </div>

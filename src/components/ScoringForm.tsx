@@ -5,6 +5,8 @@ import { useState } from "react";
 import type { Firearm } from "@/lib/db/types";
 import { passFail, type ScorecardField, type ZoneDef } from "@/lib/cof-shared";
 import SubmitButton from "@/components/SubmitButton";
+import { todayISO } from "@/lib/settings-shared";
+import { firearmMatchesCategories } from "@/lib/course-categories";
 
 const inputCls = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";
 
@@ -19,6 +21,8 @@ export default function ScoringForm({
   suggestions,
   action,
   initial,
+  matchCategories = [],
+  graderDateFollows = false,
   submitLabel = "Save Range Session",
 }: {
   zones: ZoneDef[];
@@ -39,7 +43,15 @@ export default function ScoringForm({
     passing: number | null;
   };
   submitLabel?: string;
+  matchCategories?: string[];
+  graderDateFollows?: boolean;
 }) {
+  const [sessionDate, setSessionDate] = useState(initial?.date ?? todayISO());
+  const [graderDate, setGraderDate] = useState(defaults.grader_date ?? "");
+  const [graderTouched, setGraderTouched] = useState(Boolean(defaults.grader_date) || !graderDateFollows);
+  const shownGraderDate = graderTouched ? graderDate : sessionDate;
+  const matching = matchCategories.length ? firearms.filter((f) => firearmMatchesCategories(f.platform, matchCategories)) : [];
+  const others = matching.length ? firearms.filter((f) => !matching.includes(f)) : firearms;
   const [counts, setCounts] = useState<Record<string, number>>(initial?.counts ?? {});
 
   const totalPoints = zones.reduce((sum, z) => sum + z.value * (counts[z.zone_label] ?? 0), 0);
@@ -57,7 +69,8 @@ export default function ScoringForm({
             type="date"
             name="date"
             required
-            defaultValue={initial?.date ?? new Date().toISOString().slice(0, 10)}
+            value={sessionDate}
+            onChange={(e) => setSessionDate(e.target.value)}
             className={inputCls}
           />
         </label>
@@ -65,11 +78,32 @@ export default function ScoringForm({
           Firearm
           <select name="firearm_id" required defaultValue={initial?.firearm_id ?? ""} className={inputCls}>
             <option value="">— Select —</option>
-            {firearms.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.label ?? f.make_model}
-              </option>
-            ))}
+            {matching.length > 0 ? (
+              <>
+                <optgroup label={`Matches this course (${matchCategories.join(", ")})`}>
+                  {matching.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.label ?? f.make_model}
+                    </option>
+                  ))}
+                </optgroup>
+                {others.length > 0 && (
+                  <optgroup label="Other firearms">
+                    {others.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.label ?? f.make_model}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </>
+            ) : (
+              firearms.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.label ?? f.make_model}
+                </option>
+              ))
+            )}
           </select>
         </label>
         <label className="flex flex-col gap-1 text-sm">
@@ -98,7 +132,15 @@ export default function ScoringForm({
               name={`field:${f.key}`}
               type={f.key === "grain" ? "number" : f.key === "grader_date" ? "date" : "text"}
               placeholder={f.key === "caliber" ? "Defaults to the firearm's caliber" : undefined}
-              defaultValue={defaults[f.key] ?? ""}
+              {...(f.key === "grader_date"
+                ? {
+                    value: shownGraderDate,
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                      setGraderTouched(true);
+                      setGraderDate(e.target.value);
+                    },
+                  }
+                : { defaultValue: defaults[f.key] ?? "" })}
               list={suggestions[f.key]?.length ? `suggest-${f.key}` : undefined}
               autoComplete="off"
               className={inputCls}

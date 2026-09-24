@@ -30,6 +30,9 @@ export async function saveSettingsForm(formData: FormData) {
     currencySymbol: get("currencySymbol"),
     firearmLabel: get("firearmLabel") as AppSettings["firearmLabel"],
     dateFormat: get("dateFormat") as AppSettings["dateFormat"],
+    graderDateFromSession: formData.get("graderDateFromSession") === "on",
+    defaultAmmoManufacturer: get("defaultAmmoManufacturer"),
+    defaultAmmoType: get("defaultAmmoType"),
   };
   updateSettings(getDb(), patch);
   revalidatePath("/", "layout");

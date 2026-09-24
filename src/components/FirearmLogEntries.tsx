@@ -14,6 +14,7 @@ import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import SuggestInput from "@/components/SuggestInput";
 import { money } from "@/lib/settings-shared";
 import { fd } from "@/lib/display";
+import { todayISO } from "@/lib/settings-shared";
 
 const input = "border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm";
 const saveBtn = "w-fit border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-xs hover:bg-neutral-700";
@@ -197,7 +198,7 @@ export const DISPOSITION_TYPES = ["Sold", "Transferred", "Traded", "Gifted", "In
 export function DispositionFields({ d }: { d?: Disposition }) {
   return (
     <>
-      <input type="date" name="date" required defaultValue={d?.date ?? new Date().toISOString().slice(0, 10)} className={input} />
+      <input type="date" name="date" required defaultValue={d?.date ?? todayISO()} className={input} />
       <select name="type" defaultValue={d?.type ?? "Sold"} className={input}>
         {(d && !DISPOSITION_TYPES.includes(d.type) ? [d.type, ...DISPOSITION_TYPES] : DISPOSITION_TYPES).map((t) => (
           <option key={t} value={t}>

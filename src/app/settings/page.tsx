@@ -6,6 +6,9 @@ import ImportCofForm from "@/components/ImportCofForm";
 import RestoreForm from "@/components/RestoreForm";
 import { saveSettingsForm } from "./actions";
 import SubmitButton from "@/components/SubmitButton";
+import Collapsible from "@/components/Collapsible";
+import SectionTools from "@/components/SectionTools";
+import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import Link from "next/link";
 import { fdt } from "@/lib/display";
 import SecuritySettings from "@/components/SecuritySettings";
@@ -18,7 +21,6 @@ import { DATE_FORMATS, FIREARM_LABEL_MODES } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
-const card = "border border-neutral-800 bg-neutral-900 p-4";
 const input = "border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm normal-case";
 const btn = "inline-block border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700";
 
@@ -36,25 +38,25 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const s = getSettings(db);
   const dir = dataDir();
   const count = (sql: string) => (db.prepare(sql).get() as { n: number }).n;
+  const formOpen = Boolean(saved);
   const auto = getAutoBackup(db);
   const autoStatus = getAutoBackupStatus(db);
   const dbBytes =
     fileSize(path.join(dir, "firearms.db")) + fileSize(path.join(dir, "firearms.db-wal"));
 
   return (
-    <div className="flex max-w-5xl flex-col gap-6">
+    <div data-scope="settings" className="flex max-w-5xl flex-col gap-3">
       <div>
         <h1 className="text-xl font-semibold">Settings</h1>
-        <p className="text-sm text-neutral-400">Backups, course imports, and app-wide defaults.</p>
+        <p className="text-sm text-neutral-400">Security, backups, imports, and app-wide defaults. Click a section to open it.</p>
       </div>
+      <SectionTools scope="settings" search />
 
-      <section className={card}>
-        <h2 className="mb-1 font-medium text-neutral-200">Security</h2>
+      <Collapsible id="settings-security" title="Security" keywords="pin password lock encryption recovery key auto-lock idle" defaultOpen={false}>
         <SecuritySettings mode={securityMode()} autoLockMinutes={s.autoLockMinutes} />
-      </section>
+      </Collapsible>
 
-      <section className={card}>
-        <h2 className="mb-1 font-medium text-neutral-200">Backup</h2>
+      <Collapsible id="settings-backup" title="Backup" keywords="backup password automatic folder download restore tlbak zip" defaultOpen={false}>
         <p className="mb-3 text-sm text-neutral-400">
           A full backup is one file with your entire database and every photo and receipt. Everything lives on this
           computer only, with no cloud copy, so keep backups somewhere safe.
@@ -69,31 +71,28 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           lastFile={autoStatus.lastFile}
           lastError={autoStatus.lastError}
         />
-      </section>
+      </Collapsible>
 
-      <section className={card}>
-        <h2 className="mb-1 font-medium text-neutral-200">Restore</h2>
+      <Collapsible id="settings-restore" title="Restore" keywords="restore backup move new computer" defaultOpen={false}>
         <p className="mb-3 text-sm text-neutral-400">
           Replace this computer&apos;s data with a TAC-LOG backup (.tlbak or .zip), or with an older database-only
           backup (.db). Also how you move TAC-LOG to a new computer. Older backups are upgraded automatically.
         </p>
         <RestoreForm />
-      </section>
+      </Collapsible>
 
-      <section className={card}>
-        <h2 className="mb-1 font-medium text-neutral-200">Courses of Fire</h2>
+      <Collapsible id="settings-courses-of-fire" title="Courses of Fire" keywords="import export course json categories" defaultOpen={false}>
         <p className="mb-3 text-sm text-neutral-400">
-          Import a course file (.json) to add courses or update ones with the same code. Only Course of Fire and
+          Import course files (.json), one or several at once. You review each course and pick its categories before anything is saved. Courses with a matching code are updated. Only Course of Fire and
           Target Type data is touched. To share one course, use Export on that course&apos;s page.
         </p>
         <ImportCofForm />
         <a href="/api/courses/export" className={`${btn} mt-3`}>
           Export All Courses
         </a>
-      </section>
+      </Collapsible>
 
-      <section className={card}>
-        <h2 className="mb-1 font-medium text-neutral-200">Spreadsheets</h2>
+      <Collapsible id="settings-spreadsheets" title="Spreadsheets" keywords="import excel xlsx csv export spreadsheet inventory" defaultOpen={false}>
         <p className="mb-3 text-sm text-neutral-400">
           Import firearms, serialized accessories, ammo purchases, and ammo goals from an Excel workbook (.xlsx) or
           CSV, such as your original FIREARMS INVENTORY sheet. TAC-LOG finds each table by its header row, shows a
@@ -115,13 +114,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </a>
           ))}
         </div>
-      </section>
+      </Collapsible>
 
-      <form action={saveSettingsForm} className="flex flex-col gap-6">
+      <form action={saveSettingsForm} className="flex flex-col gap-3">
         {saved && <p className="text-sm text-green-400">Settings saved.</p>}
 
-        <section className={card}>
-          <h2 className="mb-3 font-medium text-neutral-200">Range Session Defaults</h2>
+        <Collapsible id="settings-range-session-defaults" title="Range Session Defaults" keywords="shooter grader range location defaults grader date" defaultOpen={formOpen}>
           <p className="mb-3 text-sm text-neutral-400">Pre-filled on the Log a Range Session form. You can still change them each time.</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <label className="flex flex-col gap-1 text-sm">
@@ -137,10 +135,16 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <input name="defaultRangeLocation" defaultValue={s.defaultRangeLocation} className={input} />
             </label>
           </div>
-        </section>
+          <label className="mt-3 flex items-center gap-2 text-sm normal-case">
+            <input type="checkbox" name="graderDateFromSession" defaultChecked={s.graderDateFromSession} />
+            Grader Date fills in with the session date (you can still change it)
+          </label>
+          <SubmitButton pendingLabel="Saving…" className="mt-4 w-fit bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light">
+            Save Settings
+          </SubmitButton>
+        </Collapsible>
 
-        <section className={card}>
-          <h2 className="mb-3 font-medium text-neutral-200">Maintenance</h2>
+        <Collapsible id="settings-maintenance" title="Maintenance" keywords="cleaning interval rounds days due soon" defaultOpen={formOpen}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <label className="flex flex-col gap-1 text-sm">
               New firearms: clean every (rounds)
@@ -176,10 +180,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               />
             </label>
           </div>
-        </section>
+          <SubmitButton pendingLabel="Saving…" className="mt-4 w-fit bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light">
+            Save Settings
+          </SubmitButton>
+        </Collapsible>
 
-        <section className={card}>
-          <h2 className="mb-3 font-medium text-neutral-200">Ammo</h2>
+        <Collapsible id="settings-ammo" title="Ammo" keywords="low ammo threshold deduct manufacturer type default" defaultOpen={formOpen}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="flex items-center gap-2 text-sm normal-case">
               <input
@@ -200,11 +206,31 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                 className={input}
               />
             </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Default Manufacturer (Log Ammo Purchase)
+              <input name="defaultAmmoManufacturer" list="settings-ammo-mfr" defaultValue={s.defaultAmmoManufacturer} placeholder="None" className={input} />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Default Ammo Type (Log Ammo Purchase)
+              <input name="defaultAmmoType" list="settings-ammo-type" defaultValue={s.defaultAmmoType} placeholder="None" className={input} />
+            </label>
+            <datalist id="settings-ammo-mfr">
+              {getDropdownOptions(db, "ammo_manufacturer").map((o) => (
+                <option key={o} value={o} />
+              ))}
+            </datalist>
+            <datalist id="settings-ammo-type">
+              {getDropdownOptions(db, "ammo_type").map((o) => (
+                <option key={o} value={o} />
+              ))}
+            </datalist>
           </div>
-        </section>
+          <SubmitButton pendingLabel="Saving…" className="mt-4 w-fit bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light">
+            Save Settings
+          </SubmitButton>
+        </Collapsible>
 
-        <section className={card}>
-          <h2 className="mb-3 font-medium text-neutral-200">Display</h2>
+        <Collapsible id="settings-display" title="Display" keywords="nickname make model date format currency symbol" defaultOpen={formOpen}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <label className="flex flex-col gap-1 text-sm">
               Show Firearms As
@@ -234,23 +260,28 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <p className="mt-2 text-xs text-neutral-500">
             The Inventory Report for insurance always lists make, model, and serial number, whatever you pick here.
           </p>
-        </section>
+          <SubmitButton pendingLabel="Saving…" className="mt-4 w-fit bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light">
+            Save Settings
+          </SubmitButton>
+        </Collapsible>
 
-        <SubmitButton
-          pendingLabel="Saving…"
-          className="w-fit bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light"
-        >
-          Save Settings
-        </SubmitButton>
       </form>
 
-      <section className={card}>
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-medium text-neutral-200">About</h2>
-          <Link href="/settings/whats-new" className="text-sm text-brand-amber hover:text-brand-amber-light">
-            What&apos;s New / Changelog
-          </Link>
-        </div>
+      <Collapsible
+        id="settings-about"
+        title="About"
+        keywords="version data folder encryption changelog what's new tour help"
+        aside={
+          <span className="flex gap-4">
+            <Link href="/?tour=1" className="text-brand-amber hover:text-brand-amber-light">
+              Take the Tour
+            </Link>
+            <Link href="/settings/whats-new" className="text-brand-amber hover:text-brand-amber-light">
+              What&apos;s New / Changelog
+            </Link>
+          </span>
+        }
+      >
         <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-1 text-sm">
           <dt className="text-neutral-500">Version</dt>
           <dd>TAC-LOG {process.env.TAC_LOG_VERSION ?? "(development)"}</dd>
@@ -269,7 +300,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <dd>{isEncrypted() ? "On (SQLCipher, AES-256)" : "Off"}</dd>
         </dl>
         <p className="mt-4 text-center text-[11px] tracking-[0.25em] text-neutral-500">POWERED BY PRECISION SYSTEMS</p>
-      </section>
+      </Collapsible>
     </div>
   );
 }

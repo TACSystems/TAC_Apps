@@ -3,6 +3,7 @@
 import { getDb } from "@/lib/db";
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
+import { todayISO } from "@/lib/settings-shared";
 
 function s(formData: FormData, key: string) {
   const v = formData.get(key);
@@ -94,7 +95,7 @@ export async function logRoundsFired(firearmId: string, formData: FormData) {
     ).run({
       id: randomUUID(),
       firearm_id: firearmId,
-      date: String(formData.get("date") || new Date().toISOString().slice(0, 10)),
+      date: String(formData.get("date") || todayISO()),
       rounds,
       caliber: s(formData, "caliber") ?? firearm.caliber,
       ammo_lot: s(formData, "ammo_lot"),

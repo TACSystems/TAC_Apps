@@ -5,6 +5,7 @@ import type { Accessory } from "@/lib/db/types";
 export const dynamic = "force-dynamic";
 import { deleteAccessory } from "@/app/inventory/actions";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import ClickRow from "@/components/ClickRow";
 
 export default async function AccessoriesPage() {
   const db = getDb();
@@ -31,9 +32,11 @@ export default async function AccessoriesPage() {
 
       <div className="flex flex-col gap-2">
         {accessories.map((a) => (
-          <div
+          <ClickRow
             key={a.id}
-            className="flex items-center justify-between rounded border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm"
+            as="div"
+            href={`/inventory/accessories/${a.id}`}
+            className="flex items-center justify-between border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm hover:border-neutral-600"
           >
             <div>
               <Link href={`/inventory/accessories/${a.id}`} className="font-medium text-brand-amber hover:text-brand-amber-light">
@@ -57,7 +60,7 @@ export default async function AccessoriesPage() {
                 </ConfirmSubmitButton>
               </form>
             </div>
-          </div>
+          </ClickRow>
         ))}
         {accessories.length === 0 && (
           <p className="text-sm text-neutral-500">No accessories logged yet.</p>

@@ -10,6 +10,7 @@ export const DROPDOWN_CATEGORIES = {
   range_location: "Range Location",
   weather: "Weather Conditions",
   position: "Shooting Position",
+  course_category: "Course of Fire Category",
 } as const;
 
 export type DropdownCategory = keyof typeof DROPDOWN_CATEGORIES;
@@ -26,10 +27,12 @@ export const DROPDOWN_USED_IN: Record<DropdownCategory, string> = {
   range_location: "Log a Range Session",
   weather: "Log a Range Session",
   position: "Course of Fire Builder / Position column",
+  course_category: "Courses of Fire / categories (renaming or removing one updates every course that uses it)",
 };
 
 
 export const DEFAULT_OPTIONS: Record<DropdownCategory, string[]> = {
+  course_category: ["Handgun", "Rifle", "Shotgun"],
   platform: [
     "Pistol (Semi-Auto)",
     "Revolver",

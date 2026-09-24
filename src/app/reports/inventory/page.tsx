@@ -5,6 +5,7 @@ import { getSettings, money } from "@/lib/settings";
 import PrintButton from "@/components/PrintButton";
 import { PrintFooter } from "@/components/CourseSheet";
 import { fd } from "@/lib/display";
+import { todayISO } from "@/lib/settings-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export default async function InventoryReportPage({
 
   const firearmValue = keptFirearms.reduce((s, f) => s + (f.purchase_value ?? 0), 0);
   const accessoryValue = countedAccessories.reduce((s, a) => s + (a.purchase_value ?? 0), 0);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
 
   const toggle = (key: string, value: string, label: string, on: boolean) => {
     const params = new URLSearchParams({ sold: includeSold ? "1" : "0", photos: showPhotos ? "1" : "0", [key]: value });

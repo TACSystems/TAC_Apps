@@ -205,6 +205,9 @@
           "zone_label": "Off Silhouette",
           "value": 0.0
         }
+      ],
+      "categories": [
+        "Handgun"
       ]
     },
     {
@@ -402,6 +405,9 @@
           "zone_label": "Off Silhouette",
           "value": 0.0
         }
+      ],
+      "categories": [
+        "Handgun"
       ]
     },
     {
@@ -609,6 +615,9 @@
           "zone_label": "Off Silhouette",
           "value": 0.0
         }
+      ],
+      "categories": [
+        "Handgun"
       ]
     },
     {
@@ -836,6 +845,9 @@
           "zone_label": "Off Silhouette",
           "value": 0.0
         }
+      ],
+      "categories": [
+        "Handgun"
       ]
     },
     {
@@ -1063,6 +1075,10 @@
           "zone_label": "Off Silhouette",
           "value": 0.0
         }
+      ],
+      "categories": [
+        "Handgun",
+        "Rifle"
       ]
     }
   ]

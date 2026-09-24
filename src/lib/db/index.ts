@@ -214,6 +214,8 @@ function initDb(): Database.Database {
   addColumnIfMissing(db, "courses_of_fire", "passing_score_percent", "REAL");
   addColumnIfMissing(db, "courses_of_fire", "columns_json", "TEXT");
   addColumnIfMissing(db, "courses_of_fire", "scorecard_json", "TEXT");
+  addColumnIfMissing(db, "courses_of_fire", "categories_json", "TEXT");
+  addColumnIfMissing(db, "firearms", "nickname", "TEXT");
   addColumnIfMissing(db, "cof_phases", "notes", "TEXT");
   const addedSortOrder = addColumnIfMissing(db, "cof_strings", "sort_order", "INTEGER NOT NULL DEFAULT 0");
   addColumnIfMissing(db, "cof_strings", "row_type", "TEXT NOT NULL DEFAULT 'string'");
@@ -239,7 +241,6 @@ function initDb(): Database.Database {
 
   seedDropdownOptions(db);
 
-  addColumnIfMissing(db, "firearms", "nickname", "TEXT");
   registerLabelFunction(db);
   const initial = getSettings(db);
   setLabelMode(initial.firearmLabel);
@@ -248,6 +249,9 @@ function initDb(): Database.Database {
   db.prepare(
     `insert into app_settings (key, value) values ('last_version', ?) on conflict(key) do update set value = excluded.value`
   ).run(JSON.stringify(process.env.TAC_LOG_VERSION ?? "dev"));
+  if (fresh) {
+    db.prepare(`insert or ignore into app_settings (key, value) values ('tourStatus', '"new"')`).run();
+  }
   if (fresh && process.env.TAC_LOG_VERSION) {
     db.prepare(`insert or ignore into app_settings (key, value) values ('whats_new_seen', ?)`).run(
       JSON.stringify(process.env.TAC_LOG_VERSION)

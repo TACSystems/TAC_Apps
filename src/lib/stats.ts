@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3-multiple-ciphers";
+import { normalizeCategories } from "@/lib/course-categories";
 
 export type CourseStat = {
   id: string;
@@ -138,4 +139,39 @@ export function overview(db: Database.Database) {
       `select count(*) as n from range_log where passing_score_percent is not null and final_score_percent >= passing_score_percent`
     ).n,
   };
+}
+
+export type CategoryStat = { category: string; sessions: number; avg: number | null; best: number | null; graded: number; passed: number };
+
+export function categoryStats(db: Database.Database): CategoryStat[] {
+  const rows = db
+    .prepare(
+      `select c.categories_json, r.final_score_percent as score, r.passing_score_percent as passing
+       from range_log r join courses_of_fire c on c.id = r.cof_id`
+    )
+    .all() as { categories_json: string | null; score: number | null; passing: number | null }[];
+  const acc = new Map<string, { sessions: number; scores: number[]; graded: number; passed: number }>();
+  for (const r of rows) {
+    const cats = normalizeCategories(r.categories_json);
+    for (const c of cats.length ? cats : ["Uncategorized"]) {
+      const a = acc.get(c) ?? { sessions: 0, scores: [], graded: 0, passed: 0 };
+      a.sessions += 1;
+      if (r.score != null) a.scores.push(r.score);
+      if (r.score != null && r.passing != null) {
+        a.graded += 1;
+        if (r.score >= r.passing) a.passed += 1;
+      }
+      acc.set(c, a);
+    }
+  }
+  return [...acc.entries()]
+    .map(([category, a]) => ({
+      category,
+      sessions: a.sessions,
+      avg: a.scores.length ? Math.round((a.scores.reduce((s, x) => s + x, 0) / a.scores.length) * 10) / 10 : null,
+      best: a.scores.length ? Math.max(...a.scores) : null,
+      graded: a.graded,
+      passed: a.passed,
+    }))
+    .sort((x, y) => (x.category === "Uncategorized" ? 1 : y.category === "Uncategorized" ? -1 : y.sessions - x.sessions));
 }

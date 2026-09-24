@@ -2,6 +2,7 @@ import type { Accessory, Firearm } from "@/lib/db/types";
 import SelectOrOther from "@/components/SelectOrOther";
 import SubmitButton from "@/components/SubmitButton";
 import UnsavedGuard from "@/components/UnsavedGuard";
+import { todayISO } from "@/lib/settings-shared";
 
 const input = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";
 
@@ -60,7 +61,7 @@ export default function AccessoryForm({
             <input
               type="date"
               name="move_date"
-              defaultValue={new Date().toISOString().slice(0, 10)}
+              defaultValue={todayISO()}
               className={input}
             />
           </label>

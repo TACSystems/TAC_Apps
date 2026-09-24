@@ -1,4 +1,12 @@
 import Link from "next/link";
+import Collapsible from "@/components/Collapsible";
+import SectionTools from "@/components/SectionTools";
+import CategorizeBanner from "@/components/CategorizeBanner";
+import TourOffer from "@/components/TourOffer";
+import FirstRun from "@/components/FirstRun";
+import { Suspense } from "react";
+import { securityMode } from "@/lib/security-state";
+import { categorizePromptVisible } from "@/lib/course-category-store";
 import { getDb } from "@/lib/db";
 import type { RangeLog } from "@/lib/db/types";
 import { maintenanceSchedule, STATUS_LABEL, type MaintenanceStatus } from "@/lib/maintenance";
@@ -7,6 +15,7 @@ import { ammoStatus } from "@/lib/ammo";
 import { logMaintenance } from "@/app/inventory/[id]/log-actions";
 import SubmitButton from "@/components/SubmitButton";
 import { label, fd } from "@/lib/display";
+import { todayISO } from "@/lib/settings-shared";
 
 const STATUS_CLASS: Record<MaintenanceStatus, string> = {
   due: "border-red-800 bg-red-950 text-red-300",
@@ -37,6 +46,7 @@ export default async function HomePage() {
 
   const settings = getSettings(db);
   const layout = settings.home;
+  const collapsed = new Set(settings.dashboardCollapsed);
   const schedule = maintenanceSchedule(db, {
     soonThreshold: settings.dueSoonPercent / 100,
     includeStored: layout.includeStored,
@@ -46,7 +56,7 @@ export default async function HomePage() {
     : schedule;
   const dueCount = schedule.filter((m) => m.status === "due").length;
   const soonCount = schedule.filter((m) => m.status === "soon").length;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const ammo = ammoStatus(db, settings.lowAmmoPercent, true);
 
   const courseCount = db.prepare(`select count(*) as n from courses_of_fire`).get() as { n: number };
@@ -64,7 +74,7 @@ export default async function HomePage() {
 
   const sections: Record<HomeSectionKey, React.ReactNode> = {
     quick_actions: (
-      <section className="flex flex-wrap gap-2">
+      <section data-tour="quick-actions" className="flex flex-wrap gap-2">
         <Link href="/range-log/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
           Log a Range Session
         </Link>
@@ -95,17 +105,19 @@ export default async function HomePage() {
       </form>
     ),
     maintenance: (
-      <section>
-        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-medium text-neutral-200">Maintenance Schedule</h2>
-          <span className="text-xs text-neutral-500">
-            {dueCount > 0 || soonCount > 0
-              ? `${dueCount} due · ${soonCount} due soon`
-              : schedule.length > 0
-                ? "Everything is within schedule"
-                : ""}
-          </span>
-        </div>
+      <Collapsible
+        id="maintenance"
+        title="Maintenance Schedule"
+        persist
+        defaultOpen={!collapsed.has("maintenance")}
+        aside={
+          dueCount > 0 || soonCount > 0
+            ? `${dueCount} due · ${soonCount} due soon`
+            : schedule.length > 0
+              ? "Everything is within schedule"
+              : ""
+        }
+      >
         {scheduleShown.length === 0 ? (
           <p className="text-sm text-neutral-500">
             {schedule.length === 0 ? (
@@ -201,16 +213,20 @@ export default async function HomePage() {
             </table>
           </div>
         )}
-      </section>
+      </Collapsible>
     ),
     ammo: (
-      <section>
-        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-medium text-neutral-200">Ammo On Hand</h2>
+      <Collapsible
+        id="ammo"
+        title="Ammo On Hand"
+        persist
+        defaultOpen={!collapsed.has("ammo")}
+        aside={
           <Link href="/ammo" className="text-sm text-brand-amber hover:text-brand-amber-light">
             Ammo tracking →
           </Link>
-        </div>
+        }
+      >
         {ammo.length === 0 ? (
           <p className="text-sm text-neutral-500">
             No ammo goals set yet.{" "}
@@ -241,16 +257,20 @@ export default async function HomePage() {
             })}
           </div>
         )}
-      </section>
+      </Collapsible>
     ),
     recent_sessions: (
-      <section>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-medium text-neutral-200">Recent Range Sessions</h2>
+      <Collapsible
+        id="recent_sessions"
+        title="Recent Range Sessions"
+        persist
+        defaultOpen={!collapsed.has("recent_sessions")}
+        aside={
           <Link href="/range-log" className="text-sm text-brand-amber hover:text-brand-amber-light">
             View all →
           </Link>
-        </div>
+        }
+      >
         <div className="flex flex-col gap-2">
           {logs.map((l) => (
             <Link
@@ -270,19 +290,27 @@ export default async function HomePage() {
             <p className="text-sm text-neutral-500">No range sessions logged yet.</p>
           )}
         </div>
-      </section>
+      </Collapsible>
     ),
   };
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-xl font-semibold">Welcome back</h1>
-        <p className="text-neutral-400">
-          {firearmCount.n} firearm{firearmCount.n === 1 ? "" : "s"} in the armory · {courseCount.n}{" "}
-          course{courseCount.n === 1 ? "" : "s"} of fire on file.
-        </p>
+    <div data-scope="dashboard" className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">{settings.userName ? `Welcome back, ${settings.userName}` : "Welcome back"}</h1>
+          <p className="text-neutral-400">
+            {firearmCount.n} firearm{firearmCount.n === 1 ? "" : "s"} in the armory · {courseCount.n}{" "}
+            course{courseCount.n === 1 ? "" : "s"} of fire on file.
+          </p>
+        </div>
+        <SectionTools scope="dashboard" persist />
       </div>
+      <CategorizeBanner count={categorizePromptVisible(db)} />
+      {settings.tourStatus === "offer" && <TourOffer />}
+      <Suspense fallback={null}>
+        <FirstRun status={settings.tourStatus} canSetPin={securityMode() === "none"} />
+      </Suspense>
       {layout.sections
         .filter((sec) => sec.visible)
         .map((sec) => (

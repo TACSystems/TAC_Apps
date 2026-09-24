@@ -2,6 +2,7 @@ import { lockedResponse } from "@/lib/api-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { exportCourse, loadCourse, type CofPatch } from "@/lib/cof";
+import { todayISO } from "@/lib/settings-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
   }
 
-  const patch: CofPatch = { format: "tac-log-courses/2", courses: courses.map(exportCourse) };
-  const stamp = new Date().toISOString().slice(0, 10);
+  const patch: CofPatch = { format: "tac-log-courses/3", courses: courses.map(exportCourse) };
+  const stamp = todayISO();
   const base = id ? courses[0].code.replace(/[^a-zA-Z0-9.\-_]+/g, "_") : "all-courses";
 
   return new NextResponse(JSON.stringify(patch, null, 2), {

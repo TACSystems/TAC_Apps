@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db";
 import type { RangeLog } from "@/lib/db/types";
 import SearchBox from "@/components/SearchBox";
 import { fd } from "@/lib/display";
+import ClickRow from "@/components/ClickRow";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,7 @@ export default async function RangeLogPage() {
           key: l.id,
           text: `${l.cof_name ?? ""} ${l.firearm_make_model ?? ""} ${l.date} ${fd(l.date)}`,
           row: (
-            <tr key={l.id} className="border-t border-neutral-800 hover:bg-neutral-900">
+            <ClickRow key={l.id} href={`/range-log/${l.id}`} className="border-t border-neutral-800 hover:bg-neutral-900">
               <td className="px-3 py-2">
                 <Link href={`/range-log/${l.id}`} className="text-brand-amber hover:text-brand-amber-light">
                   {fd(l.date)}
@@ -62,7 +63,7 @@ export default async function RangeLogPage() {
                   </span>
                 )}
               </td>
-            </tr>
+            </ClickRow>
           ),
         }))}
       />

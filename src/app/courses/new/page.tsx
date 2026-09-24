@@ -30,6 +30,7 @@ export default async function NewCoursePage({ searchParams }: { searchParams: Pr
         columns: src.columns,
         scorecard: src.scorecard,
         phases: src.phases,
+        categories: src.categories,
       };
     }
   }
@@ -44,7 +45,7 @@ export default async function NewCoursePage({ searchParams }: { searchParams: Pr
         {sourceName && <p className="text-sm text-neutral-400">Starting from a copy of {sourceName}.</p>}
       </div>
       <CourseBuilder initial={initial} targets={targets}
-        positionOptions={getDropdownOptions(db, "position")} mode="new" />
+        positionOptions={getDropdownOptions(db, "position")} categoryOptions={getDropdownOptions(db, "course_category")} mode="new" />
     </div>
   );
 }

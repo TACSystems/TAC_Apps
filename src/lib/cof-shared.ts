@@ -103,6 +103,7 @@ export type CourseDef = {
   columns: CourseColumn[];
   scorecard: ScorecardConfig;
   phases: PhaseDef[];
+  categories: string[];
 };
 
 export type LoadedCourse = CourseDef & {

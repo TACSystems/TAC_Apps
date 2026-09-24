@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import StatusBadge from "@/components/StatusBadge";
+import ClickRow from "@/components/ClickRow";
 
 export type ArmoryRow = {
   id: string;
@@ -187,7 +188,7 @@ export default function ArmoryTable({ rows }: { rows: ArmoryRow[] }) {
           </thead>
           <tbody>
             {shown.map((f) => (
-              <tr key={f.id} className="border-t border-neutral-800 align-top hover:bg-neutral-900">
+              <ClickRow key={f.id} href={`/inventory/${f.id}`} className="border-t border-neutral-800 align-top hover:bg-neutral-900">
                 <td className="px-3 py-2">
                   <Link href={`/inventory/${f.id}`} className="text-brand-amber hover:text-brand-amber-light">
                     {f.label}
@@ -203,7 +204,7 @@ export default function ArmoryTable({ rows }: { rows: ArmoryRow[] }) {
                   <StatusBadge status={f.status} />
                 </td>
                 <td className="px-3 py-2">{f.shots.toLocaleString()}</td>
-              </tr>
+              </ClickRow>
             ))}
             {shown.length === 0 && (
               <tr>

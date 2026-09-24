@@ -1,6 +1,7 @@
 import type Database from "better-sqlite3-multiple-ciphers";
 import { randomUUID } from "crypto";
 import { excelDate, type Cell, type Sheet } from "@/lib/xlsx";
+import { todayISO } from "@/lib/settings-shared";
 
 const norm = (v: Cell) =>
   String(v ?? "")
@@ -386,7 +387,7 @@ export function previewOf(plan: Plan): ImportPreview {
 }
 
 export function commitImport(db: Database.Database, plan: Plan) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const counts = { firearms: 0, accessories: 0, ammo: 0, goals: 0 };
   db.transaction(() => {
     const insF = db.prepare(

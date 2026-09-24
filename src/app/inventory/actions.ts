@@ -7,6 +7,7 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { deleteAttachmentsFor } from "@/lib/attachments";
+import { todayISO } from "@/lib/settings-shared";
 
 function s(formData: FormData, key: string) {
   const v = formData.get(key);
@@ -94,7 +95,7 @@ export async function updateFirearm(id: string, formData: FormData) {
 
 export async function deleteFirearm(id: string) {
   const db = getDb();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   db.transaction(() => {
     db.prepare(`update accessory_mounts set to_date = coalesce(to_date, ?) where firearm_id = ?`).run(today, id);
     db.prepare(`delete from firearms where id = ?`).run(id);
@@ -146,7 +147,7 @@ export async function createAccessory(formData: FormData) {
         id,
         params.firearm_id,
         firearmLabel(params.firearm_id),
-        params.acquisition_date ?? new Date().toISOString().slice(0, 10)
+        params.acquisition_date ?? todayISO()
       );
     }
   })();
@@ -163,7 +164,7 @@ export async function updateAccessory(id: string, formData: FormData) {
     | undefined;
   if (!before) redirect("/inventory/accessories");
   const params = accessoryParams(formData);
-  const moveDate = s(formData, "move_date") ?? new Date().toISOString().slice(0, 10);
+  const moveDate = s(formData, "move_date") ?? todayISO();
   const moveNote = s(formData, "move_note");
 
   db.transaction(() => {
