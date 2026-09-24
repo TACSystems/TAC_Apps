@@ -8,6 +8,8 @@ import { saveSettingsForm } from "./actions";
 import SubmitButton from "@/components/SubmitButton";
 import Collapsible from "@/components/Collapsible";
 import SectionTools from "@/components/SectionTools";
+import BulkCounts from "@/components/BulkCounts";
+import { ammoStatus } from "@/lib/ammo";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import Link from "next/link";
 import { fdt } from "@/lib/display";
@@ -114,6 +116,17 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </a>
           ))}
         </div>
+      </Collapsible>
+
+      <Collapsible id="settings-counts" title="Counts" keywords="reset rounds fired shot count ammo on hand correct zero">
+        <p className="mb-3 text-sm text-neutral-400">
+          Correct rounds fired or ammo on hand for several items at once. To correct a single item, use Correct count on
+          that firearm&apos;s page or on the Ammo page.
+        </p>
+        <BulkCounts
+          firearms={(db.prepare(`select id, shots_fired, firearm_label(make_model, nickname) as label from firearms where status != 'sold' order by make_model`).all() as { id: string; shots_fired: number; label: string }[]).map((f) => ({ key: f.id, label: f.label, current: f.shots_fired }))}
+          calibers={ammoStatus(db, s.lowAmmoPercent).map((a) => ({ key: a.caliber, label: a.caliber, current: a.on_hand }))}
+        />
       </Collapsible>
 
       <form action={saveSettingsForm} className="flex flex-col gap-3">

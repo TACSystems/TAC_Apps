@@ -42,6 +42,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { label, fd } from "@/lib/display";
 import { todayISO } from "@/lib/settings-shared";
+import CountCorrector from "@/components/CountCorrector";
+import { firearmAdjustments, listCounters } from "@/lib/counts";
+import { correctFirearm, createCounter, removeAdjustment, removeCounter, replaceCounter } from "@/app/counts/actions";
 
 export default async function FirearmDetailPage({
   params,
@@ -101,6 +104,8 @@ export default async function FirearmDetailPage({
   const totalInvestment = (firearm.purchase_value ?? 0) + accessoriesInvestment;
 
   const settings = getSettings(db);
+  const adjustments = firearmAdjustments(db, id);
+  const counters = listCounters(db, id);
   const roundsLog = db
     .prepare(`select * from rounds_fired_log where firearm_id = ? order by date desc, created_at desc`)
     .all(id) as {
@@ -173,7 +178,12 @@ export default async function FirearmDetailPage({
       <div className="grid grid-cols-2 gap-4 border border-neutral-800 bg-neutral-900 p-4 sm:max-w-4xl sm:grid-cols-4">
         <div>
           <div className="text-xs text-neutral-500">Shots Fired</div>
-          <div className="text-lg">{firearm.shots_fired}</div>
+          <div className="text-lg">{firearm.shots_fired.toLocaleString()}</div>
+          <CountCorrector
+            current={firearm.shots_fired}
+            help="Set this firearm's lifetime rounds fired, e.g. it came used or some trips were never logged. The cleaning counter and part counters are not affected."
+            save={correctFirearm.bind(null, id)}
+          />
         </div>
         <div>
           <div className="text-xs text-neutral-500">Malfunctions</div>
@@ -283,6 +293,111 @@ export default async function FirearmDetailPage({
             )}
           </div>
         )}
+        {adjustments.length > 0 && (
+          <div className="mt-3 flex flex-col gap-1 sm:max-w-4xl">
+            <div className="text-xs text-neutral-500">Count corrections</div>
+            {adjustments.map((a) => (
+              <div key={a.id} className="flex items-center justify-between gap-2 border border-dashed border-neutral-700 px-3 py-1.5 text-sm">
+                <span>
+                  {fd(a.date)} · set to {a.set_to?.toLocaleString() ?? "?"} ({a.delta >= 0 ? "+" : ""}
+                  {a.delta.toLocaleString()})
+                  {a.note ? <span className="text-neutral-500"> · {a.note}</span> : null}
+                </span>
+                <form action={removeAdjustment.bind(null, a.id)}>
+                  <ConfirmSubmitButton
+                    confirmMessage={`Remove this correction? The shot count goes ${a.delta >= 0 ? "down" : "up"} by ${Math.abs(a.delta)}.`}
+                    className="text-xs text-red-400 hover:text-red-300"
+                  >
+                    Remove
+                  </ConfirmSubmitButton>
+                </form>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section id="part-counters">
+        <h2 className="mb-1 font-medium text-neutral-200">Part Counters</h2>
+        <p className="mb-3 text-sm text-neutral-400">
+          Track rounds on a barrel, recoil spring, or other part separately from the lifetime total. When you replace the
+          part, click Replaced: the counter starts over and the swap is added to the maintenance log.
+        </p>
+        {counters.length > 0 && (
+          <div className="mb-3 flex flex-col gap-2 sm:max-w-4xl">
+            {counters.map((c) => {
+              const since = Math.max(0, firearm.shots_fired - c.start_shots);
+              const pct = c.interval_rounds ? Math.min(100, Math.round((since / c.interval_rounds) * 100)) : null;
+              const due = c.interval_rounds != null && since >= c.interval_rounds;
+              return (
+                <div key={c.id} className={`border bg-neutral-900 px-3 py-2 text-sm ${due ? "border-red-900" : "border-neutral-800"}`}>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span>
+                      <span className="text-brand-amber">{c.name}</span> · {since.toLocaleString()} rounds since {fd(c.start_date)}
+                      {c.interval_rounds ? (
+                        <span className={due ? " text-red-300" : " text-neutral-500"}>
+                          {" "}
+                          · replace at {c.interval_rounds.toLocaleString()}
+                          {due ? " · DUE" : ""}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="flex gap-2">
+                      <form action={replaceCounter.bind(null, id, c.id)}>
+                        <ConfirmSubmitButton
+                          confirmMessage={`Record a replacement of the ${c.name} today? Its counter starts over at 0 (the ${since} rounds are noted in the maintenance log).`}
+                          className="border border-neutral-700 px-2 py-0.5 text-xs hover:bg-neutral-800"
+                        >
+                          Replaced
+                        </ConfirmSubmitButton>
+                      </form>
+                      <form action={removeCounter.bind(null, id, c.id)}>
+                        <ConfirmSubmitButton confirmMessage={`Delete the ${c.name} counter?`} className="text-xs text-red-400 hover:text-red-300">
+                          Delete
+                        </ConfirmSubmitButton>
+                      </form>
+                    </span>
+                  </div>
+                  {pct != null && (
+                    <div className="mt-1 h-1 w-full bg-neutral-800">
+                      <div className={`h-1 ${due ? "bg-red-500" : "bg-brand-amber"}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <details className="group sm:max-w-4xl">
+          <summary className="inline-block cursor-pointer list-none border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700 [&::-webkit-details-marker]:hidden">
+            <span className="group-open:hidden">+ Add Part Counter</span>
+            <span className="hidden group-open:inline">Cancel</span>
+          </summary>
+          <form action={createCounter.bind(null, id)} className="mt-2 grid grid-cols-1 gap-2 border border-neutral-800 bg-neutral-900/50 p-3 sm:grid-cols-4">
+            <label className="flex flex-col gap-1 text-xs">
+              Part
+              <input name="name" required list="counter-parts" placeholder="e.g. Barrel" className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm normal-case" />
+            </label>
+            <label className="flex flex-col gap-1 text-xs">
+              Installed / Since
+              <input type="date" name="start_date" defaultValue={todayISO()} className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+            </label>
+            <label className="flex flex-col gap-1 text-xs">
+              Rounds on it already
+              <input type="number" name="rounds_since" min={0} defaultValue={0} className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+            </label>
+            <label className="flex flex-col gap-1 text-xs">
+              Replace every (rounds)
+              <input type="number" name="interval_rounds" min={1} placeholder="Optional" className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+            </label>
+            <datalist id="counter-parts">
+              {["Barrel", "Recoil Spring", "Extractor", "Firing Pin", "Bolt", "Buffer Spring", "Gas Rings", "Magazine Springs", "Suppressor Wipes"].map((o) => (
+                <option key={o} value={o} />
+              ))}
+            </datalist>
+            <SubmitButton className="w-fit bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light sm:col-span-4">Add Counter</SubmitButton>
+          </form>
+        </details>
       </section>
 
       <section>

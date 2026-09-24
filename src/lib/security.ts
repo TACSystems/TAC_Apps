@@ -137,8 +137,10 @@ function newRecoveryKey() {
 
 function safetyCopies() {
   const out: string[] = [];
-  const pre = path.join(dataDir(), "pre-upgrade");
-  if (fs.existsSync(pre)) for (const f of fs.readdirSync(pre)) if (f.endsWith(".db")) out.push(path.join(pre, f));
+  for (const sub of ["pre-upgrade", "pre-reset"]) {
+    const pre = path.join(dataDir(), sub);
+    if (fs.existsSync(pre)) for (const f of fs.readdirSync(pre)) if (f.endsWith(".db")) out.push(path.join(pre, f));
+  }
   const restore = path.join(dataDir(), "pre-restore");
   if (fs.existsSync(restore)) {
     for (const d of fs.readdirSync(restore)) {

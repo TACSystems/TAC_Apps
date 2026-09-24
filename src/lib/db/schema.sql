@@ -238,6 +238,29 @@ create table if not exists app_settings (
   value text not null
 );
 
+create table if not exists count_adjustments (
+  id text primary key,
+  kind text not null,
+  firearm_id text references firearms(id) on delete cascade,
+  caliber text,
+  date text not null,
+  delta integer not null,
+  set_to integer,
+  note text,
+  created_at text not null default (datetime('now'))
+);
+
+create table if not exists firearm_counters (
+  id text primary key,
+  firearm_id text not null references firearms(id) on delete cascade,
+  name text not null,
+  start_date text not null,
+  start_shots integer not null default 0,
+  interval_rounds integer,
+  notes text,
+  created_at text not null default (datetime('now'))
+);
+
 drop view if exists ammo_on_hand;
 
 create view ammo_on_hand as
@@ -251,16 +274,22 @@ fired as (
     select caliber, rounds from rounds_fired_log where deduct_from_ammo = 1 and caliber is not null
   ) group by caliber
 ),
+adjusted as (
+  select caliber, sum(delta) as qty from count_adjustments where kind = 'ammo' and caliber is not null group by caliber
+),
 calibers as (
   select caliber from purchased
   union select caliber from fired
   union select caliber from ammo_goals
+  union select caliber from adjusted
 )
 select
   c.caliber,
   coalesce(p.qty, 0) as purchased,
   coalesce(f.qty, 0) as fired,
-  coalesce(p.qty, 0) - coalesce(f.qty, 0) as on_hand
+  coalesce(a.qty, 0) as adjusted,
+  coalesce(p.qty, 0) - coalesce(f.qty, 0) + coalesce(a.qty, 0) as on_hand
 from calibers c
 left join purchased p on p.caliber = c.caliber
-left join fired f on f.caliber = c.caliber;
+left join fired f on f.caliber = c.caliber
+left join adjusted a on a.caliber = c.caliber;

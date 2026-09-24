@@ -9,6 +9,9 @@ import AmmoPurchaseFields from "@/components/AmmoPurchaseFields";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import Link from "next/link";
 import { fd } from "@/lib/display";
+import CountCorrector from "@/components/CountCorrector";
+import { ammoAdjustments } from "@/lib/counts";
+import { correctAmmo, removeAdjustment } from "@/app/counts/actions";
 import ClickRow from "@/components/ClickRow";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +28,7 @@ export default async function AmmoPage() {
   const manufacturerOptions = getDropdownOptions(db, "ammo_manufacturer");
   const settings = getSettings(db);
   const status = ammoStatus(db, settings.lowAmmoPercent);
+  const adjustments = ammoAdjustments(db);
 
   return (
     <div className="flex flex-col gap-8">
@@ -49,12 +53,20 @@ export default async function AmmoPage() {
                 </div>
                 <div className="mt-1 text-xs text-neutral-500">
                   {a.purchased.toLocaleString()} purchased · {a.fired.toLocaleString()} fired
+                  {a.adjusted ? ` · ${a.adjusted > 0 ? "+" : ""}${a.adjusted.toLocaleString()} corrected` : ""}
                 </div>
                 {pct != null && (
                   <div className="mt-2 h-2 overflow-hidden rounded bg-neutral-800">
                     <div className={`h-full ${a.low ? "bg-red-600" : "bg-brand-olive"}`} style={{ width: `${pct}%` }} />
                   </div>
                 )}
+                <div className="mt-2">
+                  <CountCorrector
+                    current={a.on_hand}
+                    help={`Enter what you actually have on the shelf for ${a.caliber}. TAC-LOG records the difference as a correction; purchases and range sessions stay as they are.`}
+                    save={correctAmmo.bind(null, a.caliber)}
+                  />
+                </div>
                 {a.goal != null && (
                   <form action={deleteAmmoGoal.bind(null, a.caliber)} className="mt-2">
                     <ConfirmSubmitButton
@@ -73,6 +85,28 @@ export default async function AmmoPage() {
           )}
         </div>
       </section>
+
+      {adjustments.length > 0 && (
+        <section>
+          <h2 className="mb-2 font-medium text-neutral-200">Count Corrections</h2>
+          <div className="flex flex-col gap-1">
+            {adjustments.map((c) => (
+              <div key={c.id} className="flex items-center justify-between gap-2 border border-dashed border-neutral-700 px-3 py-1.5 text-sm">
+                <span>
+                  {fd(c.date)} · {c.caliber} set to {c.set_to?.toLocaleString() ?? "?"} ({c.delta >= 0 ? "+" : ""}
+                  {c.delta.toLocaleString()})
+                  {c.note ? <span className="text-neutral-500"> · {c.note}</span> : null}
+                </span>
+                <form action={removeAdjustment.bind(null, c.id)}>
+                  <ConfirmSubmitButton confirmMessage="Remove this correction? The on-hand count goes back to what it was." className="text-xs text-red-400 hover:text-red-300">
+                    Remove
+                  </ConfirmSubmitButton>
+                </form>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="mb-2 font-medium text-neutral-200">Set a Goal</h2>
