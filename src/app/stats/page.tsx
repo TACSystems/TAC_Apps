@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { CourseOfFire, RangeLog } from "@/lib/db/types";
 import CourseSelect from "@/components/CourseSelect";
+import { dateFormat } from "@/lib/display";
 import ScoreTrendChart, { type ChartSeries } from "@/components/ScoreTrendChart";
 import BarList from "@/components/BarList";
 import { caliberCosts, courseStats, firearmStats, overview, roundsByMonth, zoneDistribution } from "@/lib/stats";
@@ -100,7 +101,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                 </span>
               )}
             </div>
-            <ScoreTrendChart series={series} />
+            <ScoreTrendChart series={series} dateFormat={dateFormat()} />
             <div>
               <h3 className="mb-2 text-sm text-neutral-300">Where your hits land</h3>
               <BarList

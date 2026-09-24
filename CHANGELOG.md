@@ -2,6 +2,32 @@
 
 All notable changes to TAC-LOG, newest first.
 
+## [0.5.1] — 2026-09-23
+
+### Added
+- Drag-and-drop upload boxes replace every "Choose Files / No file chosen" control. Photos and documents upload as soon as you drop or pick them, and you can paste a copied image or screenshot with Cmd/Ctrl+V.
+- Full-size photo viewer: click a photo to see it large, step through the rest with the arrows, Esc to close.
+- Armory:
+  - total count that opens a breakdown by platform and by caliber
+  - purchase date under each firearm
+  - click any column to sort, including by name and purchase date
+  - Active / Stored / Sold / All filter
+- New display option: Make/Model (Nickname).
+- Show-password button on the unlock screen and every password field.
+- Warning before leaving the Course Builder or an edit form with unsaved changes.
+- TAC-LOG reopens at the window size and position you left it.
+
+### Changed
+- The top tab bar stays in place when you scroll.
+- "Record a sale or transfer" and the Edit links on log entries are now proper buttons.
+- The redundant Weapon Used box is gone from Log a Range Session. Printed scorecards fill the Weapon line from the firearm you pick, and older sessions keep what was typed there.
+- Armory column header reads "Firearm", and search matches nicknames.
+
+### Fixed
+- Autofilled fields (like Caliber and Weather) no longer turn light blue.
+- Upload and backup times show in your local time instead of UTC.
+- The Stats score chart uses your date format.
+
 ## [0.5.0] — 2026-09-23
 
 ### Added

@@ -75,7 +75,8 @@ export default async function RangeLogDetailPage({
         </div>
       </div>
       <p className="mb-4 text-sm text-neutral-400">
-        {log.firearm_make_model ?? "No firearm linked"} · {log.range_location}
+        {log.firearm_make_model ?? log.weapon_used ?? "No firearm linked"}
+        {log.firearm_make_model && log.weapon_used ? ` (${log.weapon_used})` : ""} · {log.range_location}
         {log.ammo_lot ? ` · Lot ${log.ammo_lot}` : ""}
         {ammoCost ? ` · est. ammo cost ${ammoCost}` : ""}
       </p>

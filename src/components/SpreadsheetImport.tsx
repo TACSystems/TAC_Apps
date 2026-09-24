@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import FileDrop from "@/components/FileDrop";
 
 type Preview = {
   firearms: { make_model: string; serial: string | null; caliber: string | null; duplicate: boolean }[];
@@ -84,16 +85,18 @@ export default function SpreadsheetImport() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".xlsx,.csv"
-          onChange={() => {
-            setPreview(null);
-            setStatus(null);
-          }}
-          className="text-sm text-neutral-400"
-        />
+        <div className="w-full">
+          <FileDrop
+            inputRef={fileRef}
+            accept=".xlsx,.csv"
+            label="Select Spreadsheet"
+            prompt="Drag an Excel (.xlsx) or CSV file here, or"
+            onFiles={() => {
+              setPreview(null);
+              setStatus(null);
+            }}
+          />
+        </div>
         <button
           type="button"
           disabled={busy}

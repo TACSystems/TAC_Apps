@@ -6,6 +6,7 @@ import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import AmmoPurchaseFields from "@/components/AmmoPurchaseFields";
 import SubmitButton from "@/components/SubmitButton";
 import { updateAmmoPurchase } from "../../actions";
+import UnsavedGuard from "@/components/UnsavedGuard";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export default async function EditAmmoPurchasePage({ params }: { params: Promise
       </Link>
       <h1 className="mb-4 text-xl font-semibold">Edit Ammo Purchase</h1>
       <form action={updateAmmoPurchase.bind(null, id)} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <UnsavedGuard />
         <AmmoPurchaseFields
           purchase={purchase}
           manufacturerOptions={getDropdownOptions(db, "ammo_manufacturer")}

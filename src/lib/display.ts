@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3-multiple-ciphers";
-import { firearmLabel, formatDate, type DateFormat, type FirearmLabelMode, type LabelledFirearm } from "./settings-shared";
+import { firearmLabel, formatDate, formatDateTime, type DateFormat, type FirearmLabelMode, type LabelledFirearm } from "./settings-shared";
 
 declare global {
   var __taclogLabelMode: FirearmLabelMode | undefined;
@@ -16,6 +16,10 @@ export function setDateFormat(f: DateFormat) {
 
 export function fd(value: string | null | undefined) {
   return formatDate(value, dateFormat());
+}
+
+export function fdt(value: string | null | undefined) {
+  return formatDateTime(value, dateFormat());
 }
 
 export function labelMode(): FirearmLabelMode {

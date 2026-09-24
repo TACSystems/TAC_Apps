@@ -491,11 +491,12 @@ export default async function FirearmDetailPage({
             ))}
           </div>
         )}
-        <details className="border border-neutral-800 bg-neutral-900/50" open={dispositions.length === 0 && firearm.status === "sold"}>
-          <summary className="cursor-pointer px-3 py-2 text-sm text-brand-amber">
-            {dispositions.length ? "+ Add another record" : "+ Record a sale or transfer"}
+        <details className="group" open={dispositions.length === 0 && firearm.status === "sold"}>
+          <summary className="inline-block cursor-pointer list-none border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700 [&::-webkit-details-marker]:hidden">
+            <span className="group-open:hidden">{dispositions.length ? "+ Add Another Record" : "+ Record Sale / Transfer"}</span>
+            <span className="hidden group-open:inline">Cancel</span>
           </summary>
-          <form action={recordDisposition.bind(null, id)} className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2">
+          <form action={recordDisposition.bind(null, id)} className="mt-2 grid grid-cols-1 gap-2 border border-neutral-800 bg-neutral-900/50 p-3 sm:grid-cols-2">
             <DispositionFields />
             <label className="flex items-center gap-2 text-xs normal-case sm:col-span-2">
               <input type="checkbox" name="mark_disposed" defaultChecked={firearm.status !== "sold"} />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { formatDate, type DateFormat } from "@/lib/settings-shared";
 
 // Reference categorical palette (dark mode), validated against this app's
 // dark surface with scripts/validate_palette.js from the dataviz skill —
@@ -19,7 +20,13 @@ const SERIES_COLORS = [
 export type ChartPoint = { date: string; score: number };
 export type ChartSeries = { name: string; points: ChartPoint[] };
 
-export default function ScoreTrendChart({ series }: { series: ChartSeries[] }) {
+function shortDate(d: string, f: DateFormat) {
+  const [, m, day] = d.split("-");
+  if (f === "iso") return `${m}-${day}`;
+  return f === "eu" ? `${day}/${m}` : `${m}/${day}`;
+}
+
+export default function ScoreTrendChart({ series, dateFormat = "us" }: { series: ChartSeries[]; dateFormat?: DateFormat }) {
   const [hoverX, setHoverX] = useState<number | null>(null);
   const [hoverDate, setHoverDate] = useState<string | null>(null);
 
@@ -103,7 +110,7 @@ export default function ScoreTrendChart({ series }: { series: ChartSeries[] }) {
               fontSize={9}
               fill="#898781"
             >
-              {d.slice(5)}
+              {shortDate(d, dateFormat)}
             </text>
           );
         })}
@@ -152,7 +159,7 @@ export default function ScoreTrendChart({ series }: { series: ChartSeries[] }) {
 
       {hoverDate && (
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-300">
-          <span className="text-neutral-500">{hoverDate}:</span>
+          <span className="text-neutral-500">{formatDate(hoverDate, dateFormat)}:</span>
           {series.map((s, i) => {
             const p = s.points.find((pt) => pt.date === hoverDate);
             if (!p) return null;

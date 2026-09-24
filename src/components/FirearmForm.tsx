@@ -1,6 +1,7 @@
 import type { Firearm } from "@/lib/db/types";
 import SelectOrOther from "@/components/SelectOrOther";
 import SubmitButton from "@/components/SubmitButton";
+import UnsavedGuard from "@/components/UnsavedGuard";
 
 export default function FirearmForm({
   firearm,
@@ -21,6 +22,7 @@ export default function FirearmForm({
 }) {
   return (
     <form action={action} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <UnsavedGuard />
       <label className="flex flex-col gap-1 text-sm">
         Make / Model
         <input

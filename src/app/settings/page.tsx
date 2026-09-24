@@ -7,6 +7,7 @@ import RestoreForm from "@/components/RestoreForm";
 import { saveSettingsForm } from "./actions";
 import SubmitButton from "@/components/SubmitButton";
 import Link from "next/link";
+import { fdt } from "@/lib/display";
 import SecuritySettings from "@/components/SecuritySettings";
 import BackupSettings from "@/components/BackupSettings";
 import SpreadsheetImport from "@/components/SpreadsheetImport";
@@ -64,7 +65,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           frequency={auto.frequency}
           folder={auto.folder}
           keep={auto.keep}
-          lastRun={autoStatus.lastRun}
+          lastRun={autoStatus.lastRun ? fdt(autoStatus.lastRun) : null}
           lastFile={autoStatus.lastFile}
           lastError={autoStatus.lastError}
         />

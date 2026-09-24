@@ -1,5 +1,6 @@
 "use client";
 
+import PasswordInput from "@/components/PasswordInput";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -33,9 +34,7 @@ function Field({
   return (
     <label className="flex flex-col gap-1 text-sm">
       {label}
-      <input
-        type="password"
-        inputMode={pin ? "numeric" : undefined}
+      <PasswordInput inputMode={pin ? "numeric" : undefined}
         autoComplete="new-password"
         value={value}
         onChange={(e) => onChange(pin ? digits(e.target.value) : e.target.value)}

@@ -1,7 +1,9 @@
 "use client";
 
+import PasswordInput from "@/components/PasswordInput";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import FileDrop from "@/components/FileDrop";
 
 export default function RestoreForm() {
   const router = useRouter();
@@ -68,20 +70,19 @@ export default function RestoreForm() {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="file"
-          name="file"
-          accept=".zip,.tlbak,.db,application/zip"
-          className="text-sm text-neutral-400"
-          onChange={() => {
-            setStatus(null);
-            setNeedsPassword(false);
-          }}
-        />
+        <div className="w-full">
+          <FileDrop
+            accept=".zip,.tlbak,.db,application/zip"
+            label="Select Backup"
+            prompt="Drag a backup file (.tlbak, .zip, or .db) here, or"
+            onFiles={() => {
+              setStatus(null);
+              setNeedsPassword(false);
+            }}
+          />
+        </div>
         {needsPassword && (
-          <input
-            type="password"
-            placeholder="Backup password"
+          <PasswordInput placeholder="Backup password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm"

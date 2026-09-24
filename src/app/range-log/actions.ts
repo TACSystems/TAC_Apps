@@ -31,7 +31,7 @@ export async function updateRangeLog(logId: string, formData: FormData) {
   db.transaction(() => {
     db.prepare(
       `update range_log set firearm_id = @firearm_id, date = @date, range_location = @range_location,
-         weapon_used = @weapon_used, caliber = @caliber, grain = @grain, ammo_lot = @ammo_lot,
+         weapon_used = coalesce(@weapon_used, weapon_used), caliber = @caliber, grain = @grain, ammo_lot = @ammo_lot,
          weather_conditions = @weather_conditions, rounds_fired = @rounds_fired, rounds_counted = @rounds_counted,
          total_points = @total_points, final_score_percent = @final_score_percent, grader_name = @grader_name,
          passing_score_percent = @passing_score_percent, custom_fields_json = @custom_fields_json, notes = @notes

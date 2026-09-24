@@ -1,5 +1,6 @@
 "use client";
 
+import PasswordInput from "@/components/PasswordInput";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { backupNow, clearBackupPassword, saveAutoBackupSettings, setBackupPassword } from "@/app/settings/actions";
@@ -77,8 +78,8 @@ export default function BackupSettings({
           {encrypted && " Required while database encryption is on."}
         </p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <input type="password" placeholder={hasPassword ? "New backup password" : "Backup password (8+)"} value={pw} onChange={(e) => setPw(e.target.value)} className={input} />
-          <input type="password" placeholder="Confirm" value={pw2} onChange={(e) => setPw2(e.target.value)} className={input} />
+          <PasswordInput placeholder={hasPassword ? "New backup password" : "Backup password (8+)"} value={pw} onChange={(e) => setPw(e.target.value)} className={input} />
+          <PasswordInput placeholder="Confirm" value={pw2} onChange={(e) => setPw2(e.target.value)} className={input} />
           <div className="flex gap-2">
             <button type="button" disabled={pending} className={btn} onClick={() => run(() => setBackupPassword(pw, pw2))}>
               {hasPassword ? "Change" : "Set"}
@@ -149,7 +150,7 @@ export default function BackupSettings({
         <div className="text-xs text-neutral-400">
           {lastRun ? (
             <>
-              Last automatic backup: {new Date(lastRun).toLocaleString()} <span className="break-all text-neutral-500">({lastFile})</span>
+              Last automatic backup: {lastRun} <span className="break-all text-neutral-500">({lastFile})</span>
             </>
           ) : (
             "No automatic backup yet."

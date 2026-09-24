@@ -1,5 +1,6 @@
 "use client";
 
+import UnsavedGuard from "@/components/UnsavedGuard";
 import { useState } from "react";
 import type { Firearm } from "@/lib/db/types";
 import { passFail, type ScorecardField, type ZoneDef } from "@/lib/cof-shared";
@@ -48,6 +49,7 @@ export default function ScoringForm({
 
   return (
     <form action={action} className="flex flex-col gap-4">
+      <UnsavedGuard />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
           Date
@@ -89,7 +91,7 @@ export default function ScoringForm({
             />
           </label>
         )}
-        {fields.map((f) => (
+        {fields.filter((f) => f.key !== "weapon_used").map((f) => (
           <label key={f.key} className={`flex flex-col gap-1 text-sm ${f.wide ? "sm:col-span-2" : ""}`}>
             {f.label}
             <input

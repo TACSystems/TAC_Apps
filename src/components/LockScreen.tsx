@@ -1,5 +1,6 @@
 "use client";
 
+import PasswordInput from "@/components/PasswordInput";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { unlock, unlockWithRecovery } from "@/app/lock/actions";
@@ -86,19 +87,17 @@ export default function LockScreen({
             </label>
             <label className="flex w-full flex-col gap-1 text-sm">
               New password (8+ characters)
-              <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} className={field} />
+              <PasswordInput value={pw} onChange={(e) => setPw(e.target.value)} className={field} />
             </label>
             <label className="flex w-full flex-col gap-1 text-sm">
               Confirm new password
-              <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} className={field} />
+              <PasswordInput value={pw2} onChange={(e) => setPw2(e.target.value)} className={field} />
             </label>
           </>
         ) : (
           <label className="flex w-full flex-col gap-1 text-sm">
             {isPin ? "Enter PIN" : "Enter password"}
-            <input
-              type="password"
-              inputMode={isPin ? "numeric" : undefined}
+            <PasswordInput inputMode={isPin ? "numeric" : undefined}
               autoComplete="off"
               autoFocus
               value={secret}

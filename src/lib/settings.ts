@@ -32,7 +32,7 @@ export function normalizeSettings(raw: Partial<AppSettings> & Record<string, unk
     lowAmmoPercent: clampNum(raw.lowAmmoPercent, 1, 100, d.lowAmmoPercent),
     currencySymbol: str(raw.currencySymbol, d.currencySymbol, 4) || d.currencySymbol,
     autoLockMinutes: [0, 5, 10, 15, 30, 60].includes(Number(raw.autoLockMinutes)) ? Number(raw.autoLockMinutes) : 0,
-    firearmLabel: ["make_model", "nickname", "both"].includes(String(raw.firearmLabel))
+    firearmLabel: ["make_model", "nickname", "both", "make_model_nickname"].includes(String(raw.firearmLabel))
       ? (raw.firearmLabel as AppSettings["firearmLabel"])
       : d.firearmLabel,
     dateFormat: ["us", "iso", "eu"].includes(String(raw.dateFormat)) ? (raw.dateFormat as AppSettings["dateFormat"]) : d.dateFormat,

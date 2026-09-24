@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { Firearm } from "@/lib/db/types";
-import StatusBadge from "@/components/StatusBadge";
-import SearchBox from "@/components/SearchBox";
-import { label } from "@/lib/display";
+import ArmoryTable from "@/components/ArmoryTable";
+import { fd, label } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +14,7 @@ export default async function InventoryPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">Armory</h1>
         <div className="flex gap-3">
           <Link
@@ -39,38 +38,19 @@ export default async function InventoryPage() {
         </div>
       </div>
 
-      <SearchBox
-        placeholder="Search by make/model, caliber, platform, or serial…"
-        emptyMessage="No firearms found."
-        head={
-          <tr>
-            <th className="px-3 py-2">Make / Model</th>
-            <th className="px-3 py-2">Caliber</th>
-            <th className="px-3 py-2">Platform</th>
-            <th className="px-3 py-2">Serial</th>
-            <th className="px-3 py-2">Status</th>
-            <th className="px-3 py-2">Rounds Fired</th>
-          </tr>
-        }
+      <ArmoryTable
         rows={firearms.map((f) => ({
-          key: f.id,
-          text: `${f.make_model} ${f.nickname ?? ""} ${f.caliber ?? ""} ${f.platform ?? ""} ${f.serial_number ?? ""}`,
-          row: (
-            <tr key={f.id} className="border-t border-neutral-800 hover:bg-neutral-900">
-              <td className="px-3 py-2">
-                <Link href={`/inventory/${f.id}`} className="text-brand-amber hover:text-brand-amber-light">
-                  {label(f)}
-                </Link>
-              </td>
-              <td className="px-3 py-2">{f.caliber}</td>
-              <td className="px-3 py-2">{f.platform}</td>
-              <td className="px-3 py-2 text-neutral-400">{f.serial_number}</td>
-              <td className="px-3 py-2">
-                <StatusBadge status={f.status} />
-              </td>
-              <td className="px-3 py-2">{f.shots_fired}</td>
-            </tr>
-          ),
+          id: f.id,
+          label: label(f),
+          makeModel: f.make_model,
+          nickname: f.nickname,
+          caliber: f.caliber,
+          platform: f.platform,
+          serial: f.serial_number,
+          status: f.status,
+          shots: f.shots_fired ?? 0,
+          purchaseDate: f.purchase_date,
+          purchaseDateText: fd(f.purchase_date),
         }))}
       />
     </div>

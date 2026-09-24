@@ -1,6 +1,7 @@
 import type { Accessory, Firearm } from "@/lib/db/types";
 import SelectOrOther from "@/components/SelectOrOther";
 import SubmitButton from "@/components/SubmitButton";
+import UnsavedGuard from "@/components/UnsavedGuard";
 
 const input = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";
 
@@ -23,6 +24,7 @@ export default function AccessoryForm({
 }) {
   return (
     <form action={action} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <UnsavedGuard />
       <label className="flex flex-col gap-1 text-sm sm:col-span-2">
         Make / Model
         <input name="make_model" required defaultValue={accessory?.make_model} className={input} />

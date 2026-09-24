@@ -32,10 +32,10 @@ function Shell({
 }) {
   return (
     <details className="group border border-neutral-800 bg-neutral-900 text-sm">
-      <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-3 py-2">
+      <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-3 py-2 [&::-webkit-details-marker]:hidden">
         <div>{summary}</div>
-        <span className="shrink-0 text-xs text-brand-amber group-open:hidden">Edit</span>
-        <span className="hidden shrink-0 text-xs text-neutral-500 group-open:inline">Close</span>
+        <span className="shrink-0 border border-neutral-700 bg-neutral-800 px-2 py-0.5 text-xs group-open:hidden">Edit</span>
+        <span className="hidden shrink-0 border border-neutral-700 px-2 py-0.5 text-xs text-neutral-400 group-open:inline">Close</span>
       </summary>
       <div className="flex flex-col gap-2 border-t border-neutral-800 px-3 py-3">
         {children}

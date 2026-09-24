@@ -3,7 +3,7 @@ import LockButton from "@/components/LockButton";
 
 export default function NavBar({ showLock = false }: { showLock?: boolean }) {
   return (
-    <header className="border-b border-neutral-700 bg-neutral-900">
+    <header className="sticky top-0 z-40 border-b border-neutral-700 bg-neutral-900">
       <div className="h-1 bg-brand-olive" />
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Link href="/" className="relative flex flex-col leading-tight px-3 py-1.5">

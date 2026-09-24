@@ -31,13 +31,14 @@ export type AppSettings = {
   dateFormat: DateFormat;
 };
 
-export type FirearmLabelMode = "make_model" | "nickname" | "both";
+export type FirearmLabelMode = "make_model" | "nickname" | "both" | "make_model_nickname";
 export type DateFormat = "us" | "iso" | "eu";
 
 export const FIREARM_LABEL_MODES: Record<FirearmLabelMode, string> = {
   make_model: "Make / Model",
   nickname: "Nickname (when set)",
-  both: "Nickname and Make / Model",
+  both: "Nickname (Make / Model)",
+  make_model_nickname: "Make / Model (Nickname)",
 };
 
 export const DATE_FORMATS: Record<DateFormat, string> = {
@@ -121,5 +122,22 @@ export function firearmLabel(f: LabelledFirearm | null | undefined, mode: Firear
   const nick = f.nickname?.trim();
   if (!nick || mode === "make_model") return f.make_model;
   if (mode === "nickname") return nick;
+  if (mode === "make_model_nickname") return `${f.make_model} (${nick})`;
   return `${nick} (${f.make_model})`;
+}
+
+export function formatDateTime(value: string | null | undefined, format: DateFormat = "us"): string {
+  if (!value) return "";
+  const raw = String(value).trim();
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/);
+  if (!m) return formatDate(raw, format);
+  const d = new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6] ?? "00"}${m[7] ?? "Z"}`);
+  if (Number.isNaN(d.getTime())) return formatDate(raw, format);
+  const p = (n: number) => String(n).padStart(2, "0");
+  const iso = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  let h = d.getHours();
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  const time = format === "us" ? `${h}:${p(d.getMinutes())} ${ampm}` : `${p(d.getHours())}:${p(d.getMinutes())}`;
+  return `${formatDate(iso, format)} ${time}`;
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import FileDrop from "@/components/FileDrop";
 
 export default function ImportCofForm() {
   const [status, setStatus] = useState<{ type: "ok" | "error"; message: string } | null>(null);
@@ -45,16 +46,11 @@ export default function ImportCofForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <input
-        type="file"
-        name="file"
-        accept="application/json,.json"
-        className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
-      />
+      <FileDrop accept="application/json,.json" label="Select Course File" prompt="Drag a course file (.json) here, or" onFiles={() => setStatus(null)} />
       <button
         type="submit"
         disabled={loading}
-        className="w-fit rounded bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-50"
+        className="w-fit bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-50"
       >
         {loading ? "Importing…" : "Import"}
       </button>

@@ -19,6 +19,7 @@ import {
 } from "@/lib/cof-shared";
 import { saveCourseAction } from "@/app/courses/actions";
 import TargetTypeEditor from "@/components/TargetTypeEditor";
+import { clearUnsaved, useUnsaved } from "@/components/UnsavedGuard";
 
 type BRow = StringRow & { uid: string };
 type BPhase = { uid: string; title: string; notes: string; total: string; strings: BRow[] };
@@ -92,7 +93,7 @@ export default function CourseBuilder({
         { key: "shooter_name", label: "Shooter Name", wide: true },
         { key: "date", label: "Date" },
         { key: "range_location", label: "Range / Location" },
-        { key: "weapon_used", label: "Weapon Used" },
+        { key: "weapon_used", label: "Weapon" },
         { key: "caliber", label: "Caliber" },
         { key: "grain", label: "Grain" },
         { key: "ammo_lot", label: "Ammo Lot #" },
@@ -124,6 +125,30 @@ export default function CourseBuilder({
           },
         ]
   );
+
+  const snapshot = useMemo(
+    () =>
+      JSON.stringify({
+        name,
+        code,
+        notes,
+        totalOverride,
+        targetId,
+        passing,
+        columns,
+        scorecard,
+        phases: phases.map((p) => ({
+          title: p.title,
+          notes: p.notes,
+          total: p.total,
+          strings: p.strings.map((st) => ({ ...st, uid: undefined })),
+        })),
+      }),
+    [name, code, notes, totalOverride, targetId, passing, columns, scorecard, phases]
+  );
+  const [baseline] = useState(snapshot);
+  const [saved, setSaved] = useState(false);
+  useUnsaved(!saved && snapshot !== baseline);
 
   const target = targets.find((t) => t.id === targetId) ?? null;
   const computedTotal = useMemo(
@@ -251,6 +276,8 @@ export default function CourseBuilder({
         setError(res.error);
         return;
       }
+      setSaved(true);
+      clearUnsaved();
       router.push(`/courses/${res.id}`);
       router.refresh();
     });

@@ -1,6 +1,6 @@
 // TAC-LOG desktop shell.
 
-const { app, BrowserWindow, Menu, shell, dialog, ipcMain, powerMonitor, session, utilityProcess } = require("electron");
+const { app, BrowserWindow, Menu, shell, dialog, ipcMain, powerMonitor, screen, session, utilityProcess } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const net = require("net");
@@ -45,6 +45,48 @@ function ensureDataDir() {
     fs.copyFileSync(seedFile(), seedDest);
   }
   return dir;
+}
+
+function windowStateFile() {
+  return path.join(app.getPath("userData"), "window-state.json");
+}
+
+function loadWindowState() {
+  const fallback = { width: 1440, height: 940 };
+  try {
+    const st = JSON.parse(fs.readFileSync(windowStateFile(), "utf8"));
+    if (!(st.width >= 960 && st.height >= 640)) return fallback;
+    if (typeof st.x === "number" && typeof st.y === "number") {
+      const area = screen.getDisplayMatching({ x: st.x, y: st.y, width: st.width, height: st.height }).workArea;
+      const visible =
+        st.x < area.x + area.width - 100 && st.x + st.width > area.x + 100 && st.y >= area.y - 20 && st.y < area.y + area.height - 100;
+      if (!visible) return { width: Math.min(st.width, area.width), height: Math.min(st.height, area.height), maximized: st.maximized };
+    }
+    return st;
+  } catch {
+    return fallback;
+  }
+}
+
+function trackWindowState(win) {
+  let timer = null;
+  const save = () => {
+    if (win.isDestroyed()) return;
+    const maximized = win.isMaximized() || win.isFullScreen();
+    const b = maximized ? win.getNormalBounds() : win.getBounds();
+    try {
+      fs.writeFileSync(windowStateFile(), JSON.stringify({ ...b, maximized }));
+    } catch {}
+  };
+  const soon = () => {
+    clearTimeout(timer);
+    timer = setTimeout(save, 400);
+  };
+  win.on("resize", soon);
+  win.on("move", soon);
+  win.on("maximize", soon);
+  win.on("unmaximize", soon);
+  win.on("close", save);
 }
 
 function findFreePort(preferred) {
@@ -216,9 +258,11 @@ async function createWindow() {
     sameSite: "strict",
   });
 
+  const state = loadWindowState();
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 940,
+    width: state.width,
+    height: state.height,
+    ...(typeof state.x === "number" && typeof state.y === "number" ? { x: state.x, y: state.y } : {}),
     minWidth: 960,
     minHeight: 640,
     backgroundColor: "#0a0b08",
@@ -233,6 +277,8 @@ async function createWindow() {
       preload: path.join(__dirname, "preload.js"),
     },
   });
+  if (state.maximized) mainWindow.maximize();
+  trackWindowState(mainWindow);
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
