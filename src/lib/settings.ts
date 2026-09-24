@@ -45,6 +45,8 @@ export function normalizeSettings(raw: Partial<AppSettings> & Record<string, unk
     userName: str(raw.userName, d.userName, 40),
     docWarnDays: clampNum(raw.docWarnDays, 1, 365, d.docWarnDays),
     docUrgentDays: clampNum(raw.docUrgentDays, 0, 365, d.docUrgentDays),
+    theme: raw.theme === "light" ? "light" : "dark",
+    textSize: ["normal", "large", "xlarge"].includes(String(raw.textSize)) ? (raw.textSize as AppSettings["textSize"]) : d.textSize,
     launchReminders: raw.launchReminders === undefined ? d.launchReminders : Boolean(raw.launchReminders),
     tourStatus: ["new", "offer", "done"].includes(String(raw.tourStatus)) ? (raw.tourStatus as AppSettings["tourStatus"]) : d.tourStatus,
   };

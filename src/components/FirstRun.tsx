@@ -93,7 +93,7 @@ function Setup({ onNext, onSkip, canSetPin }: { onNext: () => void; onSkip: () =
           <>
             <h2 className="mb-2 text-lg text-brand-amber">Bring in your records</h2>
             <p className="mb-2 text-sm text-neutral-300">
-              Have a spreadsheet of your firearms and ammo? Import it any time from Settings &gt; Spreadsheets. TAC-LOG
+              Have a spreadsheet of your firearms and ammo? Import it any time from Settings &gt; Import / Export. TAC-LOG
               previews everything first and skips duplicates.
             </p>
             <p className="mb-4 text-sm text-neutral-300">Otherwise, start with + Add Firearm in the Armory.</p>

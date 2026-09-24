@@ -19,7 +19,7 @@ import SpreadsheetImport from "@/components/SpreadsheetImport";
 import { securityMode, isEncrypted } from "@/lib/security-state";
 import { savedBackupKey } from "@/lib/backup";
 import { getAutoBackup, getAutoBackupStatus } from "@/lib/auto-backup";
-import { DATE_FORMATS, FIREARM_LABEL_MODES } from "@/lib/settings";
+import { DATE_FORMATS, FIREARM_LABEL_MODES, TEXT_SIZES } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -83,39 +83,58 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <RestoreForm />
       </Collapsible>
 
-      <Collapsible id="settings-courses-of-fire" title="Courses of Fire" keywords="import export course json categories" defaultOpen={false}>
-        <p className="mb-3 text-sm text-neutral-400">
-          Import course files (.json), one or several at once. You review each course and pick its categories before anything is saved. Courses with a matching code are updated. Only Course of Fire and
-          Target Type data is touched. To share one course, use Export on that course&apos;s page.
-        </p>
-        <ImportCofForm />
-        <a href="/api/courses/export" className={`${btn} mt-3`}>
-          Export All Courses
-        </a>
-      </Collapsible>
-
-      <Collapsible id="settings-spreadsheets" title="Spreadsheets" keywords="import excel xlsx csv export spreadsheet inventory" defaultOpen={false}>
-        <p className="mb-3 text-sm text-neutral-400">
-          Import firearms, serialized accessories, ammo purchases, and ammo goals from an Excel workbook (.xlsx) or
-          CSV, such as your original FIREARMS INVENTORY sheet. TAC-LOG finds each table by its header row, shows a
-          preview first, and skips anything already here (matched by serial number).
-        </p>
-        <SpreadsheetImport />
-        <div className="mt-4 text-sm text-neutral-400">Export to CSV (opens in Excel):</div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {[
-            ["firearms", "Firearms"],
-            ["accessories", "Accessories"],
-            ["ammo", "Ammo Purchases"],
-            ["range-sessions", "Range Sessions"],
-            ["rounds-fired", "Rounds Fired Log"],
-            ["maintenance", "Maintenance Log"],
-            ["documents", "Permits & Documents"],
-          ].map(([type, label]) => (
-            <a key={type} href={`/api/csv?type=${type}`} className={btn}>
-              {label}
-            </a>
-          ))}
+      <Collapsible
+        id="settings-import-export"
+        title="Import / Export"
+        keywords="import export course json categories excel xlsx csv spreadsheet inventory files"
+      >
+        <div className="flex flex-col gap-6">
+          <div>
+            <h3 className="mb-1 text-sm text-brand-amber">Import</h3>
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+              <div>
+                <h4 className="mb-1 text-xs text-neutral-300">Courses of Fire (.json)</h4>
+                <p className="mb-2 text-xs text-neutral-500">
+                  One or several course files at once. You review each course and pick its categories before anything is
+                  saved. Courses with a matching code are updated.
+                </p>
+                <ImportCofForm />
+              </div>
+              <div>
+                <h4 className="mb-1 text-xs text-neutral-300">Spreadsheet (.xlsx or .csv)</h4>
+                <p className="mb-2 text-xs text-neutral-500">
+                  Firearms, serialized accessories, ammo purchases, and ammo goals, such as your original FIREARMS
+                  INVENTORY sheet. You get a preview first, and anything already here (matched by serial number) is skipped.
+                </p>
+                <SpreadsheetImport />
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 className="mb-1 text-sm text-brand-amber">Export</h3>
+            <p className="mb-2 text-xs text-neutral-500">
+              CSV files open in Excel or Google Sheets. Course files can be imported into another copy of TAC-LOG. To share a
+              single course, use Export on that course&apos;s page.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <a href="/api/courses/export" className={btn}>
+                All Courses of Fire (.json)
+              </a>
+              {[
+                ["firearms", "Firearms"],
+                ["accessories", "Accessories"],
+                ["ammo", "Ammo Purchases"],
+                ["range-sessions", "Range Sessions"],
+                ["rounds-fired", "Rounds Fired Log"],
+                ["maintenance", "Maintenance Log"],
+                ["documents", "Permits & Documents"],
+              ].map(([type, label]) => (
+                <a key={type} href={`/api/csv?type=${type}`} className={btn}>
+                  {label} (.csv)
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </Collapsible>
 
@@ -264,7 +283,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </SubmitButton>
         </Collapsible>
 
-        <Collapsible id="settings-display" title="Display" keywords="nickname make model date format currency symbol" defaultOpen={formOpen}>
+        <Collapsible id="settings-display" title="Display" keywords="nickname make model date format currency symbol theme light dark text size larger font" defaultOpen={formOpen}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <label className="flex flex-col gap-1 text-sm">
               Show Firearms As
@@ -289,6 +308,25 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <label className="flex flex-col gap-1 text-sm">
               Currency Symbol
               <input name="currencySymbol" defaultValue={s.currencySymbol} maxLength={4} className={input} />
+            </label>
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <label className="flex flex-col gap-1 text-sm">
+              Theme
+              <select name="theme" defaultValue={s.theme} className={input}>
+                <option value="dark">Dark (olive &amp; amber)</option>
+                <option value="light">Light</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Text Size
+              <select name="textSize" defaultValue={s.textSize} className={input}>
+                {Object.entries(TEXT_SIZES).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
           <p className="mt-2 text-xs text-neutral-500">

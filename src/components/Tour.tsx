@@ -17,7 +17,7 @@ const STEPS: Step[] = [
   { target: "nav-controls", title: "Controls", body: "Customize the dropdown lists (calibers, platforms, course categories, and so on) and choose what the dashboard shows." },
   { target: "nav-settings", title: "Settings", body: "Security (PIN or encrypted password), backups, imports, defaults, and display options. There's a search box at the top." },
   { target: "quick-actions", title: "Quick actions", body: "The most common jobs, one click away: log a range session, build a course, update rounds fired, log an ammo purchase." },
-  { target: null, title: "You're set", body: "Start by adding a firearm or importing your spreadsheet (Settings > Spreadsheets). Replay this tour any time from Settings > About or the File menu." },
+  { target: null, title: "You're set", body: "Start by adding a firearm or importing your spreadsheet (Settings > Import / Export). Replay this tour any time from Settings > About or the File menu." },
 ];
 
 export default function Tour({ onDone }: { onDone?: () => void }) {

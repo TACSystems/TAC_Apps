@@ -7,6 +7,7 @@ import WhatsNewNotice from "@/components/WhatsNewNotice";
 import { getDb } from "@/lib/db";
 import { isUnlocked, lockoutSeconds, securityMode } from "@/lib/security-state";
 import { getSettings } from "@/lib/settings";
+import { TEXT_SCALE } from "@/lib/settings-shared";
 import { whatsNewPending } from "@/lib/changelog";
 import LaunchReminders from "@/components/LaunchReminders";
 import { collectReminders, remindersDismissed } from "@/lib/reminders";
@@ -36,7 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const reminders = settings.launchReminders && !remindersDismissed() ? collectReminders(db, settings) : [];
 
   return (
-    <html lang="en">
+    <html lang="en" data-theme={settings.theme} style={{ fontSize: TEXT_SCALE[settings.textSize] }}>
       <body className="flex min-h-screen flex-col bg-neutral-950 text-neutral-100">
         <NavBar showLock={mode !== "none"} />
         {mode !== "none" && <IdleLock minutes={settings.autoLockMinutes} />}

@@ -34,6 +34,8 @@ export async function saveSettingsForm(formData: FormData) {
     defaultAmmoManufacturer: get("defaultAmmoManufacturer"),
     defaultAmmoType: get("defaultAmmoType"),
     launchReminders: formData.get("launchReminders") === "on",
+    theme: get("theme") === "light" ? "light" : "dark",
+    textSize: get("textSize") as AppSettings["textSize"],
     docWarnDays: Number(get("docWarnDays")),
     docUrgentDays: Number(get("docUrgentDays")),
   };

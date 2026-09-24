@@ -39,7 +39,12 @@ export type AppSettings = {
   docWarnDays: number;
   docUrgentDays: number;
   launchReminders: boolean;
+  theme: "dark" | "light";
+  textSize: "normal" | "large" | "xlarge";
 };
+
+export const TEXT_SIZES = { normal: "Normal", large: "Large", xlarge: "Extra Large" } as const;
+export const TEXT_SCALE: Record<AppSettings["textSize"], string> = { normal: "100%", large: "112.5%", xlarge: "125%" };
 
 export type FirearmLabelMode = "make_model" | "nickname" | "both" | "make_model_nickname";
 export type DateFormat = "us" | "iso" | "eu";
@@ -94,6 +99,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   docWarnDays: 60,
   docUrgentDays: 30,
   launchReminders: true,
+  theme: "dark",
+  textSize: "normal",
 };
 
 export function normalizeHome(raw: unknown): HomeLayout {

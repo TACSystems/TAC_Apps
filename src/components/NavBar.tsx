@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LockButton from "@/components/LockButton";
 import NavLinks from "@/components/NavLinks";
+import QuickSearch from "@/components/QuickSearch";
 
 export default function NavBar({ showLock = false }: { showLock?: boolean }) {
   return (
@@ -17,6 +18,7 @@ export default function NavBar({ showLock = false }: { showLock?: boolean }) {
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-neutral-400">
           <NavLinks />
+          <QuickSearch />
           {showLock && <LockButton />}
         </div>
       </div>
