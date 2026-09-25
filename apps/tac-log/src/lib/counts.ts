@@ -50,7 +50,7 @@ export function correctFirearmCount(db: Database.Database, firearmId: string, ta
   const id = randomUUID();
   db.transaction(() => {
     if (row.last_cleaned_at_shots == null) {
-      db.prepare(`update firearms set last_cleaned_at_shots = ? where id = ?`).run(row.shots_fired, firearmId);
+      db.prepare(`update firearms set last_cleaned_at_shots = 0 where id = ?`).run(firearmId);
     }
     db.prepare(
       `insert into count_adjustments (id, kind, firearm_id, date, delta, set_to, note) values (?, 'firearm', ?, ?, ?, ?, ?)`

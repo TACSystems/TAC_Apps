@@ -9,6 +9,7 @@ import { createAmmoViews, goalStatus, migrateAmmoGoals, stockLines, upsertGoal, 
 import { backfillSessions, findOrCreateSession, listSessions, mergeSessions, moveEntry, pruneSessions } from "@/lib/sessions";
 import { maintenanceInfo } from "@/lib/maintenance";
 import { registerLabelFunction } from "@/lib/display";
+import { correctFirearmCount } from "@/lib/counts";
 import type { Firearm } from "@/lib/db/types";
 
 function fresh() {
@@ -118,6 +119,20 @@ test("cleaning due math", () => {
   const byDays = { ...f, clean_interval_rounds: null, clean_interval_days: 30 } as Firearm;
   assert.equal(maintenanceInfo(byDays, "2026-09-01", null, 0.8, new Date("2026-10-05T12:00:00")).status, "due");
   assert.equal(maintenanceInfo({ ...f, clean_interval_rounds: null } as Firearm, null, null).status, "unset");
+});
+
+test("count correction leaves rounds since cleaning alone", () => {
+  const db = fresh();
+  db.exec(`insert into firearms (id, make_model, status, date_of_entry, shots_fired, last_cleaned_at_shots) values
+    ('never', 'A', 'active', '2026-01-01', 700, null), ('cleaned', 'B', 'active', '2026-01-01', 900, 500)`);
+  const since = (id: string) => {
+    const r = db.prepare(`select shots_fired, last_cleaned_at_shots from firearms where id = ?`).get(id) as { shots_fired: number; last_cleaned_at_shots: number | null };
+    return r.shots_fired - (r.last_cleaned_at_shots ?? 0);
+  };
+  correctFirearmCount(db, "never", 1500, "bought used");
+  correctFirearmCount(db, "cleaned", 1700, null);
+  assert.equal(since("never"), 700);
+  assert.equal(since("cleaned"), 400);
 });
 
 test("upgrading a 0.7.1 database keeps totals and forms sessions", async () => {

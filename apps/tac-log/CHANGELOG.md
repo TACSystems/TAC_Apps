@@ -2,6 +2,31 @@
 
 All notable changes to TAC-LOG, newest first.
 
+## [0.9.0] — 2026-09-25
+
+### Added
+- **Automatic updates:** TAC-LOG checks GitHub for a newer version when it opens.
+  - **Windows:** the update downloads in the background and is checked against its published checksum. A bar under the menu offers Restart to Update; TAC-LOG closes, installs, and reopens with your data untouched.
+  - **Mac:** the bar offers Download, which opens the release page.
+  - Later hides the bar until next launch; Skip This Version hides it until a newer one comes out. Turn checks off, or check now, in Settings › Updates. File › Check for Updates works too. Only the version question goes online; none of your data does.
+- **Dashboard tiles** across the top: firearms, rounds this year, ammo on hand, sessions this month, and items due.
+- **Firearm header card:** photo, status, key stats, and Record Rounds / Log Cleaning / Add Another / Delete buttons, with the rest of the page in folding sections.
+- Save messages confirm what happened after you add, edit, or delete something.
+- Tables on the Range Log, Documents, Accessories, and Ammo purchase history can be filtered and sorted by clicking a column heading. Clicking a row opens it.
+- Printed ammo breakdowns and range sessions carry the TAC-LOG header, and there's a Print button on each.
+- A Menu button replaces the top bar on narrow windows.
+
+### Changed
+- **Grouped top bar:** Home · Armory ▾ · Ammo · Range ▾ · Stats, with Controls, Settings, Help, and What's New under the gear. The tour follows the new layout.
+- Every page shares one header style with an icon, and buttons, forms, and tables look the same everywhere. Required fields are marked with *, and form problems show next to the field.
+- Easier to read: stronger contrast on grey text, and a visible outline around whatever the keyboard is on. A Skip to Content link helps keyboard users.
+- A thin progress bar shows while a page loads.
+- TAC-LOG now opens down to 760 pixels wide without cutting anything off.
+
+### Fixed
+- Correcting a firearm's round count no longer resets rounds-since-cleaning on a firearm that has never been cleaned.
+- On a firearm page, buttons inside an open section (+ Record Sale / Transfer, + Add Part Counter, Edit) showed "Cancel" or "Close" before you'd opened them.
+
 ## [0.8.0] — 2026-09-24
 
 ### Added

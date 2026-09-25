@@ -38,16 +38,16 @@ export default function Collapsible({
           window.dispatchEvent(new CustomEvent("taclog:section", { detail: { scope: scope ?? "dashboard", ids: [id], open: e.currentTarget.open } }));
         }
       }}
-      className="group border border-neutral-800 bg-neutral-900"
+      className="group/section border border-neutral-800 bg-neutral-900"
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
         <span className="flex items-center gap-3">
-          <span className="inline-block w-3 text-brand-amber transition-transform group-open:rotate-90">▸</span>
+          <span className="inline-block w-3 text-brand-amber transition-transform group-open/section:rotate-90">▸</span>
           {icon && <Icon name={icon} className="text-neutral-400" />}
           <h2 className="font-medium text-neutral-200">{title}</h2>
           {summary && (
             <span className="hidden sm:inline">
-              <span className="text-xs text-neutral-500 group-open:hidden">{summary}</span>
+              <span className="text-xs text-neutral-500 group-open/section:hidden">{summary}</span>
             </span>
           )}
         </span>
