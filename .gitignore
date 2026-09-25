@@ -18,8 +18,8 @@ apps/*/electron/resources/
 apps/*/release/
 apps/*/.next/
 apps/*/tsconfig.tsbuildinfo
-apps/*/data/firearms.db
-apps/*/data/firearms.db-*
+apps/*/data/*.db
+apps/*/data/*.db-*
 apps/*/data/receipts/
 apps/*/data/security.json
 

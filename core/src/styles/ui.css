@@ -37,7 +37,8 @@
   .btn-primary {
     background: var(--tl-olive);
     border-color: var(--tl-olive);
-    color: var(--tl-n100);
+    /* Apps whose primary colour is light set --tl-on-primary to their shell. */
+    color: var(--tl-on-primary, var(--tl-n100));
   }
   .btn-primary:hover:not(:disabled) {
     background: var(--tl-olive-light);
@@ -276,4 +277,39 @@ details[data-section] { scroll-margin-top: calc(var(--tac-nav-h, 0px) + 8px); }
   main .text-brand-amber {
     color: #333 !important;
   }
+}
+
+/* Corner brackets — the family signature motif, doing structural work.
+   Marks the record or grid being worked on. Not a default panel style. */
+.brk {
+  position: relative;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--tl-amber), var(--tl-amber)), linear-gradient(var(--tl-amber), var(--tl-amber)),
+    linear-gradient(var(--tl-amber), var(--tl-amber)), linear-gradient(var(--tl-amber), var(--tl-amber)),
+    linear-gradient(var(--tl-amber), var(--tl-amber)), linear-gradient(var(--tl-amber), var(--tl-amber)),
+    linear-gradient(var(--tl-amber), var(--tl-amber)), linear-gradient(var(--tl-amber), var(--tl-amber));
+  background-size:
+    22px 2px, 2px 22px, 22px 2px, 2px 22px,
+    22px 2px, 2px 22px, 22px 2px, 2px 22px;
+  background-position:
+    left top, left top, right top, right top,
+    left bottom, left bottom, right bottom, right bottom;
+}
+
+/* PASS / FAIL as filled blocks — distinguished by shape as well as hue,
+   so they survive beside accent colour and photocopy correctly. */
+.result-badge {
+  display: inline-block;
+  padding: 0.25rem 0.85rem 0.2rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #fff;
+}
+.result-pass { background: #3f7d3f; }
+.result-fail { background: #b3211f; }
+
+@media print {
+  .brk { background-image: none; }
+  .result-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
