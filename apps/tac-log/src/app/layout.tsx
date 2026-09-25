@@ -8,6 +8,7 @@ import InlineValidation from "@core/components/InlineValidation";
 import FlashToast from "@core/components/FlashToast";
 import NavHeight from "@core/components/NavHeight";
 import NavProgress from "@core/components/NavProgress";
+import UpdateBanner from "@core/components/UpdateBanner";
 import LockScreen from "@/components/LockScreen";
 import IdleLock from "@/components/IdleLock";
 import WhatsNewNotice from "@/components/WhatsNewNotice";
@@ -50,6 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Skip to content
         </a>
         <NavBar showLock={mode !== "none"} />
+        <UpdateBanner productName="TAC-LOG" />
         {mode !== "none" && <IdleLock minutes={settings.autoLockMinutes} />}
         {whatsNew && <WhatsNewNotice version={whatsNew} />}
         <LaunchReminders items={reminders} />

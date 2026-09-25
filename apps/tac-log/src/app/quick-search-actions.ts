@@ -46,6 +46,7 @@ const PAGES: QuickHit[] = [
   { group: "Controls", label: "Document expiration warnings", href: "/controls#controls-documents" },
   { group: "Controls", label: "Dropdown lists (calibers, platforms, …)", href: "/controls" },
   { group: "Settings", label: "Display (theme, text size, date format)", href: "/settings#settings-display" },
+  { group: "Settings", label: "Updates (check for a new version)", href: "/settings#settings-updates" },
   { group: "Settings", label: "About", href: "/settings#settings-about" },
 ];
 

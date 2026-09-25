@@ -20,6 +20,7 @@ function isNewer(candidate, current) {
 }
 
 function createUpdater({ owner, repo, productName, installerPattern, notify }) {
+  const installsItself = process.platform === "win32" || (!app.isPackaged && process.env.TACLOG_UPDATE_TEST_INSTALL === "1");
   const apiBase = (process.env.TACLOG_UPDATE_API || "https://api.github.com").replace(/\/$/, "");
   const prefsFile = () => path.join(app.getPath("userData"), "updates.json");
   const downloadDir = () => path.join(app.getPath("userData"), "updates");
@@ -53,7 +54,7 @@ function createUpdater({ owner, repo, productName, installerPattern, notify }) {
     void assetUrl;
     void sumsUrl;
     void file;
-    return { ...rest, canInstall: process.platform === "win32" && state.status === "ready", platform: process.platform };
+    return { ...rest, canInstall: installsItself && state.status === "ready", platform: process.platform };
   }
 
   async function getJson(url) {
@@ -144,7 +145,7 @@ function createUpdater({ owner, repo, productName, installerPattern, notify }) {
         published: release.published_at || null,
         manual,
       });
-      if (!skipped && process.platform === "win32") await downloadWindows(release);
+      if (!skipped && installsItself) await downloadWindows(release);
     } catch (err) {
       set({ status: "error", error: err && err.message ? err.message : "Couldn't check for updates.", manual });
     } finally {
@@ -161,10 +162,21 @@ function createUpdater({ owner, repo, productName, installerPattern, notify }) {
       set({ status: "skipped" });
     }
     if (action === "dismiss") set({ status: "dismissed" });
-    if (action === "install" && process.platform === "win32" && state.status === "ready" && state.file && fs.existsSync(state.file)) {
-      const child = spawn(state.file, ["/S", "--updated", "--force-run"], { detached: true, stdio: "ignore" });
-      child.unref();
-      setTimeout(() => app.quit(), 300);
+    if (action === "install" && installsItself && state.status === "ready" && !(state.file && fs.existsSync(state.file))) {
+      set({ status: "error", error: "The downloaded installer is missing. Use Check Now to download it again." });
+    } else if (action === "install" && installsItself && state.status === "ready") {
+      try {
+        if (process.platform !== "win32") fs.chmodSync(state.file, 0o755);
+        const child = spawn(state.file, ["/S", "--updated", "--force-run"], { detached: true, stdio: "ignore" });
+        child.once("error", (err) => set({ status: "error", error: `Couldn't start the installer (${err.code || err.message}). Download it from the releases page instead.` }));
+        child.once("spawn", () => {
+          child.unref();
+          set({ status: "installing" });
+          setTimeout(() => app.quit(), 300);
+        });
+      } catch (err) {
+        set({ status: "error", error: `Couldn't start the installer (${err.code || err.message}).` });
+      }
     }
     return publicState();
   }

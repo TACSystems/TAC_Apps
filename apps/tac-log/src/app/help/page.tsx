@@ -126,6 +126,16 @@ export default function HelpPage() {
         </ol>
       </Guide>
 
+      <Guide id="updates" title="Updates" keywords="update upgrade new version download install github check restart skip">
+        <ul>
+          <li>When TAC-LOG opens it asks GitHub whether a newer version exists. Only the version question is sent; none of your data leaves this computer.</li>
+          <li><b>Windows:</b> the update downloads in the background and is checked against its published checksum. A bar under the menu offers <b>Restart to Update</b>; TAC-LOG closes, installs, and reopens with your data untouched.</li>
+          <li><b>Mac:</b> the bar offers <b>Download</b>, which opens the release page. Download the zip and replace the app in Applications, same as a first install.</li>
+          <li><b>Later</b> hides the bar until next launch. <b>Skip this version</b> hides it until a newer one comes out.</li>
+          <li>Turn automatic checks off in Settings › Updates, or check any time with <b>Check Now</b> there or File › Check for Updates.</li>
+          <li>Back up first if you like; Settings › Backup works as always.</li>
+        </ul>
+      </Guide>
       <Guide id="settings-controls" title="Settings vs Controls" keywords="settings controls where customize dropdown defaults lists">
         <p><b>Controls</b> customizes the pages of TAC-LOG, organized by page: dropdown lists, defaults, thresholds, the dashboard layout, and bulk count corrections.</p>
         <p><b>Settings</b> manages the app itself: security, backups, restore, import/export, display (theme, text size, date format, name display), the Heads Up bar, and About.</p>
@@ -144,7 +154,7 @@ export default function HelpPage() {
       <Guide id="faq" title="FAQ" keywords="faq data where stored internet online privacy mac open anyway">
         <ul>
           <li><b>Where is my data?</b> Only on this computer, in <span className="break-all text-neutral-100">{dataDir()}</span>. Nothing is sent anywhere.</li>
-          <li><b>Does TAC-LOG need the internet?</b> No. It works fully offline.</li>
+          <li><b>Does TAC-LOG need the internet?</b> No. It works fully offline; the only online step is the optional update check.</li>
           <li><b>Mac says the app can&apos;t be opened?</b> System Settings › Privacy &amp; Security › Open Anyway (first launch only).</li>
           <li><b>Something looks off?</b> Settings › About shows the version and data folder. Note what you did, what you expected, and what happened.</li>
         </ul>

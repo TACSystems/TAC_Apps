@@ -10,11 +10,7 @@ import Spinner from "@core/components/Spinner";
 
 type Res = ActionResult;
 
-declare global {
-  interface Window {
-    taclog?: { chooseFolder: () => Promise<string | null> };
-  }
-}
+import "@core/lib/desktop";
 
 const input = "input";
 const btn = "btn btn-secondary";

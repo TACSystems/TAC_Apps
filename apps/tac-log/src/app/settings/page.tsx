@@ -1,4 +1,5 @@
 import PageHeader from "@core/components/PageHeader";
+import UpdateSettings from "@core/components/UpdateSettings";
 import fs from "fs";
 import path from "path";
 import { dataDir, getDb } from "@/lib/db";
@@ -135,6 +136,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
       <Collapsible id="settings-heads-up" title="Heads Up Bar" keywords="launch reminders heads up startup notice" defaultOpen={saved === "headsup"}>
         <HeadsUpForm s={s} saved={saved === "headsup"} returnTo="/settings" />
+      </Collapsible>
+
+      <Collapsible id="settings-updates" title="Updates" keywords="update upgrade new version download check github release">
+        <UpdateSettings releasesUrl="https://github.com/TACSystems/TAC-LOG-Releases/releases" />
       </Collapsible>
 
       <Collapsible
