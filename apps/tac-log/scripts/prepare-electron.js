@@ -11,6 +11,8 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.join(__dirname, "..");
+const repoRoot = path.join(root, "..", "..");
+const appRel = path.relative(repoRoot, root);
 const standaloneDir = path.join(root, ".next", "standalone");
 const staticDir = path.join(root, ".next", "static");
 const publicDir = path.join(root, "public");
@@ -41,11 +43,15 @@ fs.mkdirSync(seedOutDir, { recursive: true });
 
 fs.cpSync(standaloneDir, serverOut, { recursive: true });
 
-for (const stray of ["data", "src", "electron", "scripts", "release", "sql", "tsconfig.tsbuildinfo", "package-lock.json", "AGENTS.md", "CLAUDE.md", "README.md", "SETUP.md", "eslint.config.mjs", "next.config.ts", "node_modules/@img", "node_modules/sharp"]) {
+const appOut = path.join(serverOut, appRel);
+for (const stray of ["data", "src", "electron", "scripts", "release", "sql", "tsconfig.tsbuildinfo", "AGENTS.md", "CLAUDE.md", "CHANGELOG.md", "SETUP.md", "eslint.config.mjs", "next.config.ts"]) {
+  fs.rmSync(path.join(appOut, stray), { recursive: true, force: true });
+}
+for (const stray of ["core", "package-lock.json", "README.md", "node_modules/@img", "node_modules/sharp", "node_modules/@tac", "node_modules/tac-log"]) {
   fs.rmSync(path.join(serverOut, stray), { recursive: true, force: true });
 }
 
-const hashedModules = path.join(serverOut, ".next", "node_modules");
+const hashedModules = path.join(appOut, ".next", "node_modules");
 if (fs.existsSync(hashedModules)) {
   for (const entry of fs.readdirSync(hashedModules)) {
     const full = path.join(hashedModules, entry);
@@ -61,13 +67,18 @@ if (fs.existsSync(hashedModules)) {
 
 // Per the Next.js standalone-output docs, static assets and the public/
 // folder aren't included automatically — copy them in ourselves.
-fs.mkdirSync(path.join(serverOut, ".next", "static"), { recursive: true });
-fs.cpSync(staticDir, path.join(serverOut, ".next", "static"), { recursive: true });
+fs.mkdirSync(path.join(appOut, ".next", "static"), { recursive: true });
+fs.cpSync(staticDir, path.join(appOut, ".next", "static"), { recursive: true });
 if (fs.existsSync(publicDir)) {
-  fs.cpSync(publicDir, path.join(serverOut, "public"), { recursive: true });
+  fs.cpSync(publicDir, path.join(appOut, "public"), { recursive: true });
 }
 
-const prebuildsSrc = path.join(root, "node_modules", "better-sqlite3-multiple-ciphers", "prebuilds");
+const coreElectron = path.join(repoRoot, "core", "electron");
+const coreOut = path.join(root, "electron", "core");
+fs.rmSync(coreOut, { recursive: true, force: true });
+fs.cpSync(coreElectron, coreOut, { recursive: true });
+
+const prebuildsSrc = path.join(repoRoot, "node_modules", "better-sqlite3-multiple-ciphers", "prebuilds");
 const prebuildsOut = path.join(serverOut, "node_modules", "better-sqlite3-multiple-ciphers", "prebuilds");
 if (fs.existsSync(prebuildsSrc)) {
   fs.cpSync(prebuildsSrc, prebuildsOut, { recursive: true });

@@ -19,10 +19,13 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@core/*": ["../../core/src/*"]
     }
   },
   "include": [
+    "../../core/src/**/*.ts",
+    "../../core/src/**/*.tsx",
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
