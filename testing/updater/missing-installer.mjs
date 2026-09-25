@@ -1,0 +1,17 @@
+const W = process.env.TL_WORK || "/tmp/tl-test";
+import { chromium } from "playwright";
+import fs from "fs";
+const b = await chromium.connectOverCDP("http://127.0.0.1:9334");
+const p = b.contexts()[0].pages().find((x) => x.url().startsWith("http://127.0.0.1")) ?? b.contexts()[0].pages()[0];
+const ok = (c, m) => console.log(c ? "PASS" : "FAIL", m);
+const ban = p.locator("[data-update-banner]");
+for (let i = 0; i < 40 && !/ready to install/i.test(await ban.innerText().catch(() => "")); i++) await p.waitForTimeout(500);
+await p.getByText("Skip setup and tour", { exact: false }).click().catch(() => {}); await p.waitForTimeout(800);
+fs.rmSync(W + "/devhome/.config/TAC-LOG/updates", { recursive: true, force: true });
+await ban.getByRole("button", { name: /Restart to Update/i }).click();
+await p.waitForTimeout(1000);
+const t = await ban.innerText();
+ok(/installer is missing/i.test(t) && /download/i.test(t), "banner reports missing installer with Download button: " + t.replace(/\s+/g, " "));
+ok(!fs.existsSync(W + "/upd/installed.txt"), "nothing launched, app still running");
+await p.screenshot({ path: "upd-fail.png", clip: { x: 0, y: 0, width: 1440, height: 130 } });
+await b.close().catch(() => {});

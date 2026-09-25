@@ -1,0 +1,1069 @@
+{
+  "courses": [
+    {
+      "code": "ENDUR-50",
+      "name": "Endurance 50",
+      "total_rounds": 50.0,
+      "target_type": "B-27",
+      "phases": [
+        {
+          "phase_number": 1,
+          "title": "Phase 1: Close-Quarters Control (3 & 5 Yards)",
+          "phase_total_rounds": 20,
+          "strings": [
+            {
+              "string_number": 1.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 2.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 3.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "6 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds STRONG Hand - Fire 2 rounds SUPPORT Hand - Scan and Holster"
+            },
+            {
+              "string_number": 4.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "6 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds STRONG Hand - Fire 2 rounds SUPPORT Hand - Scan and Holster"
+            },
+            {
+              "string_number": 5.0,
+              "option_label": null,
+              "distance": "* TRANSITION TO 5 YARD LINE *",
+              "weapon": null,
+              "rounds": null,
+              "time_limit": null,
+              "position": null,
+              "action": null
+            },
+            {
+              "string_number": 6.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 7.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 8.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "6 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds STRONG Hand - Fire 2 rounds SUPPORT Hand - Scan and Holster"
+            }
+          ]
+        },
+        {
+          "phase_number": 2,
+          "title": "Phase 2: Mid-Range Precision (10 Yards)",
+          "phase_total_rounds": 12,
+          "strings": [
+            {
+              "string_number": 9.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "5 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 10.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "5 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 11.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "10 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 Rounds - Tactical Reload - Fire 2 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 12.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "10 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 Rounds - Tactical Reload - Fire 2 Rounds - Scan and Holster"
+            }
+          ]
+        },
+        {
+          "phase_number": 3,
+          "title": "Phase 3: Long-Range Focus (15 & 25 Yards)",
+          "phase_total_rounds": 14.0,
+          "strings": [
+            {
+              "string_number": 13.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "6 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 4 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 14.0,
+              "option_label": "OPTION A",
+              "distance": "25 Yard",
+              "weapon": null,
+              "rounds": 10.0,
+              "time_limit": "30 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 10 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 14.0,
+              "option_label": "OPTION B",
+              "distance": "25 Yard",
+              "weapon": null,
+              "rounds": 5.0,
+              "time_limit": "15 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 5 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 15.0,
+              "option_label": "OPTION B",
+              "distance": "25 Yard",
+              "weapon": null,
+              "rounds": 5.0,
+              "time_limit": "15 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 5 Rounds - Scan and Holster"
+            }
+          ]
+        }
+      ],
+      "scoring_zones": [
+        {
+          "zone_label": "X/9/8",
+          "value": 5.0
+        },
+        {
+          "zone_label": "7.0",
+          "value": 4.0
+        },
+        {
+          "zone_label": "On Silhouette",
+          "value": 3.0
+        },
+        {
+          "zone_label": "Off Silhouette",
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "code": "BH-50",
+      "name": "Breach Hammer 50",
+      "total_rounds": 50.0,
+      "target_type": "B-27",
+      "phases": [
+        {
+          "phase_number": 1,
+          "title": "Phase 1: Close-Quarters Control (3 & 5 Yards)",
+          "phase_total_rounds": 26,
+          "strings": [
+            {
+              "string_number": 1.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "6 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds STRONG Hand - Fire 2 rounds SUPPORT Hand - Scan and Holster"
+            },
+            {
+              "string_number": 2.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "6 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds STRONG Hand - Fire 2 rounds SUPPORT Hand - Scan and Holster"
+            },
+            {
+              "string_number": 3.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "6 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds STRONG Hand - Fire 2 rounds SUPPORT Hand - Scan and Holster"
+            },
+            {
+              "string_number": 4.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "6 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds STRONG Hand - Fire 2 rounds SUPPORT Hand - Scan and Holster"
+            },
+            {
+              "string_number": 5.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 Rounds - Tactical Reload - Scan and Holster"
+            },
+            {
+              "string_number": 6.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 Rounds - Tactical Reload - Scan and Holster"
+            },
+            {
+              "string_number": 7.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 Rounds - Tactical Reload - Scan and Holster"
+            },
+            {
+              "string_number": 8.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 Rounds - Tactical Reload - Scan and Holster"
+            },
+            {
+              "string_number": 9.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 Rounds - Tactical Reload - Scan and Holster"
+            }
+          ]
+        },
+        {
+          "phase_number": 2,
+          "title": "Phase 2: Mid-Range Precision (10 Yards)",
+          "phase_total_rounds": 8,
+          "strings": [
+            {
+              "string_number": 10.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "10 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 4 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 11.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "10 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 4 rounds - Scan and Holster"
+            }
+          ]
+        },
+        {
+          "phase_number": 3,
+          "title": "Phase 3: Long-Range Focus (15 & 25 Yards)",
+          "phase_total_rounds": 16.0,
+          "strings": [
+            {
+              "string_number": 13.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": null,
+              "rounds": 4.0,
+              "time_limit": "12 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 4 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 14.0,
+              "option_label": "OPTION A",
+              "distance": "25 Yard",
+              "weapon": null,
+              "rounds": 12.0,
+              "time_limit": "40 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 12 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 14.0,
+              "option_label": "OPTION B",
+              "distance": "25 Yard",
+              "weapon": null,
+              "rounds": 6.0,
+              "time_limit": "20 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 6 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 15.0,
+              "option_label": "OPTION B",
+              "distance": "25 Yard",
+              "weapon": null,
+              "rounds": 6.0,
+              "time_limit": "20 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 6 Rounds - Scan and Holster"
+            }
+          ]
+        }
+      ],
+      "scoring_zones": [
+        {
+          "zone_label": "X/9/8",
+          "value": 5.0
+        },
+        {
+          "zone_label": "7.0",
+          "value": 4.0
+        },
+        {
+          "zone_label": "On Silhouette",
+          "value": 3.0
+        },
+        {
+          "zone_label": "Off Silhouette",
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "code": "MCO-50",
+      "name": "Marksman Close-Out 50",
+      "total_rounds": 50.0,
+      "target_type": "B-27",
+      "phases": [
+        {
+          "phase_number": 1,
+          "title": "Phase 1: Close-Quarters Control (3 & 5 Yards)",
+          "phase_total_rounds": 24,
+          "strings": [
+            {
+              "string_number": 1.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3.5 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Failure Drill - Scan and Holster"
+            },
+            {
+              "string_number": 2.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3.5 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Failure Drill - Scan and Holster"
+            },
+            {
+              "string_number": 3.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3.5 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Failure Drill - Scan and Holster"
+            },
+            {
+              "string_number": 4.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3.5 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Failure Drill - Scan and Holster"
+            },
+            {
+              "string_number": 5.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3.5 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Failure Drill - Scan and Holster"
+            },
+            {
+              "string_number": 6.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3.5 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Failure Drill - Scan and Holster"
+            },
+            {
+              "string_number": 7.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 3 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 8.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 3 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 9.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 3 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 10.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 3 Rounds - Scan and Holster"
+            }
+          ]
+        },
+        {
+          "phase_number": 2,
+          "title": "Phase 2: Mid-Range Precision (10 Yards)",
+          "phase_total_rounds": 12,
+          "strings": [
+            {
+              "string_number": 11.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "8 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 3 Rounds - Controlled Pair + 1 - Scan and Holster"
+            },
+            {
+              "string_number": 12.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "8 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 3 Rounds - Controlled Pair + 1 - Scan and Holster"
+            },
+            {
+              "string_number": 13.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "8 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 3 Rounds - Controlled Pair + 1 - Scan and Holster"
+            },
+            {
+              "string_number": 14.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "8 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 3 Rounds - Controlled Pair + 1 - Scan and Holster"
+            }
+          ]
+        },
+        {
+          "phase_number": 3,
+          "title": "Phase 3: Long-Range Focus (15 & 25 Yards)",
+          "phase_total_rounds": 14.0,
+          "strings": [
+            {
+              "string_number": 15.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": null,
+              "rounds": 5.0,
+              "time_limit": "15 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 5 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 16.0,
+              "option_label": null,
+              "distance": "25 Yard",
+              "weapon": null,
+              "rounds": 9.0,
+              "time_limit": "20 sec",
+              "position": "Low Ready",
+              "action": "Draw/Present - Fire 12 Rounds - Scan and Holster"
+            }
+          ]
+        }
+      ],
+      "scoring_zones": [
+        {
+          "zone_label": "X/9/8",
+          "value": 5.0
+        },
+        {
+          "zone_label": "7.0",
+          "value": 4.0
+        },
+        {
+          "zone_label": "On Silhouette",
+          "value": 3.0
+        },
+        {
+          "zone_label": "Off Silhouette",
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "code": "US-50",
+      "name": "Urban Sentinel 50",
+      "total_rounds": 50.0,
+      "target_type": "B-27",
+      "phases": [
+        {
+          "phase_number": 1,
+          "title": "Phase 1: Close-Quarters Control (3 & 5 Yards)",
+          "phase_total_rounds": 22,
+          "strings": [
+            {
+              "string_number": 1.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 2.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 3.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 4.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 5.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 6.0,
+              "option_label": null,
+              "distance": "3 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw/Low Ready",
+              "action": "Draw/Present - Fire 2 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 7.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 2 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 8.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 2 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 9.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 2 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 10.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 2 Rounds - Scan and Holster"
+            },
+            {
+              "string_number": 11.0,
+              "option_label": null,
+              "distance": "5 Yard",
+              "weapon": null,
+              "rounds": 2.0,
+              "time_limit": "3 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 2 Rounds - Scan and Holster"
+            }
+          ]
+        },
+        {
+          "phase_number": 2,
+          "title": "Phase 2: Mid-Range Precision (10 Yards)",
+          "phase_total_rounds": 12,
+          "strings": [
+            {
+              "string_number": 11.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "8 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 3 Rounds - Controlled Pair + 1 - Scan and Holster"
+            },
+            {
+              "string_number": 12.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "8 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 3 Rounds - Controlled Pair + 1 - Scan and Holster"
+            },
+            {
+              "string_number": 13.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "8 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 3 Rounds - Controlled Pair + 1 - Scan and Holster"
+            },
+            {
+              "string_number": 14.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "8 sec",
+              "position": "Low Ready",
+              "action": "Present - Fire 3 Rounds - Controlled Pair + 1 - Scan and Holster"
+            }
+          ]
+        },
+        {
+          "phase_number": 3,
+          "title": "Phase 3: Long-Range Focus (15 & 25 Yards)",
+          "phase_total_rounds": 16.0,
+          "strings": [
+            {
+              "string_number": 15.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "10.0",
+              "position": "Low Ready",
+              "action": "Present - Fire 5 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 16.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": null,
+              "rounds": 3.0,
+              "time_limit": "10.0",
+              "position": "Low Ready",
+              "action": "Present - Fire 5 rounds - Scan and Holster"
+            },
+            {
+              "string_number": 17.0,
+              "option_label": null,
+              "distance": "25 Yard",
+              "weapon": null,
+              "rounds": 10.0,
+              "time_limit": "SLOW FIRE",
+              "position": "Low Ready",
+              "action": "Draw/Present - Fire 12 Rounds - Scan and Holster"
+            }
+          ]
+        }
+      ],
+      "scoring_zones": [
+        {
+          "zone_label": "X/9/8",
+          "value": 5.0
+        },
+        {
+          "zone_label": "7.0",
+          "value": 4.0
+        },
+        {
+          "zone_label": "On Silhouette",
+          "value": 3.0
+        },
+        {
+          "zone_label": "Off Silhouette",
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "code": "CAQ-50 V 2.0",
+      "name": "Combined Arms Qualification V 2.0",
+      "total_rounds": 60.0,
+      "target_type": "B-27",
+      "phases": [
+        {
+          "phase_number": 1,
+          "title": "Phase 1: Close-Quarters Control (10 Yards)",
+          "phase_total_rounds": null,
+          "strings": [
+            {
+              "string_number": 1.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": "HANDGUN",
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw",
+              "action": "Draw Handgun - Fire 2 Rounds - (Controlled Pair) - Scan & Holster"
+            },
+            {
+              "string_number": 2.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": "HANDGUN",
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw",
+              "action": "Draw Handgun - Fire 2 Rounds - (Controlled Pair) - Scan & Holster"
+            },
+            {
+              "string_number": 3.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": "HG/RFL",
+              "rounds": "2 / 2",
+              "time_limit": "8 sec",
+              "position": "Draw",
+              "action": "Draw Handgun - Fire 2 rounds - Transition to Rifle - Fire 2 Rounds - Low Ready"
+            },
+            {
+              "string_number": 4.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": "HG/RFL",
+              "rounds": "2 / 2",
+              "time_limit": "8 sec",
+              "position": "Draw",
+              "action": "Draw Handgun - Fire 2 rounds - Transition to Rifle - Fire 2 Rounds - Low Ready"
+            },
+            {
+              "string_number": 5.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": "HG/RFL",
+              "rounds": "4 / 2",
+              "time_limit": "12 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 2 rounds - Transition to Handgun - Fire 2 Rounds - Emergency Reload - Fire 2 Rounds - Scan & Holster - Rifle to Low Ready"
+            },
+            {
+              "string_number": 6.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": "HG/RFL",
+              "rounds": "2 / 2",
+              "time_limit": "8 sec",
+              "position": "Draw",
+              "action": "Draw Handgun - Fire 2 rounds - Transition to Rifle - Fire 2 Rounds - Low Ready"
+            },
+            {
+              "string_number": 7.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": "RIFLE",
+              "rounds": 8.0,
+              "time_limit": "10 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 4 rounds - Emergency Reload - Fire 4 rounds - Low Ready"
+            }
+          ]
+        },
+        {
+          "phase_number": 2,
+          "title": "Phase 2: Engagement & Failure Drills (15 Yards)",
+          "phase_total_rounds": null,
+          "strings": [
+            {
+              "string_number": 8.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": "HANDGUN",
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Draw",
+              "action": "Draw Handgun - Fire 2 Rounds - (Controlled Pair) - Scan & Holster"
+            },
+            {
+              "string_number": 9.0,
+              "option_label": null,
+              "distance": "10 Yard",
+              "weapon": "HG/RFL",
+              "rounds": "2 / 2",
+              "time_limit": "8 sec",
+              "position": "Draw",
+              "action": "Draw Handgun - Fire 2 rounds - Transition to Rifle - Fire 2 Rounds - Low Ready"
+            },
+            {
+              "string_number": 10.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": "RIFLE",
+              "rounds": 3.0,
+              "time_limit": "8 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 2 rounds to the Torso - Fire 1 Round to the Head - [Mozambique \"Failure to Stop\" Drill] - Rifle to Low Ready"
+            },
+            {
+              "string_number": 11.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": "RIFLE",
+              "rounds": 3.0,
+              "time_limit": "6 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 2 rounds to the Torso - Fire 1 Round to the Head - [Mozambique \"Failure to Stop\" Drill] - Rifle to Low Ready"
+            },
+            {
+              "string_number": 12.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": "RIFLE",
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 2 Rounds - (Controlled Pair) - Low Ready"
+            },
+            {
+              "string_number": 13.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": "RIFLE",
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 2 Rounds - (Controlled Pair) - Low Ready"
+            },
+            {
+              "string_number": 14.0,
+              "option_label": null,
+              "distance": "15 Yard",
+              "weapon": "RIFLE",
+              "rounds": 4.0,
+              "time_limit": "6 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 2 Rounds - (Controlled Pair) - Low Ready - Fire 2 Rounds - (Controlled Pair) - Low Ready"
+            }
+          ]
+        },
+        {
+          "phase_number": 3,
+          "title": "Phase 3: Long-Range Focus (25 Yards)",
+          "phase_total_rounds": null,
+          "strings": [
+            {
+              "string_number": 15.0,
+              "option_label": null,
+              "distance": "25 Yard",
+              "weapon": "RIFLE",
+              "rounds": 3.0,
+              "time_limit": "6 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 2 rounds to the Torso - Fire 1 Round to the Head - [Mozambique \"Failure to Stop\" Drill] - Rifle to Low Ready"
+            },
+            {
+              "string_number": 16.0,
+              "option_label": null,
+              "distance": "25 Yard",
+              "weapon": "RIFLE",
+              "rounds": 2.0,
+              "time_limit": "3 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 2 Rounds - (Controlled Pair) - Low Ready"
+            },
+            {
+              "string_number": 17.0,
+              "option_label": null,
+              "distance": "25 Yard",
+              "weapon": "RIFLE",
+              "rounds": 3.0,
+              "time_limit": "6 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 2 rounds to the Torso - Fire 1 Round to the Head - [Mozambique \"Failure to Stop\" Drill] - Rifle to Low Ready"
+            },
+            {
+              "string_number": 18.0,
+              "option_label": null,
+              "distance": "25 Yard",
+              "weapon": "RIFLE",
+              "rounds": 2.0,
+              "time_limit": "4 sec",
+              "position": "Low Ready",
+              "action": "Present Rifle - Fire 2 Rounds - (Controlled Pair) - Low Ready"
+            }
+          ]
+        }
+      ],
+      "scoring_zones": [
+        {
+          "zone_label": "X/9/8",
+          "value": 5.0
+        },
+        {
+          "zone_label": "7.0",
+          "value": 4.0
+        },
+        {
+          "zone_label": "On Silhouette",
+          "value": 3.0
+        },
+        {
+          "zone_label": "Off Silhouette",
+          "value": 0.0
+        }
+      ]
+    }
+  ]
+}

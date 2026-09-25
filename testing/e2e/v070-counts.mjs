@@ -1,0 +1,56 @@
+const W = process.env.TL_WORK || "/tmp/tl-test";
+import { chromium } from "playwright";
+import { createRequire } from "module";
+const req = createRequire(import.meta.url);
+const D = req("../../node_modules/better-sqlite3-multiple-ciphers");
+const base = "http://127.0.0.1:3100";
+const DIR = process.argv[2];
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium" });
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+
+await p.addInitScript(() => { setInterval(() => { const d = document.querySelector("[role=alertdialog]"); if (d) { const bs = d.querySelectorAll("button"); bs[bs.length - 1].click(); } }, 150); });
+p.on("dialog", d => d.accept());
+p.on("pageerror", e => console.log("PAGEERROR", e.message));
+const ok = (c, m) => console.log(c ? "PASS" : "FAIL", m);
+const q = (sql, ...a) => { const d = new D(DIR + "/firearms.db", { readonly: true }); try { return d.prepare(sql).get(...a); } finally { d.close(); } };
+
+await p.goto(base + "/inventory");
+const href = await p.locator('tbody a[href^="/inventory/"]').first().getAttribute("href");
+const fid = href.split("/").pop();
+const before = q("select shots_fired, last_cleaned_at_shots from firearms where id = ?", fid);
+await p.goto(base + href);
+await p.getByRole("button", { name: "Expand All" }).click(); await p.waitForTimeout(500);
+await p.getByRole("button", { name: "Correct count" }).first().click();
+await p.locator("input[type=number]:not([name])").first().fill(String(before.shots_fired + 800));
+await p.getByPlaceholder("e.g. physical count, bought used").fill("bought used");
+await p.getByRole("button", { name: "Save correction" }).click(); await p.waitForTimeout(1500);
+const after = q("select shots_fired, last_cleaned_at_shots from firearms where id = ?", fid);
+ok(after.shots_fired === before.shots_fired + 800, `firearm count corrected ${before.shots_fired}→${after.shots_fired}`);
+ok((after.shots_fired - (after.last_cleaned_at_shots ?? 0)) === (before.shots_fired - (before.last_cleaned_at_shots ?? 0)), "cleaning counter unaffected");
+await p.reload();
+ok((await p.locator("#rounds-fired").innerText()).toLowerCase().includes("bought used"), "correction listed with note");
+
+await p.locator("#part-counters summary", { hasText: "+ Add Part Counter" }).click();
+await p.locator("#part-counters input[name=name]").fill("Barrel");
+await p.locator("#part-counters input[name=rounds_since]").fill("150");
+await p.locator("#part-counters input[name=interval_rounds]").fill("200");
+await p.locator("#part-counters").getByRole("button", { name: "Add Counter" }).click(); await p.waitForTimeout(1500);
+ok((await p.locator("#part-counters").innerText()).includes("150 rounds since"), "part counter added with starting rounds");
+await p.locator("#rounds-fired input[name=rounds]").fill("60");
+await p.locator("#rounds-fired").getByRole("button", { name: "Record Rounds Fired" }).click(); await p.waitForTimeout(1500);
+const pc = await p.locator("#part-counters").innerText();
+ok(pc.includes("210 rounds since") && pc.includes("DUE"), "part counter follows rounds and flags due");
+await p.locator("#part-counters").getByRole("button", { name: "Replaced" }).click(); await p.waitForTimeout(1500);
+ok((await p.locator("#part-counters").innerText()).includes("0 rounds since"), "replaced resets counter");
+ok((await p.locator("body").innerText()).includes("Replaced: Barrel"), "replacement logged in maintenance");
+await p.locator("#rounds-fired").getByRole("button", { name: "Remove" }).last().click(); await p.waitForTimeout(1500);
+ok(q("select shots_fired from firearms where id = ?", fid).shots_fired === before.shots_fired + 60, "removing correction reverses it");
+
+await p.goto(base + "/controls#controls-firearm-counts"); await p.waitForTimeout(500);
+await p.getByRole("button", { name: "Fill all with 0" }).first().click();
+await p.getByPlaceholder("Type RESET to confirm").first().fill("RESET");
+await p.getByRole("button", { name: /^Apply \d+ change/ }).first().click(); await p.waitForTimeout(2500);
+ok(q("select max(shots_fired) m from firearms where status != 'sold'").m === 0, "bulk reset firearms to 0");
+const fs = await import("fs");
+ok(fs.readdirSync(DIR + "/pre-reset").length >= 1, "safety copy made before bulk reset");
+await b.close();
