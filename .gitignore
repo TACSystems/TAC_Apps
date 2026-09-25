@@ -12,3 +12,4 @@ data/receipts/
 electron/resources/
 electron/icon-1024.png
 release/
+tsconfig.tsbuildinfo
