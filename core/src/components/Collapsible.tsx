@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import Icon, { type IconName } from "@core/components/Icon";
 
 export default function Collapsible({
   id,
@@ -11,6 +12,7 @@ export default function Collapsible({
   aside,
   summary,
   scope,
+  icon,
   children,
 }: {
   id: string;
@@ -21,6 +23,7 @@ export default function Collapsible({
   aside?: ReactNode;
   summary?: ReactNode;
   scope?: string;
+  icon?: IconName;
   children: ReactNode;
 }) {
   return (
@@ -40,6 +43,7 @@ export default function Collapsible({
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
         <span className="flex items-center gap-3">
           <span className="inline-block w-3 text-brand-amber transition-transform group-open:rotate-90">▸</span>
+          {icon && <Icon name={icon} className="text-neutral-400" />}
           <h2 className="font-medium text-neutral-200">{title}</h2>
           {summary && (
             <span className="hidden sm:inline">

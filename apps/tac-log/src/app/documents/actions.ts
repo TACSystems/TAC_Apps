@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import { getDb } from "@/lib/db";
 import { deleteAttachmentsFor } from "@/lib/attachments";
 import { isoDate, text } from "@core/lib/forms";
+import { flash } from "@core/lib/flash";
 
 const s = (fd: FormData, k: string) => (/_date$/.test(k) ? isoDate(fd, k) : text(fd, k));
 
@@ -32,6 +33,7 @@ export async function createDocument(fd: FormData) {
        values (@id, @doc_type, @title, @issuer, @number, @holder, @firearm_id, @status, @issued_date, @expires_date, @notes)`
     )
     .run({ id, ...values(fd) });
+  await flash("Document added.");
   revalidatePath("/", "layout");
   redirect(`/documents/${id}`);
 }
@@ -44,6 +46,7 @@ export async function updateDocument(id: string, fd: FormData) {
        where id=@id`
     )
     .run({ id, ...values(fd) });
+  await flash("Changes saved.");
   revalidatePath("/", "layout");
   redirect(`/documents/${id}?saved=1`);
 }
@@ -52,6 +55,7 @@ export async function deleteDocument(id: string) {
   const db = getDb();
   deleteAttachmentsFor(db, "document", id);
   db.prepare(`delete from documents where id = ?`).run(id);
+  await flash("Document deleted.");
   revalidatePath("/", "layout");
   redirect("/documents");
 }

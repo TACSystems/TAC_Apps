@@ -10,7 +10,7 @@ import {
   sortDropdownAlpha,
 } from "@/app/controls/actions";
 
-const iconBtn = "border border-neutral-700 px-2 py-0.5 text-xs hover:bg-neutral-800 disabled:opacity-30";
+const iconBtn = "btn btn-secondary btn-xs";
 
 export default function DropdownListEditor({ category, open }: { category: DropdownCategory; open?: boolean }) {
   const db = getDb();
@@ -40,7 +40,7 @@ export default function DropdownListEditor({ category, open }: { category: Dropd
                       <input
                         name="value"
                         defaultValue={r.value}
-                        className="w-64 border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm normal-case"
+                        className="input input-sm w-64"
                       />
                       <button type="submit" className={iconBtn} title="Save rename">
                         ✓
@@ -70,9 +70,9 @@ export default function DropdownListEditor({ category, open }: { category: Dropd
                     name="value"
                     required
                     placeholder="Add a new option…"
-                    className="w-64 border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm normal-case"
+                    className="input w-64"
                   />
-                  <button type="submit" className="bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light">
+                  <button type="submit" className="btn btn-primary">
                     Add
                   </button>
                 </form>

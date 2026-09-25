@@ -95,7 +95,7 @@ export default function RestoreForm() {
         <button
           type="submit"
           disabled={busy}
-          className="border border-red-900 bg-red-950 px-4 py-2 text-sm text-red-200 hover:bg-red-900 disabled:opacity-60"
+          className="btn btn-danger"
         >
           {busy ? "Restoring…" : "Restore Backup"}
         </button>

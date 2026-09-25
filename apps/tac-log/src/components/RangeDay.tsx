@@ -11,7 +11,7 @@ import { defaultPickFor, type PickOpt } from "@/lib/ammo-pick";
 type F = { id: string; label: string; caliber: string | null };
 type C = { id: string; name: string };
 
-const input = "border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-sm normal-case";
+const input = "input input-sm";
 
 function blank(): DayRow {
   return { firearmId: "", rounds: 0, caliber: "", ammo: "", ammoLot: "", deduct: true, courseId: "", score: "", notes: "" };
@@ -85,9 +85,9 @@ export default function RangeDay({
         <datalist id="rd-weather">{weather.map((o) => <option key={o} value={o} />)}</datalist>
       </div>
 
-      <div className="overflow-x-auto border border-neutral-800">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-neutral-900 text-xs text-neutral-400">
+      <div className="table-wrap">
+        <table className="table">
+          <thead>
             <tr>
               <th className="px-2 py-2">Firearm</th>
               <th className="px-2 py-2">Rounds</th>
@@ -157,7 +157,7 @@ export default function RangeDay({
                     <input value={r.notes} onChange={(e) => set(i, { notes: e.target.value })} className={`${input} w-40`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <button type="button" onClick={() => setRows(rows.length > 1 ? rows.filter((_, k) => k !== i) : [blank()])} className="border border-neutral-700 px-2 py-1 text-xs text-neutral-400 hover:text-red-300" title="Remove row">
+                    <button type="button" onClick={() => setRows(rows.length > 1 ? rows.filter((_, k) => k !== i) : [blank()])} className="btn btn-secondary btn-xs hover:text-red-300" title="Remove row">
                       ✕
                     </button>
                   </td>
@@ -169,7 +169,7 @@ export default function RangeDay({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" onClick={() => setRows([...rows, { ...blank(), deduct: defaults.deduct }])} className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700">
+        <button type="button" onClick={() => setRows([...rows, { ...blank(), deduct: defaults.deduct }])} className="btn btn-secondary">
           + Add Firearm
         </button>
         {noCal > 0 && (
@@ -202,7 +202,7 @@ export default function RangeDay({
               } else setMsg({ ok: false, text: res.error ?? "Couldn't save." });
             })
           }
-          className="bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60"
+          className="btn btn-primary"
         >
           {pending ? "Saving…" : "Save Practice"}
         </button>

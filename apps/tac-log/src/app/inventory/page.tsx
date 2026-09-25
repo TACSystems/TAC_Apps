@@ -1,3 +1,5 @@
+import Icon from "@core/components/Icon";
+import PageHeader from "@core/components/PageHeader";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { Firearm } from "@/lib/db/types";
@@ -14,29 +16,23 @@ export default async function InventoryPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Armory</h1>
-        <div className="flex gap-3">
-          <Link
-            href="/reports/inventory"
-            className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700"
-          >
-            Inventory Report
-          </Link>
-          <Link
-            href="/inventory/accessories"
-            className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700"
-          >
-            Accessories
-          </Link>
-          <Link
-            href="/inventory/new"
-            className="bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light"
-          >
-            + Add Firearm
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        title="Armory"
+        icon="armory"
+        actions={
+          <>
+            <Link href="/reports/inventory" className="btn btn-secondary">
+              <Icon name="print" /> Inventory Report
+            </Link>
+            <Link href="/inventory/accessories" className="btn btn-secondary">
+              Accessories
+            </Link>
+            <Link href="/inventory/new" className="btn btn-primary">
+              <Icon name="plus" /> Add Firearm
+            </Link>
+          </>
+        }
+      />
 
       <ArmoryTable
         rows={firearms.map((f) => ({

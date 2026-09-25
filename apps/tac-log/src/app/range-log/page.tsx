@@ -1,8 +1,9 @@
+import Icon from "@core/components/Icon";
+import PageHeader from "@core/components/PageHeader";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import SearchBox from "@core/components/SearchBox";
+import DataTable from "@core/components/DataTable";
 import { fd } from "@/lib/display";
-import ClickRow from "@core/components/ClickRow";
 import EmptyState from "@core/components/EmptyState";
 import { listSessions, sessionNo } from "@/lib/sessions";
 import SessionCourses, { parseCourses } from "@/components/SessionCourses";
@@ -15,28 +16,28 @@ export default async function RangeLogPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-semibold">Range Log</h1>
-          {sessions.length > 0 && (
-            <p className="text-sm text-neutral-400">
-              {sessions.length} session{sessions.length === 1 ? "" : "s"} ·{" "}
-              {sessions.reduce((s, x) => s + x.rounds, 0).toLocaleString()} rounds
-            </p>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/checklist" className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
+      <PageHeader
+        title="Range Log"
+        icon="range"
+        subtitle={
+          sessions.length > 0
+            ? `${sessions.length} session${sessions.length === 1 ? "" : "s"} · ${sessions.reduce((s, x) => s + x.rounds, 0).toLocaleString()} rounds`
+            : undefined
+        }
+        actions={
+          <>
+          <Link href="/checklist" className="btn btn-secondary">
             Range Bag Checklist
           </Link>
-          <Link href="/timer" className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
+          <Link href="/timer" className="btn btn-secondary">
             Par Timer
           </Link>
-          <Link href="/range-log/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
-            Log a Range Session
+          <Link href="/range-log/new" className="btn btn-primary">
+            <Icon name="plus" /> Log a Range Session
           </Link>
-        </div>
-      </div>
+          </>
+        }
+      />
       {sessions.length === 0 ? (
         <EmptyState
           title="No range sessions yet"
@@ -49,40 +50,37 @@ export default async function RangeLogPage() {
           location lands in the same session.
         </EmptyState>
       ) : (
-        <SearchBox
-          placeholder="Search by session #, date, location, firearm, or course…"
-          emptyMessage="No range sessions found."
-          head={
-            <tr>
-              <th className="px-3 py-2">Session</th>
-              <th className="px-3 py-2">Date</th>
-              <th className="px-3 py-2">Location</th>
-              <th className="px-3 py-2">Firearms</th>
-              <th className="px-3 py-2 text-right">Rounds</th>
-              <th className="px-3 py-2">Courses</th>
-            </tr>
-          }
+        <DataTable
+          filterPlaceholder="Filter by session #, date, location, firearm, or course…"
+          noMatchMessage="No range sessions match."
+          initialSort={{ key: "date", dir: "desc" }}
+          columns={[
+            { key: "session", label: "Session", sortable: true },
+            { key: "date", label: "Date", sortable: true },
+            { key: "location", label: "Location", sortable: true },
+            { key: "firearms", label: "Firearms" },
+            { key: "rounds", label: "Rounds", align: "right", sortable: true },
+            { key: "courses", label: "Courses" },
+          ]}
           rows={sessions.map((s) => {
             const courses = parseCourses(s.courses_json);
             return {
               key: s.id,
+              href: `/range-log/session/${s.id}`,
               text: `${sessionNo(s.number)} ${s.number} ${s.date} ${fd(s.date)} ${s.location ?? ""} ${s.firearms ?? ""} ${courses.map((c) => c.name).join(" ")}`,
-              row: (
-                <ClickRow key={s.id} href={`/range-log/session/${s.id}`} className="border-t border-neutral-800 align-top hover:bg-neutral-900">
-                  <td className="px-3 py-2">
-                    <Link href={`/range-log/session/${s.id}`} className="text-brand-amber hover:text-brand-amber-light">
-                      {sessionNo(s.number)}
-                    </Link>
-                  </td>
-                  <td className="px-3 py-2">{fd(s.date)}</td>
-                  <td className="px-3 py-2">{s.location ?? <span className="text-neutral-500">—</span>}</td>
-                  <td className="px-3 py-2">{s.firearms ? s.firearms.split(" | ").join(", ") : "—"}</td>
-                  <td className="px-3 py-2 text-right">{s.rounds.toLocaleString()}</td>
-                  <td className="px-3 py-2">
-                    <SessionCourses courses={courses} />
-                  </td>
-                </ClickRow>
-              ),
+              sort: { session: s.number, date: `${s.date}-${String(s.number).padStart(6, "0")}`, location: s.location ?? "", rounds: s.rounds },
+              cells: {
+                session: (
+                  <Link href={`/range-log/session/${s.id}`} className="text-brand-amber hover:text-brand-amber-light">
+                    {sessionNo(s.number)}
+                  </Link>
+                ),
+                date: fd(s.date),
+                location: s.location ?? <span className="text-neutral-500">—</span>,
+                firearms: s.firearms ? s.firearms.split(" | ").join(", ") : "—",
+                rounds: s.rounds.toLocaleString(),
+                courses: <SessionCourses courses={courses} />,
+              },
             };
           })}
         />

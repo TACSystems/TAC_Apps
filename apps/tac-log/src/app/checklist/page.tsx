@@ -33,7 +33,7 @@ export default async function ChecklistPage({ searchParams }: { searchParams: Pr
             </Link>
           ))}
           <form action="/checklist" className="flex gap-1">
-            <input name="new" placeholder="New list (e.g. Hunting)" className="border border-neutral-700 bg-neutral-950 px-2 py-1 text-xs" />
+            <input name="new" placeholder="New list (e.g. Hunting)" className="input input-sm text-xs" />
             <button type="submit" className="border border-neutral-700 px-2 py-1 text-xs">+ List</button>
           </form>
         </div>

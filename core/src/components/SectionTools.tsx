@@ -68,7 +68,7 @@ export default function SectionTools({
     setHits(needle ? n : null);
   }
 
-  const btn = "border border-neutral-700 px-3 py-1.5 text-xs text-neutral-300 hover:bg-neutral-800";
+  const btn = "btn btn-secondary btn-sm";
   return (
     <div className="flex flex-wrap items-center gap-2">
       {search && (
@@ -76,7 +76,7 @@ export default function SectionTools({
           value={q}
           onChange={(e) => filter(e.target.value)}
           placeholder={placeholder}
-          className="min-w-[16rem] flex-1 border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+          className="input min-w-[16rem] flex-1"
         />
       )}
       {hits !== null && <span className="text-xs text-neutral-500">{hits ? `${hits} match${hits === 1 ? "" : "es"}` : "No matches"}</span>}

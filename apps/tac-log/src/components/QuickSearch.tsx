@@ -64,7 +64,7 @@ export default function QuickSearch() {
         type="button"
         onClick={() => setOpen(true)}
         data-tour="quick-search"
-        className="border border-neutral-700 px-2 py-0.5 text-xs text-neutral-400 hover:text-neutral-100"
+        className="btn btn-secondary btn-xs"
         title="Quick search"
       >
         Search <span className="text-neutral-500">{isMac ? "⌘K" : "Ctrl+K"}</span>
@@ -89,7 +89,7 @@ export default function QuickSearch() {
                 if (e.key === "Enter") go(hits[sel]);
               }}
               placeholder="Search firearms, serials, courses, documents, sessions, settings…"
-              className="w-full border-b border-neutral-700 bg-neutral-950 px-4 py-3 text-base normal-case outline-none"
+              className="input w-full border-b text-base outline-none"
             />
             <ul className="max-h-[55vh] overflow-y-auto py-1">
               {hits.map((h, i) => (

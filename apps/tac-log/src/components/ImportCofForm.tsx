@@ -131,7 +131,7 @@ export default function ImportCofForm() {
                     type="button"
                     title="Leave this course out"
                     onClick={() => setItems(items.filter((_, k) => k !== idx))}
-                    className="border border-neutral-700 px-2 py-1 text-xs text-neutral-400 hover:text-red-300"
+                    className="btn btn-secondary btn-xs hover:text-red-300"
                   >
                     ✕
                   </button>
@@ -156,7 +156,7 @@ export default function ImportCofForm() {
                   }
                 })
               }
-              className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-50"
+              className="btn btn-primary"
             >
               {pending ? "Importing…" : `Import ${items.length} Course${items.length === 1 ? "" : "s"}`}
             </button>
@@ -166,7 +166,7 @@ export default function ImportCofForm() {
                 setItems([]);
                 setProblems([]);
               }}
-              className="border border-neutral-700 px-3 py-2 text-sm text-neutral-300 hover:bg-neutral-800"
+              className="btn btn-secondary"
             >
               Clear
             </button>

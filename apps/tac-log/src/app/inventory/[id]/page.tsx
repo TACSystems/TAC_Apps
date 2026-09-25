@@ -180,13 +180,13 @@ export default async function FirearmDetailPage({
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-          <Link href={`/inventory/new?from=${firearm.id}`} className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700">
+          <Link href={`/inventory/new?from=${firearm.id}`} className="btn btn-secondary">
             Add Another Like This
           </Link>
           <form action={deleteWithId}>
             <ConfirmSubmitButton
               confirmMessage={`Delete ${label(firearm)}? This also removes its photos, receipts, sale records, maintenance, malfunction, and zero log entries. Its accessories and range log history stay on file but will no longer show a linked firearm. This cannot be undone.`}
-              className="border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200 hover:bg-red-900"
+              className="btn btn-danger"
             >
               Delete
             </ConfirmSubmitButton>
@@ -234,7 +234,7 @@ export default async function FirearmDetailPage({
         <SectionTools scope="firearm" remember />
       </div>
 
-      <Collapsible id="details" scope="firearm" title="Firearm Details" defaultOpen={open("details", false)}
+      <Collapsible id="details" icon="armory" scope="firearm" title="Firearm Details" defaultOpen={open("details", false)}
         summary={[firearm.caliber, firearm.platform, firearm.serial_number ? `SN ${firearm.serial_number}` : null, firearm.status].filter(Boolean).join(" · ")}>
         <div className="max-w-4xl">
           <FirearmForm
@@ -247,7 +247,7 @@ export default async function FirearmDetailPage({
         </div>
       </Collapsible>
 
-      <Collapsible id="rounds-fired" scope="firearm" title="Update Rounds Fired" defaultOpen={open("rounds-fired", true)}
+      <Collapsible id="rounds-fired" icon="ammo" scope="firearm" title="Update Rounds Fired" defaultOpen={open("rounds-fired", true)}
         summary={`${firearm.shots_fired.toLocaleString()} lifetime${roundsLog[0] ? lastOf(roundsLog[0].date) : ""}`}>
 
         
@@ -257,24 +257,24 @@ export default async function FirearmDetailPage({
         </p>
         <form action={logRoundsFired.bind(null, id)} className="grid grid-cols-1 gap-2 sm:max-w-4xl sm:grid-cols-4">
           <label className="flex flex-col gap-1 text-xs">
-            Date
+            <span className="req">Date</span>
             <input
               type="date"
               name="date"
               required
               defaultValue={todayISO()}
-              className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+              className="input"
             />
           </label>
           <label className="flex flex-col gap-1 text-xs">
-            Rounds
+            <span className="req">Rounds</span>
             <input
               type="number"
               name="rounds"
               min={1}
               required
               placeholder="e.g. 100"
-              className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+              className="input"
             />
           </label>
           <label className="flex flex-col gap-1 text-xs sm:col-span-2">
@@ -292,12 +292,12 @@ export default async function FirearmDetailPage({
           </label>
           <label className="flex flex-col gap-1 text-xs">
             Ammo Lot #
-            <input name="ammo_lot" placeholder="Optional" className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+            <input name="ammo_lot" placeholder="Optional" className="input" />
           </label>
           <input
             name="notes"
             placeholder="Notes (optional)"
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm sm:col-span-2"
+            className="input sm:col-span-2"
           />
           <label className="flex items-center gap-2 text-xs normal-case sm:col-span-2">
             <input type="checkbox" name="deduct_from_ammo" defaultChecked={settings.deductManualRoundsByDefault} />
@@ -307,7 +307,7 @@ export default async function FirearmDetailPage({
           </label>
           <SubmitButton
             pendingLabel="Recording…"
-            className="w-fit bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light sm:col-span-4"
+            className="btn btn-primary w-fit sm:col-span-4"
           >
             Record Rounds Fired
           </SubmitButton>
@@ -341,7 +341,7 @@ export default async function FirearmDetailPage({
                     confirmMessage={`Remove this entry? ${r.rounds} rounds will be subtracted from this firearm's shot count${
                       r.deduct_from_ammo ? " and added back to ammo on hand" : ""
                     }.`}
-                    className="text-xs text-red-400 hover:text-red-300"
+                    className="btn-link btn-link-danger text-xs"
                   >
                     Remove
                   </ConfirmSubmitButton>
@@ -366,7 +366,7 @@ export default async function FirearmDetailPage({
                 <form action={removeAdjustment.bind(null, a.id)}>
                   <ConfirmSubmitButton
                     confirmMessage={`Remove this correction? The shot count goes ${a.delta >= 0 ? "down" : "up"} by ${Math.abs(a.delta)}.`}
-                    className="text-xs text-red-400 hover:text-red-300"
+                    className="btn-link btn-link-danger text-xs"
                   >
                     Remove
                   </ConfirmSubmitButton>
@@ -377,7 +377,7 @@ export default async function FirearmDetailPage({
         )}
             </Collapsible>
 
-      <Collapsible id="range-sessions" scope="firearm" title="Range Sessions" defaultOpen={open("range-sessions", false)}
+      <Collapsible id="range-sessions" icon="range" scope="firearm" title="Range Sessions" defaultOpen={open("range-sessions", false)}
         summary={`${count(sessions.length, "session")} · ${count(logs.length, "course run")}${lastOf(sessions[0]?.date)}`}>
         <div className="flex flex-col gap-2">
           {sessions.map((sn) => {
@@ -402,7 +402,7 @@ export default async function FirearmDetailPage({
         </div>
       </Collapsible>
 
-      <Collapsible id="part-counters" scope="firearm" title="Part Counters" defaultOpen={open("part-counters", counters.length > 0)}
+      <Collapsible id="part-counters" icon="wrench" scope="firearm" title="Part Counters" defaultOpen={open("part-counters", counters.length > 0)}
         summary={counters.length ? counters.map((c) => `${c.name} ${Math.max(0, firearm.shots_fired - c.start_shots).toLocaleString()}`).join(" · ") : "None"}>
 
         
@@ -433,13 +433,13 @@ export default async function FirearmDetailPage({
                       <form action={replaceCounter.bind(null, id, c.id)}>
                         <ConfirmSubmitButton
                           confirmMessage={`Record a replacement of the ${c.name} today? Its counter starts over at 0 (the ${since} rounds are noted in the maintenance log).`}
-                          className="border border-neutral-700 px-2 py-0.5 text-xs hover:bg-neutral-800"
+                          className="btn btn-secondary btn-xs"
                         >
                           Replaced
                         </ConfirmSubmitButton>
                       </form>
                       <form action={removeCounter.bind(null, id, c.id)}>
-                        <ConfirmSubmitButton confirmMessage={`Delete the ${c.name} counter?`} className="text-xs text-red-400 hover:text-red-300">
+                        <ConfirmSubmitButton confirmMessage={`Delete the ${c.name} counter?`} className="btn-link btn-link-danger text-xs">
                           Delete
                         </ConfirmSubmitButton>
                       </form>
@@ -456,40 +456,40 @@ export default async function FirearmDetailPage({
           </div>
         )}
         <details className="group sm:max-w-4xl">
-          <summary className="inline-block cursor-pointer list-none border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700 [&::-webkit-details-marker]:hidden">
+          <summary className="btn btn-secondary inline-block cursor-pointer list-none [&::-webkit-details-marker]:hidden">
             <span className="group-open:hidden">+ Add Part Counter</span>
             <span className="hidden group-open:inline">Cancel</span>
           </summary>
           <form action={createCounter.bind(null, id)} className="mt-2 grid grid-cols-1 gap-2 border border-neutral-800 bg-neutral-900/50 p-3 sm:grid-cols-4">
             <label className="flex flex-col gap-1 text-xs">
-              Part
-              <input name="name" required list="counter-parts" placeholder="e.g. Barrel" className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm normal-case" />
+              <span className="req">Part</span>
+              <input name="name" required list="counter-parts" placeholder="e.g. Barrel" className="input" />
             </label>
             <label className="flex flex-col gap-1 text-xs">
               Installed / Since
-              <input type="date" name="start_date" defaultValue={todayISO()} className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+              <input type="date" name="start_date" defaultValue={todayISO()} className="input" />
             </label>
             <label className="flex flex-col gap-1 text-xs">
               Rounds on it already
-              <input type="number" name="rounds_since" min={0} defaultValue={0} className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+              <input type="number" name="rounds_since" min={0} defaultValue={0} className="input" />
             </label>
             <label className="flex flex-col gap-1 text-xs">
               <span>
                 Replace every (rounds) <HelpTip text="Optional. The counter turns red and shows in the Heads Up bar when the part reaches this many rounds." />
               </span>
-              <input type="number" name="interval_rounds" min={1} placeholder="Optional" className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+              <input type="number" name="interval_rounds" min={1} placeholder="Optional" className="input" />
             </label>
             <datalist id="counter-parts">
               {["Barrel", "Recoil Spring", "Extractor", "Firing Pin", "Bolt", "Buffer Spring", "Gas Rings", "Magazine Springs", "Suppressor Wipes"].map((o) => (
                 <option key={o} value={o} />
               ))}
             </datalist>
-            <SubmitButton className="w-fit bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light sm:col-span-4">Add Counter</SubmitButton>
+            <SubmitButton className="btn btn-primary w-fit sm:col-span-4">Add Counter</SubmitButton>
           </form>
         </details>
             </Collapsible>
 
-      <Collapsible id="accessories" scope="firearm" title="Accessories" defaultOpen={open("accessories", false)}
+      <Collapsible id="accessories" icon="target" scope="firearm" title="Accessories" defaultOpen={open("accessories", false)}
         summary={count(accessories.length, "linked", "linked")}>
 
         
@@ -532,7 +532,7 @@ export default async function FirearmDetailPage({
         )}
             </Collapsible>
 
-      <Collapsible id="photos" scope="firearm" title="Photos" defaultOpen={open("photos", false)} summary={count(photos.length, "photo")}>
+      <Collapsible id="photos" icon="upload" scope="firearm" title="Photos" defaultOpen={open("photos", false)} summary={count(photos.length, "photo")}>
         <AttachmentGallery
           items={photos}
           ownerType="firearm"
@@ -543,7 +543,7 @@ export default async function FirearmDetailPage({
         />
       </Collapsible>
 
-      <Collapsible id="receipts" scope="firearm" title="Receipts & Documents" defaultOpen={open("receipts", false)} summary={count(receipts.length, "file")}>
+      <Collapsible id="receipts" icon="documents" scope="firearm" title="Receipts & Documents" defaultOpen={open("receipts", false)} summary={count(receipts.length, "file")}>
         <AttachmentGallery
           items={receipts}
           ownerType="firearm"
@@ -553,7 +553,7 @@ export default async function FirearmDetailPage({
         />
       </Collapsible>
 
-      <Collapsible id="maintenance" scope="firearm" title="Maintenance / Cleaning" defaultOpen={open("maintenance", false)}
+      <Collapsible id="maintenance" icon="wrench" scope="firearm" title="Maintenance / Cleaning" defaultOpen={open("maintenance", false)}
         summary={`${count(maintenanceLog.length, "entry", "entries")}${lastOf(maintenanceLog[0]?.date)}`}>
 
         
@@ -571,9 +571,9 @@ export default async function FirearmDetailPage({
             name="date"
             required
             defaultValue={todayISO()}
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+            className="input"
           />
-          <select name="type" defaultValue="Cleaning" className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm">
+          <select name="type" defaultValue="Cleaning" className="input">
             {maintenanceTypes.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -583,17 +583,17 @@ export default async function FirearmDetailPage({
           <input
             name="notes"
             placeholder="Notes (optional)"
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+            className="input"
           />
           <SubmitButton
-            className="w-fit border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700 sm:col-span-3"
+            className="btn btn-secondary w-fit sm:col-span-3"
           >
             Log Entry
           </SubmitButton>
         </form>
             </Collapsible>
 
-      <Collapsible id="malfunctions" scope="firearm" title="Malfunction History" defaultOpen={open("malfunctions", false)}
+      <Collapsible id="malfunctions" icon="warning" scope="firearm" title="Malfunction History" defaultOpen={open("malfunctions", false)}
         summary={`${count(malfunctionLog.length, "entry", "entries")}${lastOf(malfunctionLog[0]?.date)}`}>
 
         
@@ -611,13 +611,13 @@ export default async function FirearmDetailPage({
             name="date"
             required
             defaultValue={todayISO()}
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+            className="input"
           />
           <input
             type="number"
             name="round_count_at_failure"
             placeholder="Round count at failure"
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+            className="input"
           />
           <SuggestInput
             name="malfunction_type"
@@ -628,22 +628,22 @@ export default async function FirearmDetailPage({
           <input
             name="cause"
             placeholder="Cause (optional)"
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+            className="input"
           />
           <input
             name="notes"
             placeholder="Notes (optional)"
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm sm:col-span-2"
+            className="input sm:col-span-2"
           />
           <SubmitButton
-            className="w-fit border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700 sm:col-span-2"
+            className="btn btn-secondary w-fit sm:col-span-2"
           >
             Log Malfunction
           </SubmitButton>
         </form>
             </Collapsible>
 
-      <Collapsible id="zero" scope="firearm" title="Zero Log" defaultOpen={open("zero", false)}
+      <Collapsible id="zero" icon="target" scope="firearm" title="Zero Log" defaultOpen={open("zero", false)}
         summary={`${count(zeroRecords.length, "entry", "entries")}${lastOf(zeroRecords[0]?.date)}`}>
 
         
@@ -661,7 +661,7 @@ export default async function FirearmDetailPage({
             name="date"
             required
             defaultValue={todayISO()}
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+            className="input"
           />
           <SuggestInput
             name="distance"
@@ -672,32 +672,32 @@ export default async function FirearmDetailPage({
           <input
             name="optic"
             placeholder="Optic / sight"
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+            className="input"
           />
           <input
             name="ammo_description"
             placeholder="Ammo used"
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+            className="input"
           />
           <input
             name="adjustment"
             placeholder="Adjustment made (windage/elevation)"
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm sm:col-span-2"
+            className="input sm:col-span-2"
           />
           <input
             name="notes"
             placeholder="Notes (optional)"
-            className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm sm:col-span-2"
+            className="input sm:col-span-2"
           />
           <SubmitButton
-            className="w-fit border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700 sm:col-span-2"
+            className="btn btn-secondary w-fit sm:col-span-2"
           >
             Log Zero
           </SubmitButton>
         </form>
             </Collapsible>
 
-      <Collapsible id="disposition" scope="firearm" title="Sale / Transfer Record" defaultOpen={open("disposition", dispositions.length > 0 || firearm.status === "sold")}
+      <Collapsible id="disposition" icon="external" scope="firearm" title="Sale / Transfer Record" defaultOpen={open("disposition", dispositions.length > 0 || firearm.status === "sold")}
         summary={dispositions.length ? `${dispositions[0].type} ${fd(dispositions[0].date)}` : "None"}>
 
         
@@ -712,7 +712,7 @@ export default async function FirearmDetailPage({
           </div>
         )}
         <details className="group" open={dispositions.length === 0 && firearm.status === "sold"}>
-          <summary className="inline-block cursor-pointer list-none border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700 [&::-webkit-details-marker]:hidden">
+          <summary className="btn btn-secondary inline-block cursor-pointer list-none [&::-webkit-details-marker]:hidden">
             <span className="group-open:hidden">{dispositions.length ? "+ Add Another Record" : "+ Record Sale / Transfer"}</span>
             <span className="hidden group-open:inline">Cancel</span>
           </summary>
@@ -722,7 +722,7 @@ export default async function FirearmDetailPage({
               <input type="checkbox" name="mark_disposed" defaultChecked={firearm.status !== "sold"} />
               Set this firearm&apos;s status to Sold (removes it from the maintenance schedule and active lists)
             </label>
-            <SubmitButton className="w-fit bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light">
+            <SubmitButton className="btn btn-primary w-fit">
               Save Record
             </SubmitButton>
           </form>

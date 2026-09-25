@@ -30,7 +30,7 @@ export default async function EditAmmoPurchasePage({ params }: { params: Promise
           ammoTypeOptions={getDropdownOptions(db, "ammo_type")}
           caliberOptions={getDropdownOptions(db, "caliber")}
         />
-        <SubmitButton className="w-fit rounded bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light sm:col-span-3">
+        <SubmitButton className="btn btn-primary w-fit sm:col-span-3">
           Save Changes
         </SubmitButton>
       </form>

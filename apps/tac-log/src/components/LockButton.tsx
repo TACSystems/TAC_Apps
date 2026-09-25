@@ -17,7 +17,7 @@ export default function LockButton() {
           router.refresh();
         })
       }
-      className="border border-neutral-700 px-2 py-0.5 text-xs text-neutral-400 hover:text-neutral-100"
+      className="btn btn-secondary btn-xs"
       title="Lock TAC-LOG now"
     >
       Lock

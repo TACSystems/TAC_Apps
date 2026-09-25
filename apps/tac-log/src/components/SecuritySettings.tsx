@@ -17,8 +17,8 @@ import type { ActionResult } from "@core/lib/forms";
 
 type Res = ActionResult & { recoveryKey?: string };
 
-const input = "border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm";
-const primary = "bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60";
+const input = "input";
+const primary = "btn btn-primary";
 const danger = "border border-red-900 bg-red-950 px-4 py-2 text-sm text-red-200 hover:bg-red-900 disabled:opacity-60";
 const digits = (v: string) => v.replace(/\D/g, "").slice(0, 12);
 
@@ -213,7 +213,7 @@ export default function SecuritySettings({
                 onClick={() => {
                   ask("Create a new recovery key? The old one stops working.").then((ok) => ok && run(() => newRecoveryKey(current)));
                 }}
-                className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800"
+                className="btn btn-secondary"
               >
                 New recovery key
               </button>

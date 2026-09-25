@@ -71,22 +71,22 @@ export default async function HomePage() {
   const sections: Record<HomeSectionKey, React.ReactNode> = {
     quick_actions: (
       <section data-tour="quick-actions" className="flex flex-wrap gap-2">
-        <Link href="/range-log/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
+        <Link href="/range-log/new" className="btn btn-primary">
           Log a Range Session
         </Link>
-        <Link href="/courses/new" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
+        <Link href="/courses/new" className="btn btn-secondary">
           Build a Course of Fire
         </Link>
-        <Link href="/inventory" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
+        <Link href="/inventory" className="btn btn-secondary">
           Update Rounds Fired
         </Link>
-        <Link href="/ammo?open=purchase" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
+        <Link href="/ammo?open=purchase" className="btn btn-secondary">
           Log Ammo Purchase
         </Link>
-        <Link href="/timer" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
+        <Link href="/timer" className="btn btn-secondary">
           Par Timer
         </Link>
-        <Link href="/checklist" className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
+        <Link href="/checklist" className="btn btn-secondary">
           Range Bag
         </Link>
       </section>
@@ -96,11 +96,11 @@ export default async function HomePage() {
         <input
           name="q"
           placeholder="Search firearms, ammo, courses, range log…"
-          className="w-full max-w-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm normal-case"
+          className="input w-full max-w-md"
         />
         <button
           type="submit"
-          className="border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700"
+          className="btn btn-secondary"
         >
           Search
         </button>
@@ -135,9 +135,9 @@ export default async function HomePage() {
             )}
           </p>
         ) : (
-          <div className="overflow-x-auto border border-neutral-800">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-neutral-900 text-xs text-neutral-400">
+          <div className="table-wrap table-sticky">
+            <table className="table">
+              <thead>
                 <tr>
                   <th className="px-3 py-2">Firearm</th>
                   <th className="px-3 py-2">Status</th>
@@ -203,7 +203,7 @@ export default async function HomePage() {
                         <input type="hidden" name="type" value="Cleaning" />
                         <SubmitButton
                           pendingLabel="Logging…"
-                          className="whitespace-nowrap border border-neutral-700 px-2 py-1 text-xs hover:bg-neutral-800"
+                          className="btn btn-secondary btn-xs whitespace-nowrap"
                         >
                           Log Cleaning
                         </SubmitButton>

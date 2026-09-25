@@ -1,3 +1,4 @@
+import PageHeader from "@core/components/PageHeader";
 import type { ReactNode } from "react";
 import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
@@ -40,13 +41,11 @@ export default async function ControlsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div data-scope="controls" className="flex max-w-5xl flex-col gap-3">
-      <div>
-        <h1 className="text-xl font-semibold">Controls</h1>
-        <p className="text-sm text-neutral-400">
-          Customize each page of TAC-LOG: its dropdown lists, defaults, and layout. App-wide things (security, backups,
-          import/export, display) live in Settings.
-        </p>
-      </div>
+      <PageHeader
+        title="Controls"
+        icon="controls"
+        subtitle="Customize each page of TAC-LOG: its dropdown lists, defaults, and layout. App-wide things (security, backups, import/export, display) live in Settings."
+      />
       <SectionTools scope="controls" search />
 
       <Group id="page-home" title="Home" blurb="The dashboard">

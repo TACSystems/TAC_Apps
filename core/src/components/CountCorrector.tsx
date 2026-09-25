@@ -33,7 +33,7 @@ export default function CountCorrector({
             setMsg(null);
             setOpen(true);
           }}
-          className="border border-neutral-700 px-2 py-0.5 text-[11px] text-neutral-300 hover:bg-neutral-800"
+          className="btn btn-secondary btn-xs"
         >
           {label}
         </button>
@@ -48,11 +48,11 @@ export default function CountCorrector({
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-xs">
           Correct number of {unit}
-          <input type="number" min={0} value={value} onChange={(e) => setValue(e.target.value)} autoFocus className="w-32 border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm" />
+          <input type="number" min={0} value={value} onChange={(e) => setValue(e.target.value)} autoFocus className="input input-sm w-32" />
         </label>
         <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs">
           Note
-          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. physical count, bought used" className="border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm normal-case" />
+          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. physical count, bought used" className="input input-sm" />
         </label>
       </div>
       <div className="text-xs text-neutral-500">
@@ -73,7 +73,7 @@ export default function CountCorrector({
               }
             })
           }
-          className="bg-brand-olive px-3 py-1.5 text-xs hover:bg-brand-olive-light disabled:opacity-50"
+          className="btn btn-primary btn-sm"
         >
           {pending ? "Saving…" : "Save correction"}
         </button>

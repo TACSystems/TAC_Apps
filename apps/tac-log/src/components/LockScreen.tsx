@@ -50,7 +50,7 @@ export default function LockScreen({
     setSecret("");
   }
 
-  const field = "border border-neutral-700 bg-neutral-900 px-3 py-3";
+  const field = "input py-3";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-4">
@@ -111,7 +111,7 @@ export default function LockScreen({
         <button
           type="submit"
           disabled={pending || blocked || (!recovery && secret.length < (isPin ? 4 : 1))}
-          className="w-full bg-brand-olive px-4 py-2 font-medium hover:bg-brand-olive-light disabled:opacity-50"
+          className="btn btn-primary w-full"
         >
           {blocked ? `Wait ${fmt(left)}` : pending ? "Checking…" : recovery ? "Reset password and unlock" : "Unlock"}
         </button>

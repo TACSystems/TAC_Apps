@@ -27,9 +27,9 @@ import HelpTip from "@core/components/HelpTip";
 type BRow = StringRow & { uid: string };
 type BPhase = { uid: string; title: string; notes: string; total: string; strings: BRow[] };
 
-const input = "border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm normal-case";
+const input = "input input-sm";
 const cellInput = "w-full min-w-[4rem] border border-neutral-800 bg-neutral-950 px-2 py-1 text-sm normal-case";
-const smallBtn = "border border-neutral-700 px-2 py-0.5 text-xs hover:bg-neutral-800 disabled:opacity-30";
+const smallBtn = "btn btn-secondary btn-xs";
 const addLink = "text-sm text-brand-amber hover:text-brand-amber-light";
 
 function uid() {
@@ -554,9 +554,9 @@ export default function CourseBuilder({
                 className={input}
               />
 
-              <div className="overflow-x-auto border border-neutral-800">
+              <div className="table-wrap">
                 <table className="w-full table-auto text-left text-sm">
-                  <thead className="bg-neutral-900 text-xs text-neutral-400">
+                  <thead>
                     <tr>
                       <th className="w-20 px-2 py-2">#</th>
                       <th className="w-28 px-2 py-2">Option</th>
@@ -844,14 +844,14 @@ export default function CourseBuilder({
           type="button"
           onClick={save}
           disabled={pending}
-          className="bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60"
+          className="btn btn-primary"
         >
           {pending ? "Saving…" : mode === "edit" ? "Save Changes" : "Save Course"}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800"
+          className="btn btn-secondary"
         >
           Cancel
         </button>

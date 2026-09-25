@@ -29,12 +29,12 @@ export default function SelectOrOther({
           required={required}
           defaultValue={defaultValue ?? ""}
           placeholder={placeholder}
-          className="flex-1 rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
+          className="input flex-1"
         />
         <button
           type="button"
           onClick={() => setMode("select")}
-          className="shrink-0 rounded border border-neutral-700 px-2 text-xs text-neutral-400 hover:text-neutral-200"
+          className="btn btn-secondary btn-xs shrink-0"
         >
           Choose from list
         </button>
@@ -50,7 +50,7 @@ export default function SelectOrOther({
       onChange={(e) => {
         if (e.target.value === OTHER) setMode("other");
       }}
-      className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
+      className="input"
     >
       <option value="">— Select —</option>
       {options.map((o) => (

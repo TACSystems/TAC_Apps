@@ -1,3 +1,4 @@
+import PageHeader from "@core/components/PageHeader";
 import { getDb } from "@/lib/db";
 import type { AmmoPurchase } from "@/lib/db/types";
 import { createAmmoPurchase, setAmmoGoal, deleteAmmoPurchase, deleteAmmoGoal } from "./actions";
@@ -12,7 +13,7 @@ import { fd } from "@/lib/display";
 import CountCorrector from "@core/components/CountCorrector";
 import { ammoAdjustments } from "@/lib/counts";
 import { correctAmmoLineAction, removeAdjustment } from "@/app/counts/actions";
-import ClickRow from "@core/components/ClickRow";
+import DataTable from "@core/components/DataTable";
 import EmptyState from "@core/components/EmptyState";
 import ModalButton from "@core/components/ModalButton";
 import ToastOnLoad from "@core/components/ToastOnLoad";
@@ -78,20 +79,20 @@ export default async function AmmoPage({ searchParams }: { searchParams: Promise
     <div data-scope="ammo" className="flex flex-col gap-5">
       {done.startsWith("purchase") && <ToastOnLoad text="Purchase logged." />}
       {done.startsWith("goal") && <ToastOnLoad text="Goal saved." />}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Ammo</h1>
-          <p className="text-sm text-neutral-400">{total.toLocaleString()} rounds on hand</p>
-        </div>
+      <PageHeader
+        title="Ammo"
+        icon="ammo"
+        subtitle={`${total.toLocaleString()} rounds on hand`}
+        actions={
         <div key={done} className="flex flex-wrap gap-2">
           <ModalButton label="Set Goal" title="Set a Goal" initialOpen={sp.open === "goal"}>
             <form action={setAmmoGoal} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-1 text-sm">
-                Caliber
+                <span className="req">Caliber</span>
                 <SelectOrOther name="caliber" options={caliberOptions} required />
               </label>
               <label className="flex flex-col gap-1 text-sm">
-                Goal Quantity
+                <span className="req">Goal Quantity</span>
                 <input type="number" name="goal_quantity" min={1} required className={inputCls} />
               </label>
               <label className="flex flex-col gap-1 text-sm">
@@ -109,7 +110,7 @@ export default async function AmmoPage({ searchParams }: { searchParams: Promise
               <p className="text-xs text-neutral-500 sm:col-span-2">
                 Setting a goal that already exists (same caliber, type and grain) updates its quantity.
               </p>
-              <SubmitButton className="w-fit bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">Save Goal</SubmitButton>
+              <SubmitButton className="btn btn-primary w-fit">Save Goal</SubmitButton>
             </form>
           </ModalButton>
           <ModalButton label="Log Purchase" title="Log a Purchase" primary wide initialOpen={sp.open === "purchase"}>
@@ -121,13 +122,14 @@ export default async function AmmoPage({ searchParams }: { searchParams: Promise
                 ammoTypeOptions={ammoTypeOptions}
                 caliberOptions={caliberOptions}
               />
-              <SubmitButton className="w-fit rounded bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light sm:col-span-3">
+              <SubmitButton className="btn btn-primary w-fit sm:col-span-3">
                 Log Purchase
               </SubmitButton>
             </form>
           </ModalButton>
         </div>
-      </div>
+        }
+      />
 
       {goals.length > 0 && (
         <section aria-label="Goals" className="grid grid-cols-1 gap-2 sm:grid-cols-3">
@@ -296,7 +298,7 @@ export default async function AmmoPage({ searchParams }: { searchParams: Promise
                   {c.note ? <span className="text-neutral-500"> · {c.note}</span> : null}
                 </span>
                 <form action={removeAdjustment.bind(null, c.id)}>
-                  <ConfirmSubmitButton confirmMessage="Remove this correction? The on-hand count goes back to what it was." className="text-xs text-red-400 hover:text-red-300">
+                  <ConfirmSubmitButton confirmMessage="Remove this correction? The on-hand count goes back to what it was." className="btn-link btn-link-danger text-xs">
                     Remove
                   </ConfirmSubmitButton>
                 </form>
@@ -313,61 +315,68 @@ export default async function AmmoPage({ searchParams }: { searchParams: Promise
         defaultOpen={open("purchases", false)}
         summary={purchases.length ? `${purchases.length} purchase${purchases.length === 1 ? "" : "s"} · last ${fd(purchases[0].date_purchased)}` : "None yet"}
       >
-        <div className="overflow-x-auto border border-neutral-800">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-900 text-neutral-400">
-              <tr>
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Caliber</th>
-                <th className="px-3 py-2">Manufacturer</th>
-                <th className="px-3 py-2">Type</th>
-                <th className="px-3 py-2">Grain</th>
-                <th className="px-3 py-2">Lot #</th>
-                <th className="px-3 py-2">Qty</th>
-                <th className="px-3 py-2">Price</th>
-                <th className="px-3 py-2">Per Round</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {purchases.map((p) => (
-                <ClickRow key={p.id} href={`/ammo/purchases/${p.id}`} className="border-t border-neutral-800 hover:bg-neutral-900">
-                  <td className="px-3 py-2">{fd(p.date_purchased)}</td>
-                  <td className="px-3 py-2">{p.caliber}</td>
-                  <td className="px-3 py-2">{p.manufacturer}</td>
-                  <td className="px-3 py-2">{p.ammo_type}</td>
-                  <td className="px-3 py-2">{p.grain ?? "—"}</td>
-                  <td className="px-3 py-2 text-neutral-400">{p.lot_number ?? "—"}</td>
-                  <td className="px-3 py-2">{p.quantity}</td>
-                  <td className="px-3 py-2">{p.price != null ? money(p.price, settings.currencySymbol) : "—"}</td>
-                  <td className="px-3 py-2 text-neutral-400">
-                    {p.price != null && p.quantity > 0
-                      ? money(Math.round((p.price / p.quantity) * 1000) / 1000, settings.currencySymbol)
-                      : "—"}
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex gap-3">
-                      <Link href={`/ammo/purchases/${p.id}`} className="text-brand-amber hover:text-brand-amber-light">
-                        Edit
-                      </Link>
-                      <form action={deleteAmmoPurchase.bind(null, p.id)}>
-                        <ConfirmSubmitButton
-                          confirmMessage={`Delete this purchase of ${p.quantity} rounds of ${p.caliber}? It's removed from ammo on hand.`}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          Delete
-                        </ConfirmSubmitButton>
-                      </form>
-                    </div>
-                  </td>
-                </ClickRow>
-              ))}
-            </tbody>
-          </table>
-          {purchases.length === 0 && (
-            <p className="px-3 py-6 text-center text-sm text-neutral-500">No purchases logged yet.</p>
-          )}
-        </div>
+        <DataTable
+          filterPlaceholder="Filter purchases by caliber, brand, type, or lot…"
+          emptyMessage="No purchases logged yet."
+          initialSort={{ key: "date", dir: "desc" }}
+          columns={[
+            { key: "date", label: "Date", sortable: true },
+            { key: "caliber", label: "Caliber", sortable: true },
+            { key: "manufacturer", label: "Manufacturer", sortable: true },
+            { key: "type", label: "Type", sortable: true },
+            { key: "grain", label: "Grain", align: "right", sortable: true },
+            { key: "lot", label: "Lot #" },
+            { key: "qty", label: "Qty", align: "right", sortable: true },
+            { key: "price", label: "Price", align: "right", sortable: true },
+            { key: "per", label: "Per Round", align: "right", sortable: true },
+            { key: "actions", label: "" },
+          ]}
+          rows={purchases.map((p) => ({
+            key: p.id,
+            href: `/ammo/purchases/${p.id}`,
+            text: `${p.caliber} ${p.manufacturer ?? ""} ${p.ammo_type ?? ""} ${p.grain ?? ""} ${p.lot_number ?? ""} ${p.date_purchased ?? ""}`,
+            sort: {
+              date: p.date_purchased,
+              caliber: p.caliber,
+              manufacturer: p.manufacturer,
+              type: p.ammo_type,
+              grain: p.grain,
+              qty: p.quantity,
+              price: p.price,
+              per: p.price != null && p.quantity > 0 ? p.price / p.quantity : null,
+            },
+            cells: {
+              date: fd(p.date_purchased) || "—",
+              caliber: p.caliber,
+              manufacturer: p.manufacturer ?? "—",
+              type: p.ammo_type ?? "—",
+              grain: p.grain ?? "—",
+              lot: <span className="text-neutral-400">{p.lot_number ?? "—"}</span>,
+              qty: p.quantity.toLocaleString(),
+              price: p.price != null ? money(p.price, settings.currencySymbol) : "—",
+              per: (
+                <span className="text-neutral-400">
+                  {p.price != null && p.quantity > 0 ? money(Math.round((p.price / p.quantity) * 1000) / 1000, settings.currencySymbol) : "—"}
+                </span>
+              ),
+              actions: (
+                <div className="flex justify-end gap-3">
+                  <Link href={`/ammo/purchases/${p.id}`} className="btn-link text-xs">
+                    Edit
+                  </Link>
+                  <form action={deleteAmmoPurchase.bind(null, p.id)}>
+                    <ConfirmSubmitButton
+                      confirmMessage={`Delete this purchase of ${p.quantity} rounds of ${p.caliber}? It's removed from ammo on hand.`}
+                      className="btn-link btn-link-danger text-xs"
+                    >
+                      Delete
+                    </ConfirmSubmitButton>
+                  </form>
+                </div>
+              ),
+            },
+          }))}
+        />
       </Collapsible>
     </div>
   );

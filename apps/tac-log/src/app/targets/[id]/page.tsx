@@ -53,7 +53,7 @@ export default async function EditTargetTypePage({
           <form action={deleteTargetType.bind(null, id)}>
             <ConfirmSubmitButton
               confirmMessage={`Delete target type "${target.name}"? No courses use it. This cannot be undone.`}
-              className="border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200 hover:bg-red-900"
+              className="btn btn-danger"
             >
               Delete Target Type
             </ConfirmSubmitButton>

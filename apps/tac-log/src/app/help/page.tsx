@@ -1,3 +1,4 @@
+import PageHeader from "@core/components/PageHeader";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { dataDir } from "@/lib/db";
@@ -25,12 +26,15 @@ function Guide({ id, title, keywords, children }: { id: string; title: string; k
 export default function HelpPage() {
   return (
     <div data-scope="help" className="flex max-w-5xl flex-col gap-3">
-      <div>
-        <h1 className="text-xl font-semibold">Help</h1>
-        <p className="text-sm text-neutral-400">
-          Short guides for everything in TAC-LOG. Works offline. Prefer a walkthrough? <A href="/?tour=1">Take the tour</A>.
-        </p>
-      </div>
+      <PageHeader
+        title="Help"
+        icon="help"
+        subtitle={
+          <>
+            Short guides for everything in TAC-LOG. Works offline. Prefer a walkthrough? <A href="/?tour=1">Take the tour</A>.
+          </>
+        }
+      />
       <SectionTools scope="help" search />
 
       <Guide id="start" title="Getting Started" keywords="first start begin new setup">

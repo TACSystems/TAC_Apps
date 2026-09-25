@@ -108,16 +108,16 @@ export default function Tour({ onDone }: { onDone?: () => void }) {
           </button>
           <div className="flex gap-2">
             {i > 0 && (
-              <button type="button" onClick={() => setI(i - 1)} className="border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800">
+              <button type="button" onClick={() => setI(i - 1)} className="btn btn-secondary">
                 Back
               </button>
             )}
             {i < STEPS.length - 1 ? (
-              <button type="button" onClick={() => setI(i + 1)} className="bg-brand-olive px-4 py-1.5 text-sm hover:bg-brand-olive-light">
+              <button type="button" onClick={() => setI(i + 1)} className="btn btn-primary">
                 Next
               </button>
             ) : (
-              <button type="button" onClick={close} className="bg-brand-olive px-4 py-1.5 text-sm hover:bg-brand-olive-light">
+              <button type="button" onClick={close} className="btn btn-primary">
                 Finish
               </button>
             )}

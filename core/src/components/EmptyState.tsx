@@ -22,8 +22,8 @@ export default function EmptyState({
               href={a.href}
               className={
                 a.primary
-                  ? "bg-brand-olive px-3 py-2 text-sm hover:bg-brand-olive-light"
-                  : "border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800"
+                  ? "btn btn-primary"
+                  : "btn btn-secondary"
               }
             >
               {a.label}

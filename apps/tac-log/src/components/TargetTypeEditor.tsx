@@ -7,8 +7,8 @@ import { saveTargetTypeAction } from "@/app/targets/actions";
 
 type ZoneRow = { key: number; zone_label: string; value: string };
 
-const input = "border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm normal-case";
-const smallBtn = "border border-neutral-700 px-2 py-1 text-xs hover:bg-neutral-800 disabled:opacity-30";
+const input = "input input-sm";
+const smallBtn = "btn btn-secondary btn-xs";
 
 let nextKey = 1;
 
@@ -98,9 +98,9 @@ export default function TargetTypeEditor({
 
       <div>
         <div className="mb-2 text-sm text-neutral-300">Scoring Matrix</div>
-        <div className="overflow-x-auto border border-neutral-800">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-900 text-neutral-400">
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
               <tr>
                 <th className="px-3 py-2">Zone</th>
                 <th className="w-28 px-3 py-2">Points</th>
@@ -174,12 +174,12 @@ export default function TargetTypeEditor({
           type="button"
           onClick={save}
           disabled={pending}
-          className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60"
+          className="btn btn-primary"
         >
           {pending ? "Saving…" : "Save Target Type"}
         </button>
         {onCancel && (
-          <button type="button" onClick={onCancel} className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
+          <button type="button" onClick={onCancel} className="btn btn-secondary">
             Cancel
           </button>
         )}

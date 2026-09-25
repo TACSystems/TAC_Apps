@@ -60,7 +60,7 @@ export default function AttachmentGrid({ items, emptyText }: { items: GridItem[]
             <div className="flex items-center justify-between text-neutral-600">
               <span>{r.date}</span>
               <form action={r.remove}>
-                <ConfirmSubmitButton confirmMessage={r.confirmMessage} className="text-red-400 hover:text-red-300">
+                <ConfirmSubmitButton confirmMessage={r.confirmMessage} className="btn-link btn-link-danger">
                   Delete
                 </ConfirmSubmitButton>
               </form>
@@ -83,10 +83,10 @@ export default function AttachmentGrid({ items, emptyText }: { items: GridItem[]
               {images.length > 1 && <span className="ml-2 text-neutral-500">{(open ?? 0) + 1} / {images.length}</span>}
             </span>
             <div className="flex shrink-0 gap-2" onClick={(e) => e.stopPropagation()}>
-              <a href={current.url} target="_blank" rel="noopener noreferrer" className="border border-neutral-700 px-3 py-1 text-xs hover:bg-neutral-800">
+              <a href={current.url} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
                 Open original
               </a>
-              <button type="button" onClick={() => setOpen(null)} className="border border-neutral-700 px-3 py-1 text-xs hover:bg-neutral-800">
+              <button type="button" onClick={() => setOpen(null)} className="btn btn-secondary btn-sm">
                 Close (Esc)
               </button>
             </div>
@@ -108,7 +108,7 @@ export default function AttachmentGrid({ items, emptyText }: { items: GridItem[]
                     e.stopPropagation();
                     step(-1);
                   }}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 border border-neutral-700 bg-neutral-900/80 px-3 py-4 text-xl hover:bg-neutral-800"
+                  className="btn btn-secondary absolute left-2 top-1/2 -translate-y-1/2 bg-neutral-900/80 text-xl"
                 >
                   ‹
                 </button>
@@ -119,7 +119,7 @@ export default function AttachmentGrid({ items, emptyText }: { items: GridItem[]
                     e.stopPropagation();
                     step(1);
                   }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 border border-neutral-700 bg-neutral-900/80 px-3 py-4 text-xl hover:bg-neutral-800"
+                  className="btn btn-secondary absolute right-2 top-1/2 -translate-y-1/2 bg-neutral-900/80 text-xl"
                 >
                   ›
                 </button>

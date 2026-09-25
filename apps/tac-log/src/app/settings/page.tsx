@@ -1,3 +1,4 @@
+import PageHeader from "@core/components/PageHeader";
 import fs from "fs";
 import path from "path";
 import { dataDir, getDb } from "@/lib/db";
@@ -18,7 +19,7 @@ import { getAutoBackup, getAutoBackupStatus } from "@/lib/auto-backup";
 
 export const dynamic = "force-dynamic";
 
-const btn = "inline-block border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700";
+const btn = "btn btn-secondary";
 
 function fileSize(p: string) {
   try {
@@ -41,10 +42,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div data-scope="settings" className="flex max-w-5xl flex-col gap-3">
-      <div>
-        <h1 className="text-xl font-semibold">Settings</h1>
-        <p className="text-sm text-neutral-400">Security, backups, imports, and app-wide defaults. Click a section to open it.</p>
-      </div>
+      <PageHeader title="Settings" icon="settings" subtitle="Security, backups, import/export, display, and updates. Click a section to open it." />
       <SectionTools scope="settings" search />
 
       <Collapsible id="settings-security" title="Security" keywords="pin password lock encryption recovery key auto-lock idle" defaultOpen={false}>

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { HOME_SECTIONS, type HomeLayout } from "@/lib/settings-shared";
 import { saveHomeLayout } from "@/app/controls/actions";
 
-const smallBtn = "border border-neutral-700 px-2 py-0.5 text-xs hover:bg-neutral-800 disabled:opacity-30";
+const smallBtn = "btn btn-secondary btn-xs";
 
 export default function HomeLayoutEditor({ initial }: { initial: HomeLayout }) {
   const [layout, setLayout] = useState(initial);
@@ -63,7 +63,7 @@ export default function HomeLayoutEditor({ initial }: { initial: HomeLayout }) {
           <select
             value={layout.recentCount}
             onChange={(e) => change({ ...layout, recentCount: Number(e.target.value) })}
-            className="border border-neutral-700 bg-neutral-900 px-2 py-1.5"
+            className="input input-sm"
           >
             {[3, 5, 10, 15, 25].map((n) => (
               <option key={n} value={n}>
@@ -100,7 +100,7 @@ export default function HomeLayoutEditor({ initial }: { initial: HomeLayout }) {
               setSaved(true);
             })
           }
-          className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60"
+          className="btn btn-primary"
         >
           {pending ? "Saving…" : "Save Home Layout"}
         </button>

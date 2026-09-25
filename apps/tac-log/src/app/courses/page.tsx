@@ -1,3 +1,4 @@
+import Icon from "@core/components/Icon";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { CourseOfFire } from "@/lib/db/types";
@@ -17,15 +18,18 @@ export default async function CoursesPage() {
     )
     .all() as (CourseOfFire & { run_count: number })[];
 
-  const btn = "border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800";
+  const btn = "btn btn-secondary";
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">Courses of Fire</h1>
+        <h1 className="flex items-center gap-2 text-xl font-semibold">
+          <Icon name="course" size={20} className="text-brand-amber" />
+          Courses of Fire
+        </h1>
         <div className="flex flex-wrap gap-2">
-          <Link href="/courses/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
-            Build New Course
+          <Link href="/courses/new" className="btn btn-primary">
+            <Icon name="plus" /> Build New Course
           </Link>
           <Link href="/targets" className={btn}>
             Target Types

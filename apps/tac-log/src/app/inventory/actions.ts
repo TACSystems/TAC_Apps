@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { deleteAttachmentsFor } from "@/lib/attachments";
 import { todayISO } from "@/lib/settings-shared";
 import { isoDate, number, text } from "@core/lib/forms";
+import { flash } from "@core/lib/flash";
 
 const s = (formData: FormData, key: string) => (/_date$/.test(key) ? isoDate(formData, key) : text(formData, key));
 const n = (formData: FormData, key: string) => number(formData, key);
@@ -38,6 +39,8 @@ export async function createFirearm(formData: FormData) {
     status: s(formData, "status") ?? "active",
     notes: s(formData, "notes"),
   });
+
+  await flash("Firearm added.");
 
   revalidatePath("/inventory");
   redirect("/inventory");
@@ -80,6 +83,8 @@ export async function updateFirearm(id: string, formData: FormData) {
     notes: s(formData, "notes"),
   });
 
+  await flash("Changes saved.");
+
   revalidatePath("/inventory");
   revalidatePath(`/inventory/${id}`);
   redirect(`/inventory/${id}`);
@@ -93,6 +98,7 @@ export async function deleteFirearm(id: string) {
     db.prepare(`delete from firearms where id = ?`).run(id);
   })();
   deleteAttachmentsFor(db, "firearm", id);
+  await flash("Firearm deleted.");
   revalidatePath("/inventory");
   redirect("/inventory");
 }
@@ -144,6 +150,8 @@ export async function createAccessory(formData: FormData) {
     }
   })();
 
+  await flash("Accessory added.");
+
   revalidatePath("/inventory/accessories");
   if (params.firearm_id) revalidatePath(`/inventory/${params.firearm_id}`);
   redirect(`/inventory/accessories/${id}`);
@@ -178,6 +186,8 @@ export async function updateAccessory(id: string, formData: FormData) {
     }
   })();
 
+  await flash("Changes saved.");
+
   revalidatePath("/inventory/accessories");
   revalidatePath(`/inventory/accessories/${id}`);
   if (before.firearm_id) revalidatePath(`/inventory/${before.firearm_id}`);
@@ -187,6 +197,7 @@ export async function updateAccessory(id: string, formData: FormData) {
 
 export async function deleteMountEntry(accessoryId: string, mountId: string) {
   getDb().prepare(`delete from accessory_mounts where id = ? and accessory_id = ?`).run(mountId, accessoryId);
+  await flash("History entry removed.");
   revalidatePath(`/inventory/accessories/${accessoryId}`);
 }
 
@@ -197,6 +208,7 @@ export async function deleteAccessory(id: string) {
     | undefined;
   db.prepare(`delete from accessories where id = ?`).run(id);
   deleteAttachmentsFor(db, "accessory", id);
+  await flash("Accessory deleted.");
   revalidatePath("/inventory/accessories");
   if (row?.firearm_id) revalidatePath(`/inventory/${row.firearm_id}`);
   redirect("/inventory/accessories");

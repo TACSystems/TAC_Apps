@@ -44,7 +44,7 @@ export default function CategorizeCourses({ rows, options }: { rows: Row[]; opti
               router.push("/courses");
             })
           }
-          className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-50"
+          className="btn btn-primary"
         >
           {pending ? "Saving…" : `Save ${done} of ${rows.length}`}
         </button>

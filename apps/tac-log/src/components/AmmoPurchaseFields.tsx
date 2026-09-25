@@ -3,7 +3,7 @@ import SelectOrOther from "@core/components/SelectOrOther";
 import SuggestInput from "@core/components/SuggestInput";
 import HelpTip from "@core/components/HelpTip";
 
-const input = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";
+const input = "input";
 
 export default function AmmoPurchaseFields({
   purchase,
@@ -37,7 +37,7 @@ export default function AmmoPurchaseFields({
         <SelectOrOther name="ammo_type" options={ammoTypeOptions} defaultValue={purchase ? purchase.ammo_type : defaultType || undefined} />
       </label>
       <label className="flex flex-col gap-1 text-sm">
-        Caliber
+        <span className="req">Caliber</span>
         <SelectOrOther name="caliber" options={caliberOptions} defaultValue={purchase?.caliber} required />
       </label>
       <label className="flex flex-col gap-1 text-sm">
@@ -51,7 +51,7 @@ export default function AmmoPurchaseFields({
         <input name="lot_number" defaultValue={purchase?.lot_number ?? ""} className={input} />
       </label>
       <label className="flex flex-col gap-1 text-sm">
-        Quantity
+        <span className="req">Quantity</span>
         <input type="number" name="quantity" required defaultValue={purchase?.quantity ?? ""} className={input} />
       </label>
       <label className="flex flex-col gap-1 text-sm">

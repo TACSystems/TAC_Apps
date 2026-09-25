@@ -30,11 +30,11 @@ export default function SearchBox({
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder={placeholder}
-        className="w-full border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm normal-case"
+        className="input w-full"
       />
-      <div className="overflow-x-auto border border-neutral-800">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-neutral-900 text-neutral-400">{head}</thead>
+      <div className="table-wrap table-sticky">
+        <table className="table">
+          <thead>{head}</thead>
           <tbody>{filtered.map((r) => r.row)}</tbody>
         </table>
         {filtered.length === 0 && (

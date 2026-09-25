@@ -7,6 +7,7 @@ import { loadCourse } from "@core/lib/cof";
 import { adjustShots, parseRangeLogForm, writeZoneCounts } from "@/lib/range-log";
 import type { RangeLog, RangeLogZoneCount } from "@/lib/db/types";
 import { assignEntry, pruneSessions } from "@/lib/sessions";
+import { flash } from "@core/lib/flash";
 
 function refresh(firearmIds: (string | null)[]) {
   revalidatePath("/range-log");
@@ -49,6 +50,8 @@ export async function updateRangeLog(logId: string, formData: FormData) {
     adjustShots(db, parsed.firearmId, parsed.roundsFired);
   })();
 
+  await flash("Course run saved.");
+
   refresh([old.firearm_id, parsed.firearmId]);
   redirect(`/range-log/${logId}`);
 }
@@ -64,6 +67,7 @@ export async function deleteRangeLog(logId: string) {
       adjustShots(db, old.firearm_id, -(old.rounds_fired ?? 0));
       pruneSessions(db);
     })();
+    await flash("Course run deleted.");
     refresh([old.firearm_id]);
     if (old.session_id && db.prepare(`select 1 from range_sessions where id = ?`).get(old.session_id)) {
       redirect(`/range-log/session/${old.session_id}`);

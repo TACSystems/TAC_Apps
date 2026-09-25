@@ -68,11 +68,11 @@ export default async function SearchPage({
             name="q"
             defaultValue={query}
             placeholder="Search firearms, ammo, courses, range log…"
-            className="w-full max-w-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm normal-case"
+            className="input w-full max-w-md"
           />
           <button
             type="submit"
-            className="border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700"
+            className="btn btn-secondary"
           >
             Search
           </button>

@@ -4,7 +4,7 @@ import SubmitButton from "@core/components/SubmitButton";
 import UnsavedGuard from "@core/components/UnsavedGuard";
 import { todayISO } from "@/lib/settings-shared";
 
-const input = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";
+const input = "input";
 
 export default function AccessoryForm({
   accessory,
@@ -27,7 +27,7 @@ export default function AccessoryForm({
     <form action={action} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <UnsavedGuard />
       <label className="flex flex-col gap-1 text-sm sm:col-span-2">
-        Make / Model
+        <span className="req">Make / Model</span>
         <input name="make_model" required defaultValue={accessory?.make_model} className={input} />
       </label>
       <label className="flex flex-col gap-1 text-sm">
@@ -93,7 +93,7 @@ export default function AccessoryForm({
         Receipt Reference
         <input name="receipt" defaultValue={accessory?.receipt ?? ""} placeholder="Order #, invoice #" className={input} />
       </label>
-      <SubmitButton pendingLabel="Saving…" className="mt-2 w-fit rounded bg-brand-olive px-4 py-2 font-medium hover:bg-brand-olive-light">
+      <SubmitButton pendingLabel="Saving…" className="btn btn-primary mt-2 w-fit">
         {submitLabel}
       </SubmitButton>
     </form>

@@ -69,11 +69,11 @@ export default async function RangeLogDetailPage({
             href={`/range-log/${id}/print`}
             target="_blank"
             rel="noopener noreferrer"
-            className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800"
+            className="btn btn-secondary"
           >
             Print Scorecard
           </a>
-          <Link href={`/range-log/${id}/edit`} className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
+          <Link href={`/range-log/${id}/edit`} className="btn btn-secondary">
             Edit
           </Link>
           <form action={deleteRangeLog.bind(null, id)}>
@@ -81,7 +81,7 @@ export default async function RangeLogDetailPage({
               confirmMessage={`Delete this course run?${
                 log.rounds_fired ? ` Its ${log.rounds_fired} rounds are taken off the firearm's shot count and returned to ammo on hand.` : ""
               } This cannot be undone.`}
-              className="border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200 hover:bg-red-900"
+              className="btn btn-danger"
             >
               Delete
             </ConfirmSubmitButton>
@@ -122,9 +122,9 @@ export default async function RangeLogDetailPage({
         </div>
       </div>
 
-      <div className="overflow-x-auto border border-neutral-800">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-neutral-900 text-neutral-400">
+      <div className="table-wrap">
+        <table className="table">
+          <thead>
             <tr>
               <th className="px-3 py-2">Zone</th>
               <th className="px-3 py-2">Value</th>

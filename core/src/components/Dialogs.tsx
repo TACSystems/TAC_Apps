@@ -115,7 +115,7 @@ export default function DialogProvider({ children }: { children: ReactNode }) {
             </div>
             <p className="mb-5 whitespace-pre-line text-sm text-neutral-200">{pending.message}</p>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => close(false)} className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800">
+              <button type="button" onClick={() => close(false)} className="btn btn-secondary">
                 {pending.cancelLabel ?? "Cancel"}
               </button>
               <button
@@ -124,8 +124,8 @@ export default function DialogProvider({ children }: { children: ReactNode }) {
                 onClick={() => close(true)}
                 className={
                   pending.danger
-                    ? "border border-red-900 bg-red-950 px-4 py-2 text-sm text-red-200 hover:bg-red-900"
-                    : "bg-brand-olive px-4 py-2 text-sm hover:bg-brand-olive-light"
+                    ? "btn btn-danger"
+                    : "btn btn-primary"
                 }
               >
                 {pending.confirmLabel ?? "OK"}

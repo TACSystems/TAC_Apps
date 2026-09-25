@@ -7,7 +7,7 @@ import PasswordInput from "@core/components/PasswordInput";
 import { finishTour, saveSetup } from "@/app/tour-actions";
 import { DATE_FORMATS, FIREARM_LABEL_MODES } from "@/lib/settings-shared";
 
-const input = "border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm normal-case";
+const input = "input";
 
 function Setup({ onNext, onSkip, canSetPin }: { onNext: () => void; onSkip: () => void; canSetPin: boolean }) {
   const [step, setStep] = useState(0);
@@ -106,7 +106,7 @@ function Setup({ onNext, onSkip, canSetPin }: { onNext: () => void; onSkip: () =
           </button>
           <div className="flex gap-2">
             {step > 0 && (
-              <button type="button" onClick={() => setStep(step - 1)} className="border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800">
+              <button type="button" onClick={() => setStep(step - 1)} className="btn btn-secondary">
                 Back
               </button>
             )}
@@ -121,12 +121,12 @@ function Setup({ onNext, onSkip, canSetPin }: { onNext: () => void; onSkip: () =
                   setError(null);
                   setStep(step + 1);
                 }}
-                className="bg-brand-olive px-4 py-1.5 text-sm hover:bg-brand-olive-light"
+                className="btn btn-primary"
               >
                 Next
               </button>
             ) : (
-              <button type="button" disabled={pending} onClick={save} className="bg-brand-olive px-4 py-1.5 text-sm hover:bg-brand-olive-light disabled:opacity-60">
+              <button type="button" disabled={pending} onClick={save} className="btn btn-primary">
                 {pending ? "Saving…" : "Save and start tour"}
               </button>
             )}

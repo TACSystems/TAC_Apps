@@ -18,7 +18,7 @@ export default function CourseSelect({
     <select
       value={selectedId}
       onChange={(e) => router.push(`${basePath}?cof=${e.target.value}`)}
-      className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+      className="input"
     >
       {courses.map((c) => (
         <option key={c.id} value={c.id}>

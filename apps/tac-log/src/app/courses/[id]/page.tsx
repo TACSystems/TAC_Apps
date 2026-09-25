@@ -37,7 +37,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
   const open = pageSections(db, "course");
   const phaseCount = course.phases.length;
 
-  const btn = "border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800";
+  const btn = "btn btn-secondary";
 
   return (
     <div data-scope="course" className="flex flex-col gap-4">
@@ -67,7 +67,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           {course.notes && <p className="mt-2 max-w-4xl text-sm whitespace-pre-line text-neutral-300">{course.notes}</p>}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href={`/courses/${id}/log`} className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
+          <Link href={`/courses/${id}/log`} className="btn btn-primary">
             Score This Course
           </Link>
           <Link href={`/timer?course=${id}`} className={btn}>
@@ -92,7 +92,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
                   ? `Your ${runCount} logged run${runCount === 1 ? "" : "s"} of this course stay on file but will no longer show a linked course.`
                   : "No runs have been logged on it."
               } This cannot be undone.`}
-              className="border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200 hover:bg-red-900"
+              className="btn btn-danger"
             >
               Delete
             </ConfirmSubmitButton>

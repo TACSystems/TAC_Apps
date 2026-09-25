@@ -15,8 +15,8 @@ declare global {
   }
 }
 
-const input = "border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm normal-case";
-const btn = "border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700 disabled:opacity-60";
+const input = "input";
+const btn = "btn btn-secondary";
 
 export default function BackupSettings({
   hasPassword,
@@ -141,7 +141,7 @@ export default function BackupSettings({
           </label>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" disabled={pending} className="bg-brand-olive px-4 py-2 text-sm hover:bg-brand-olive-light disabled:opacity-60" onClick={() => run(() => saveAutoBackupSettings(freq, dir, keepN))}>
+          <button type="button" disabled={pending} className="btn btn-primary" onClick={() => run(() => saveAutoBackupSettings(freq, dir, keepN))}>
             Save
           </button>
           {folder && (

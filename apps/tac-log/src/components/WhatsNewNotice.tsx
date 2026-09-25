@@ -14,7 +14,7 @@ export default function WhatsNewNotice({ version }: { version: string }) {
             See what&apos;s new
           </Link>
         </span>
-        <button type="submit" className="border border-neutral-700 px-2 py-0.5 text-xs text-neutral-300 hover:text-neutral-100">
+        <button type="submit" className="btn btn-secondary btn-xs">
           Dismiss
         </button>
       </form>

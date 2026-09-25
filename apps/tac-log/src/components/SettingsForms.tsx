@@ -3,12 +3,12 @@ import HelpTip from "@core/components/HelpTip";
 import { saveSettingsForm } from "@/app/settings/actions";
 import { DATE_FORMATS, FIREARM_LABEL_MODES, TEXT_SIZES, type AppSettings } from "@/lib/settings-shared";
 
-const input = "border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm normal-case";
+const input = "input";
 
 function Save({ saved }: { saved?: boolean }) {
   return (
     <div className="mt-4 flex items-center gap-3">
-      <SubmitButton pendingLabel="Saving…" className="w-fit bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light">
+      <SubmitButton pendingLabel="Saving…" className="btn btn-primary w-fit">
         Save
       </SubmitButton>
       {saved && <span className="text-sm text-green-400">Saved.</span>}

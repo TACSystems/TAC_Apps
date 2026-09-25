@@ -62,7 +62,7 @@ export default async function LogRunPage({
         </div>
         <Link
           href={`/courses/${id}/print?view=card`}
-          className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800"
+          className="btn btn-secondary"
         >
           Print Blank Scorecard
         </Link>

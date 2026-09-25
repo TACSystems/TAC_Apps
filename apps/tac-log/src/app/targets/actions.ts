@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { saveTargetType, type ZoneDef } from "@core/lib/cof";
+import { flash } from "@core/lib/flash";
 
 export async function saveTargetTypeAction(payload: {
   id?: string | null;
@@ -32,6 +33,7 @@ export async function deleteTargetType(id: string) {
     db.prepare(`select count(*) as n from courses_of_fire where target_type_id = ?`).get(id) as { n: number }
   ).n;
   if (used > 0) {
+    await flash("Target type deleted.");
     redirect(`/targets/${id}?error=in-use`);
   }
   db.prepare(`delete from target_types where id = ?`).run(id);

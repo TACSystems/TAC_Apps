@@ -3,6 +3,9 @@ import "./globals.css";
 import NavBar from "@/components/NavBar";
 import DialogProvider from "@core/components/Dialogs";
 import SectionMemory from "@/components/SectionMemory";
+import InlineValidation from "@core/components/InlineValidation";
+import FlashToast from "@core/components/FlashToast";
+import NavHeight from "@core/components/NavHeight";
 import LockScreen from "@/components/LockScreen";
 import IdleLock from "@/components/IdleLock";
 import WhatsNewNotice from "@/components/WhatsNewNotice";
@@ -48,6 +51,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6">
           <DialogProvider>
             <SectionMemory />
+            <InlineValidation />
+            <FlashToast />
+            <NavHeight />
             {children}
           </DialogProvider>
         </main>

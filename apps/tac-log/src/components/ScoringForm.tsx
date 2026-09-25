@@ -10,7 +10,7 @@ import { firearmMatchesCategories } from "@core/lib/course-categories";
 import AmmoPick from "@/components/AmmoPick";
 import { defaultPickFor, type PickOpt } from "@/lib/ammo-pick";
 
-const inputCls = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";
+const inputCls = "input";
 
 export default function ScoringForm({
   zones,
@@ -74,7 +74,7 @@ export default function ScoringForm({
       <UnsavedGuard />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
-          Date
+          <span className="req">Date</span>
           <input
             type="date"
             name="date"
@@ -85,7 +85,7 @@ export default function ScoringForm({
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          Firearm
+          <span className="req">Firearm</span>
           <select
             name="firearm_id"
             required
@@ -181,9 +181,9 @@ export default function ScoringForm({
 
       <div>
         <h2 className="mb-2 font-medium text-neutral-200">Scoring</h2>
-        <div className="overflow-x-auto rounded border border-neutral-800">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-900 text-neutral-400">
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
               <tr>
                 <th className="px-3 py-2">Zone</th>
                 <th className="px-3 py-2">Value</th>
@@ -205,7 +205,7 @@ export default function ScoringForm({
                       onChange={(e) =>
                         setCounts((c) => ({ ...c, [z.zone_label]: Number(e.target.value || 0) }))
                       }
-                      className="w-20 rounded border border-neutral-700 bg-neutral-950 px-2 py-1"
+                      className="input input-sm w-20"
                     />
                   </td>
                   <td className="px-3 py-2">{z.value * (counts[z.zone_label] ?? 0)}</td>
@@ -248,7 +248,7 @@ export default function ScoringForm({
 
       <SubmitButton
         pendingLabel="Saving Session…"
-        className="w-fit rounded bg-brand-olive px-4 py-2 font-medium hover:bg-brand-olive-light"
+        className="btn btn-primary w-fit"
       >
         {submitLabel}
       </SubmitButton>

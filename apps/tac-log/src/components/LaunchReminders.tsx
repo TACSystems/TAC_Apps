@@ -16,7 +16,7 @@ export default function LaunchReminders({ items }: { items: Reminder[] }) {
           ))}
           {items.length > 6 && <span className="text-neutral-500">+{items.length - 6} more</span>}
         </div>
-        <button type="submit" className="border border-neutral-700 px-2 py-0.5 text-xs text-neutral-300 hover:text-neutral-100">
+        <button type="submit" className="btn btn-secondary btn-xs">
           Dismiss
         </button>
       </form>

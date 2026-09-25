@@ -66,7 +66,7 @@ export default async function AccessoryDetailPage({
           <form action={deleteAccessory.bind(null, id)}>
             <ConfirmSubmitButton
               confirmMessage={`Delete ${accessory.make_model}? Its receipts, photos, and mount history are removed too. This cannot be undone.`}
-              className="border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200 hover:bg-red-900"
+              className="btn btn-danger"
             >
               Delete
             </ConfirmSubmitButton>
@@ -163,7 +163,7 @@ export default async function AccessoryDetailPage({
                 {m.notes ? <span className="text-neutral-500"> · {m.notes}</span> : null}
               </span>
               <form action={deleteMountEntry.bind(null, id, m.id)}>
-                <ConfirmSubmitButton confirmMessage="Remove this history entry?" className="text-xs text-red-400 hover:text-red-300">
+                <ConfirmSubmitButton confirmMessage="Remove this history entry?" className="btn-link btn-link-danger text-xs">
                   Remove
                 </ConfirmSubmitButton>
               </form>

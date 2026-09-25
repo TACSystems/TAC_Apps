@@ -7,6 +7,7 @@ import { todayISO } from "@/lib/settings-shared";
 import { decodePick } from "@/lib/ammo";
 import { assignEntry, cleanLocation, pruneSessions } from "@/lib/sessions";
 import { dateOr, number, text } from "@core/lib/forms";
+import { flash } from "@core/lib/flash";
 
 const s = (formData: FormData, key: string) => text(formData, key);
 const n = (formData: FormData, key: string) => number(formData, key);
@@ -33,6 +34,8 @@ export async function logMaintenance(firearmId: string, formData: FormData) {
 
   if (type.toLowerCase() === "cleaning") recomputeLastCleaned(firearmId);
 
+  await flash("Maintenance logged.");
+
   revalidatePath(`/inventory/${firearmId}`);
   revalidatePath("/");
 }
@@ -51,6 +54,8 @@ export async function logMalfunction(firearmId: string, formData: FormData) {
     cause: s(formData, "cause"),
     notes: s(formData, "notes"),
   });
+
+  await flash("Malfunction logged.");
 
   revalidatePath(`/inventory/${firearmId}`);
 }
@@ -71,13 +76,18 @@ export async function logZeroRecord(firearmId: string, formData: FormData) {
     notes: s(formData, "notes"),
   });
 
+  await flash("Zero logged.");
+
   revalidatePath(`/inventory/${firearmId}`);
 }
 
 export async function logRoundsFired(firearmId: string, formData: FormData) {
   const db = getDb();
   const rounds = Math.round(Number(formData.get("rounds") || 0));
-  if (!Number.isFinite(rounds) || rounds <= 0) return;
+  if (!Number.isFinite(rounds) || rounds <= 0) {
+    await flash("Enter how many rounds were fired.", "error");
+    return;
+  }
   const firearm = db.prepare(`select caliber from firearms where id = ?`).get(firearmId) as
     | { caliber: string | null }
     | undefined;
@@ -108,6 +118,7 @@ export async function logRoundsFired(firearmId: string, formData: FormData) {
     assignEntry(db, "rounds_fired_log", id);
     db.prepare(`update firearms set shots_fired = shots_fired + ? where id = ?`).run(rounds, firearmId);
   })();
+  await flash("Rounds recorded.");
   revalidatePath("/range-log");
 
   revalidatePath(`/inventory/${firearmId}`);
@@ -130,6 +141,7 @@ export async function deleteRoundsFired(firearmId: string, entryId: string) {
       );
     })();
   }
+  await flash("Entry removed.");
   revalidatePath(`/inventory/${firearmId}`);
   revalidatePath("/");
   revalidatePath("/ammo");
@@ -170,12 +182,14 @@ export async function updateMaintenance(firearmId: string, entryId: string, form
       notes: s(formData, "notes"),
     });
   recomputeLastCleaned(firearmId);
+  await flash("Entry updated.");
   touch(firearmId);
 }
 
 export async function deleteMaintenance(firearmId: string, entryId: string) {
   getDb().prepare(`delete from maintenance_log where id = ? and firearm_id = ?`).run(entryId, firearmId);
   recomputeLastCleaned(firearmId);
+  await flash("Entry removed.");
   touch(firearmId);
 }
 
@@ -195,11 +209,13 @@ export async function updateMalfunction(firearmId: string, entryId: string, form
       cause: s(formData, "cause"),
       notes: s(formData, "notes"),
     });
+  await flash("Entry updated.");
   touch(firearmId);
 }
 
 export async function deleteMalfunction(firearmId: string, entryId: string) {
   getDb().prepare(`delete from malfunction_log where id = ? and firearm_id = ?`).run(entryId, firearmId);
+  await flash("Entry removed.");
   touch(firearmId);
 }
 
@@ -220,11 +236,13 @@ export async function updateZero(firearmId: string, entryId: string, formData: F
       adjustment: s(formData, "adjustment"),
       notes: s(formData, "notes"),
     });
+  await flash("Entry updated.");
   touch(firearmId);
 }
 
 export async function deleteZero(firearmId: string, entryId: string) {
   getDb().prepare(`delete from zero_records where id = ? and firearm_id = ?`).run(entryId, firearmId);
+  await flash("Entry removed.");
   touch(firearmId);
 }
 
@@ -251,6 +269,7 @@ export async function recordDisposition(firearmId: string, formData: FormData) {
       db.prepare(`update firearms set status = 'sold' where id = ?`).run(firearmId);
     }
   })();
+  await flash("Sale / transfer recorded.");
   touch(firearmId);
   revalidatePath("/inventory");
 }
@@ -263,10 +282,12 @@ export async function updateDisposition(firearmId: string, entryId: string, form
        where id = @id and firearm_id = @firearm_id`
     )
     .run({ id: entryId, firearm_id: firearmId, ...dispositionParams(formData) });
+  await flash("Record updated.");
   touch(firearmId);
 }
 
 export async function deleteDisposition(firearmId: string, entryId: string) {
   getDb().prepare(`delete from firearm_dispositions where id = ? and firearm_id = ?`).run(entryId, firearmId);
+  await flash("Record removed.");
   touch(firearmId);
 }

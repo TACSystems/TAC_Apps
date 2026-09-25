@@ -164,21 +164,21 @@ export default function ParTimer({ strings, title }: { strings: TimerString[] | 
 
       <div className="flex flex-wrap items-center justify-center gap-2">
         {!free && (
-          <button type="button" onClick={() => go(-1)} disabled={idx === 0} className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800 disabled:opacity-40">
+          <button type="button" onClick={() => go(-1)} disabled={idx === 0} className="btn btn-secondary">
             ← Prev
           </button>
         )}
         {phase === "standby" || phase === "running" ? (
-          <button type="button" onClick={stop} className="min-w-[10rem] border border-red-900 bg-red-950 px-6 py-3 text-base text-red-200 hover:bg-red-900">
+          <button type="button" onClick={stop} className="btn btn-danger btn-lg min-w-[10rem]">
             Stop (Space)
           </button>
         ) : (
-          <button type="button" onClick={start} className="min-w-[10rem] bg-brand-olive px-6 py-3 text-base hover:bg-brand-olive-light">
+          <button type="button" onClick={start} className="btn btn-primary btn-lg min-w-[10rem]">
             {phase === "done" ? "Repeat (Space)" : "Start (Space)"}
           </button>
         )}
         {!free && (
-          <button type="button" onClick={() => go(1)} disabled={idx >= strings!.length - 1} className="border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800 disabled:opacity-40">
+          <button type="button" onClick={() => go(1)} disabled={idx >= strings!.length - 1} className="btn btn-secondary">
             Next →
           </button>
         )}

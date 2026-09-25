@@ -192,12 +192,12 @@ export default function ArmoryTable({ rows }: { rows: ArmoryRow[] }) {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search by make/model, nickname, caliber, platform, or serial…"
-        className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+        className="input"
       />
 
-      <div className="overflow-x-auto border border-neutral-800">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-neutral-900 text-xs text-neutral-400">
+      <div className="table-wrap table-sticky">
+        <table className="table">
+          <thead>
             <tr>
               {COLUMNS.map(([k, t]) => header(k, t))}
             </tr>

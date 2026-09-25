@@ -56,7 +56,7 @@ export default function CourseList({ courses, categories }: { courses: CourseCar
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search courses by name, code, or category…"
-        className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+        className="input"
       />
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {shown.map((c) => (

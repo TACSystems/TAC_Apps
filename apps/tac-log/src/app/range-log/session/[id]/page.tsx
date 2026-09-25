@@ -106,7 +106,7 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
           </option>
         ))}
       </select>
-      <SubmitButton pendingLabel="…" className="border border-neutral-700 px-2 py-1 text-xs hover:bg-neutral-800">
+      <SubmitButton pendingLabel="…" className="btn btn-secondary btn-xs">
         Move
       </SubmitButton>
     </form>
@@ -130,10 +130,10 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href={`/range-log/new?mode=course&${qs}`} className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700">
+          <Link href={`/range-log/new?mode=course&${qs}`} className="btn btn-secondary">
             + Course Run
           </Link>
-          <Link href={`/range-day?${qs}`} className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700">
+          <Link href={`/range-day?${qs}`} className="btn btn-secondary">
             + Practice
           </Link>
         </div>
@@ -245,7 +245,7 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
                 <form action={deletePractice.bind(null, p.id, id)}>
                   <ConfirmSubmitButton
                     confirmMessage={`Remove this entry? ${p.rounds} rounds come off ${p.firearm ?? "the firearm"}'s count${p.deduct_from_ammo ? " and go back to ammo on hand" : ""}.`}
-                    className="text-xs text-red-400 hover:text-red-300"
+                    className="btn-link btn-link-danger text-xs"
                   >
                     Remove
                   </ConfirmSubmitButton>
@@ -269,8 +269,8 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
         <div className="flex flex-col gap-5">
           <form action={saveSession.bind(null, id)} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <label className="flex flex-col gap-1 text-sm">
-              Date
-              <input type="date" name="date" required defaultValue={session.date} className="border border-neutral-700 bg-neutral-950 px-3 py-2" />
+              <span className="req">Date</span>
+              <input type="date" name="date" required defaultValue={session.date} className="input" />
             </label>
             <label className="flex flex-col gap-1 text-sm sm:col-span-2">
               Range / Location
@@ -278,17 +278,17 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
             </label>
             <label className="flex flex-col gap-1 text-sm sm:col-span-3">
               Notes
-              <textarea name="notes" rows={2} defaultValue={session.notes ?? ""} className="border border-neutral-700 bg-neutral-950 px-3 py-2" />
+              <textarea name="notes" rows={2} defaultValue={session.notes ?? ""} className="input" />
             </label>
             <p className="text-xs text-neutral-500 sm:col-span-3">Changing the date or location updates every entry in this session.</p>
-            <SubmitButton className="w-fit bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">Save Session</SubmitButton>
+            <SubmitButton className="btn btn-primary w-fit">Save Session</SubmitButton>
           </form>
 
           {others.length > 0 && (
             <form action={mergeInto.bind(null, id)} className="flex flex-wrap items-end gap-2 border-t border-neutral-800 pt-4">
               <label className="flex flex-col gap-1 text-sm">
-                Merge this session into
-                <select name="target" required defaultValue="" className="border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
+                <span className="req">Merge this session into</span>
+                <select name="target" required defaultValue="" className="input">
                   <option value="" disabled>
                     Pick a session…
                   </option>
@@ -301,7 +301,7 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
               </label>
               <ConfirmSubmitButton
                 confirmMessage={`Merge ${title} into the session you picked? Its entries move there and take that session's date and location, and ${sessionNo(session.number)} goes away.`}
-                className="border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700"
+                className="btn btn-secondary"
               >
                 Merge
               </ConfirmSubmitButton>
@@ -311,7 +311,7 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
           <form action={deleteSession.bind(null, id)} className="border-t border-neutral-800 pt-4">
             <ConfirmSubmitButton
               confirmMessage={`Delete ${title} and everything in it (${runs.length} course run${runs.length === 1 ? "" : "s"}, ${practice.length} practice entr${practice.length === 1 ? "y" : "ies"})? The rounds come off each firearm's count and go back to ammo on hand. This cannot be undone.`}
-              className="border border-red-900 bg-red-950 px-4 py-2 text-sm text-red-200 hover:bg-red-900"
+              className="btn btn-danger"
             >
               Delete Session
             </ConfirmSubmitButton>

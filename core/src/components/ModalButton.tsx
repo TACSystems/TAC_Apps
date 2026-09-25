@@ -35,8 +35,8 @@ export default function ModalButton({
         onClick={() => setOpen(true)}
         className={
           primary
-            ? "bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light"
-            : "border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700"
+            ? "btn btn-primary"
+            : "btn btn-secondary"
         }
       >
         {label}

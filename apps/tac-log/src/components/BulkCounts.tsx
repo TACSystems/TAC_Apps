@@ -21,9 +21,9 @@ function Table({ kind, title, rows, unit }: { kind: "firearm" | "ammo"; title: s
         <p className="text-xs text-neutral-500">Nothing here yet.</p>
       ) : (
         <>
-          <div className="overflow-x-auto border border-neutral-800">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-neutral-900 text-xs text-neutral-400">
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
                 <tr>
                   <th className="px-3 py-2">{kind === "firearm" ? "Firearm" : "Caliber"}</th>
                   <th className="px-3 py-2">Now</th>
@@ -42,7 +42,7 @@ function Table({ kind, title, rows, unit }: { kind: "firearm" | "ammo"; title: s
                         value={values[r.key] ?? ""}
                         placeholder="unchanged"
                         onChange={(e) => setValues({ ...values, [r.key]: e.target.value })}
-                        className="w-28 border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm"
+                        className="input input-sm w-28"
                       />
                     </td>
                   </tr>
@@ -54,18 +54,18 @@ function Table({ kind, title, rows, unit }: { kind: "firearm" | "ammo"; title: s
             <button
               type="button"
               onClick={() => setValues(Object.fromEntries(rows.map((r) => [r.key, "0"])))}
-              className="border border-neutral-700 px-3 py-1.5 text-xs hover:bg-neutral-800"
+              className="btn btn-secondary btn-sm"
             >
               Fill all with 0
             </button>
-            <button type="button" onClick={() => setValues({})} className="border border-neutral-700 px-3 py-1.5 text-xs hover:bg-neutral-800">
+            <button type="button" onClick={() => setValues({})} className="btn btn-secondary btn-sm">
               Clear
             </button>
             <input
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               placeholder="Type RESET to confirm"
-              className="w-48 border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-xs"
+              className="input input-sm w-48 text-xs"
             />
             <button
               type="button"
@@ -85,7 +85,7 @@ function Table({ kind, title, rows, unit }: { kind: "firearm" | "ammo"; title: s
                   }
                 })
               }
-              className="border border-red-900 bg-red-950 px-3 py-1.5 text-xs text-red-200 hover:bg-red-900 disabled:opacity-50"
+              className="btn btn-danger btn-sm"
             >
               {pending ? "Applying…" : `Apply ${changed.length} change${changed.length === 1 ? "" : "s"}`}
             </button>

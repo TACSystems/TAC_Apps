@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { loadCourse } from "@core/lib/cof";
 import { adjustShots, parseRangeLogForm, writeZoneCounts } from "@/lib/range-log";
 import { assignEntry } from "@/lib/sessions";
+import { flash } from "@core/lib/flash";
 
 export async function submitRangeLog(cofId: string, formData: FormData) {
   const db = getDb();
@@ -30,6 +31,8 @@ export async function submitRangeLog(cofId: string, formData: FormData) {
     assignEntry(db, "range_log", logId);
     adjustShots(db, parsed.firearmId, parsed.roundsFired);
   })();
+
+  await flash("Course run saved.");
 
   revalidatePath("/range-log");
   revalidatePath("/ammo");

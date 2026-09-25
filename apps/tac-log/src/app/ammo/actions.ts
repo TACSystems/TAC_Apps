@@ -6,6 +6,7 @@ import { upsertGoal } from "@/lib/ammo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isoDate, number, text } from "@core/lib/forms";
+import { flash } from "@core/lib/flash";
 
 export async function createAmmoPurchase(formData: FormData) {
   const db = getDb();
@@ -46,12 +47,14 @@ export async function setAmmoGoal(formData: FormData) {
 export async function deleteAmmoPurchase(id: string) {
   const db = getDb();
   db.prepare(`delete from ammo_purchases where id = ?`).run(id);
+  await flash("Purchase deleted.");
   revalidatePath("/ammo");
   redirect("/ammo");
 }
 
 export async function deleteAmmoGoal(id: string) {
   getDb().prepare(`delete from ammo_goals where id = ?`).run(id);
+  await flash("Goal removed.");
   revalidatePath("/ammo");
   revalidatePath("/");
   redirect("/ammo");
@@ -76,6 +79,7 @@ export async function updateAmmoPurchase(id: string, formData: FormData) {
       date_purchased: isoDate(formData, "date_purchased"),
       price: number(formData, "price", { min: 0 }),
     });
+  await flash("Purchase updated.");
   revalidatePath("/ammo");
   revalidatePath("/");
   redirect("/ammo");

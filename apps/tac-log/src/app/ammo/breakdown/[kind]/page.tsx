@@ -45,9 +45,9 @@ export default async function AmmoBreakdownPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      <div className="overflow-x-auto border border-neutral-800">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-neutral-900 text-neutral-400">
+      <div className="table-wrap table-sticky">
+        <table className="table">
+          <thead>
             <tr>
               <th className={cell}>Caliber</th>
               {dims.includes("manufacturer") && <th className={cell}>Brand</th>}

@@ -1,3 +1,4 @@
+import PageHeader from "@core/components/PageHeader";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { CourseOfFire, RangeLog } from "@/lib/db/types";
@@ -70,7 +71,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
 
   return (
     <div data-scope="stats" className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Stats</h1>
+      <PageHeader title="Stats" icon="stats" />
       {ov.sessions === 0 && ov.totalRounds === 0 && (
         <EmptyState
           title="Nothing to chart yet"
@@ -145,9 +146,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
       </Collapsible>
 
       <Collapsible id="categories" scope="stats" title="By Category" defaultOpen={open("categories", true)}>
-        <div className="overflow-x-auto border border-neutral-800">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-900 text-neutral-400">
+        <div className="table-wrap table-sticky">
+          <table className="table">
+            <thead>
               <tr>
                 <th className={th}>Category</th>
                 <th className={th}>Sessions</th>
@@ -174,9 +175,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
       </Collapsible>
 
       <Collapsible id="courses" scope="stats" title="By Course" defaultOpen={open("courses", true)}>
-        <div className="overflow-x-auto border border-neutral-800">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-900 text-neutral-400">
+        <div className="table-wrap table-sticky">
+          <table className="table">
+            <thead>
               <tr>
                 <th className={th}>Course</th>
                 <th className={th}>Sessions</th>
@@ -208,9 +209,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
       </Collapsible>
 
       <Collapsible id="firearms" scope="stats" title="By Firearm" defaultOpen={open("firearms", true)}>
-        <div className="overflow-x-auto border border-neutral-800">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-900 text-neutral-400">
+        <div className="table-wrap table-sticky">
+          <table className="table">
+            <thead>
               <tr>
                 <th className={th}>Firearm</th>
                 <th className={th}>Rounds</th>
@@ -248,9 +249,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
         <p className="mb-2 text-xs text-neutral-500">
           Cost per round comes from purchases with a price entered. Estimated spend = rounds fired × cost per round.
         </p>
-        <div className="overflow-x-auto border border-neutral-800">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-900 text-neutral-400">
+        <div className="table-wrap table-sticky">
+          <table className="table">
+            <thead>
               <tr>
                 <th className={th}>Caliber</th>
                 <th className={th}>Purchased</th>

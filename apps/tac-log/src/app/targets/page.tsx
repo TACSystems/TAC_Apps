@@ -1,3 +1,5 @@
+import Icon from "@core/components/Icon";
+import PageHeader from "@core/components/PageHeader";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { listTargetTypes } from "@core/lib/cof";
@@ -10,20 +12,17 @@ export default async function TargetTypesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <Link href="/courses" className="text-xs text-brand-amber hover:text-brand-amber-light">
-            ← Courses of Fire
+      <PageHeader
+        title="Target Types"
+        icon="target"
+        back={{ href: "/courses", label: "Courses of Fire" }}
+        subtitle="Each target type carries its own scoring matrix and can be reused by any course of fire."
+        actions={
+          <Link href="/targets/new" className="btn btn-primary">
+            <Icon name="plus" /> New Target Type
           </Link>
-          <h1 className="text-xl font-semibold">Target Types</h1>
-          <p className="text-sm text-neutral-400">
-            Each target type carries its own scoring matrix and can be reused by any course of fire.
-          </p>
-        </div>
-        <Link href="/targets/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
-          New Target Type
-        </Link>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {targets.map((t) => (

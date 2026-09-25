@@ -2,7 +2,7 @@ import SubmitButton from "@core/components/SubmitButton";
 import UnsavedGuard from "@core/components/UnsavedGuard";
 import { DOC_TYPES, NFA_STATUSES, type DocRow } from "@/lib/documents";
 
-const input = "border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm normal-case";
+const input = "input";
 
 export default function DocumentForm({
   doc,
@@ -29,7 +29,7 @@ export default function DocumentForm({
         </select>
       </label>
       <label className="flex flex-col gap-1 text-sm">
-        Name / Title
+        <span className="req">Name / Title</span>
         <input name="title" required defaultValue={doc?.title ?? ""} placeholder="e.g. Texas LTC, Suppressor tax stamp" className={input} />
       </label>
       <label className="flex flex-col gap-1 text-sm">
@@ -80,7 +80,7 @@ export default function DocumentForm({
         Notes
         <textarea name="notes" rows={2} defaultValue={doc?.notes ?? ""} placeholder="Renewal steps, reciprocity notes, examiner, etc." className={input} />
       </label>
-      <SubmitButton className="w-fit bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">{submitLabel}</SubmitButton>
+      <SubmitButton className="btn btn-primary w-fit">{submitLabel}</SubmitButton>
     </form>
   );
 }

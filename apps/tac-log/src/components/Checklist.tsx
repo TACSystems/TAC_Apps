@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import type { ChecklistItem } from "@/lib/checklist";
 import { addItem, deleteItem, deleteList, moveItem, renameList, resetList, toggleItem } from "@/app/checklist/actions";
 
-const input = "border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-sm normal-case";
+const input = "input input-sm";
 
 export default function Checklist({ list, items, sections }: { list: string; items: ChecklistItem[]; sections: string[] }) {
   const router = useRouter();
@@ -39,17 +39,17 @@ export default function Checklist({ list, items, sections }: { list: string; ite
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => window.print()} className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700">
+          <button type="button" onClick={() => window.print()} className="btn btn-secondary">
             Print Checklist
           </button>
           <button
             type="button"
             onClick={() => startTransition(async () => { await resetList(list); router.refresh(); })}
-            className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800"
+            className="btn btn-secondary"
           >
             Uncheck All
           </button>
-          <button type="button" onClick={() => setEditing(!editing)} className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
+          <button type="button" onClick={() => setEditing(!editing)} className="btn btn-secondary">
             {editing ? "Done Editing" : "Edit List"}
           </button>
         </div>
@@ -69,7 +69,7 @@ export default function Checklist({ list, items, sections }: { list: string; ite
             onClick={() => {
               confirm(`Delete the whole "${list}" list?`).then((ok) => ok && startTransition(async () => { await deleteList(list); router.push("/checklist"); }));
             }}
-            className="border border-red-900 bg-red-950 px-3 py-1.5 text-xs text-red-200"
+            className="btn btn-danger btn-sm"
           >
             Delete List
           </button>
@@ -131,7 +131,7 @@ export default function Checklist({ list, items, sections }: { list: string; ite
           <input list="cl-sections" value={section} onChange={(e) => setSection(e.target.value)} className={input} />
         </label>
         <datalist id="cl-sections">{sections.map((s) => <option key={s} value={s} />)}</datalist>
-        <button type="submit" className="bg-brand-olive px-4 py-2 text-sm hover:bg-brand-olive-light">
+        <button type="submit" className="btn btn-primary">
           Add
         </button>
       </form>

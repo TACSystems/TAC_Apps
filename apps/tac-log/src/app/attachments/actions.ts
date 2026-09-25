@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db";
+import { flash } from "@core/lib/flash";
 import {
   deleteAttachment,
   ownerPath,
@@ -33,5 +34,6 @@ export async function uploadAttachment(
 export async function removeAttachment(id: string) {
   const row = deleteAttachment(getDb(), id);
   if (row) revalidatePath(ownerPath(row.owner_type, row.owner_id));
+  await flash("File removed.");
   revalidatePath("/reports/inventory");
 }

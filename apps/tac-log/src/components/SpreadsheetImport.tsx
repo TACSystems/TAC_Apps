@@ -101,7 +101,7 @@ export default function SpreadsheetImport() {
           type="button"
           disabled={busy}
           onClick={() => send("preview")}
-          className="border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700 disabled:opacity-60"
+          className="btn btn-secondary"
         >
           {busy && !preview ? "Reading…" : "Preview Import"}
         </button>
@@ -126,7 +126,7 @@ export default function SpreadsheetImport() {
               type="button"
               disabled={busy}
               onClick={() => send("commit")}
-              className="w-fit bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60"
+              className="btn btn-primary w-fit"
             >
               {busy ? "Importing…" : `Import ${newCount} item${newCount === 1 ? "" : "s"}`}
             </button>

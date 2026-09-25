@@ -49,7 +49,7 @@ export default async function TimerPage({ searchParams }: { searchParams: Promis
           </p>
         </div>
         <form className="flex items-center gap-2" action="/timer">
-          <select name="course" defaultValue={course?.id ?? ""} className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm">
+          <select name="course" defaultValue={course?.id ?? ""} className="input">
             <option value="">Free timer</option>
             {courses.map((c) => (
               <option key={c.id} value={c.id}>
@@ -57,7 +57,7 @@ export default async function TimerPage({ searchParams }: { searchParams: Promis
               </option>
             ))}
           </select>
-          <button type="submit" className="border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700">
+          <button type="submit" className="btn btn-secondary">
             Load
           </button>
         </form>
