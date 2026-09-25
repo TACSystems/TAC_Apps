@@ -36,8 +36,9 @@ export default function HelpPage() {
       <Guide id="start" title="Getting Started" keywords="first start begin new setup">
         <ol>
           <li>Add your firearms in the <A href="/inventory">Armory</A>, or import your spreadsheet under <A href="/settings#settings-import-export">Settings › Import / Export</A>.</li>
-          <li>Log ammo purchases and set a goal per caliber on the <A href="/ammo">Ammo</A> page.</li>
-          <li>After a range trip, log a scored course of fire, use <A href="/range-day">Range Day</A> for several firearms at once, or use Update Rounds Fired on a single firearm.</li>
+          <li>Log ammo purchases and set goals on the <A href="/ammo">Ammo</A> page (buttons at the top right).</li>
+          <li>After a range trip, press <A href="/range-log/new">Log a Range Session</A> and choose Course of fire or Practice only. Everything from the same date and location becomes one numbered session.</li>
+          <li>Long pages fold into sections: click a heading to open or close it, or use Expand All / Collapse All. TAC-LOG remembers what you left open.</li>
           <li>Set up a backup under <A href="/settings#settings-backup">Settings › Backup</A>. Everything stays on this computer, so backups are your only copy.</li>
         </ol>
       </Guide>
@@ -52,11 +53,13 @@ export default function HelpPage() {
         </ul>
       </Guide>
 
-      <Guide id="range" title="Logging Range Time" keywords="range session log course score range day rounds fired practice par timer checklist">
+      <Guide id="range" title="Logging Range Time" keywords="range session log course score run practice range day rounds fired merge move number par timer checklist">
         <ul>
-          <li><b>Scored course:</b> Log a Range Session › pick the course › enter hits per zone. The score, PASS/FAIL, round count, and ammo all update.</li>
-          <li><b>Range Day:</b> one screen for a whole trip. Add every firearm with rounds and ammo. Pick a course and type a score for any that were scored.</li>
-          <li><b>Update Rounds Fired</b> (on a firearm) is for practice without a course.</li>
+          <li><b>Sessions:</b> a session is one trip: a date and a location, numbered #0001, #0002, and so on. Every course run and practice entry with the same date and location joins it automatically, and the Range Log shows one line per session.</li>
+          <li><b>Course of fire:</b> Log a Range Session › Course of fire › pick the course › enter hits per zone. The score, PASS/FAIL, round count, and ammo all update.</li>
+          <li><b>Practice only:</b> one screen for every firearm you shot, with rounds and the ammo used. You can also type a quick score for a course.</li>
+          <li><b>Adding to a session:</b> open it and use + Course Run or + Practice; the date and location are filled in for you. Update Rounds Fired on a firearm also joins the session for its date and location.</li>
+          <li><b>Fixing sessions:</b> on a session page, Move sends an entry to another session (or splits it into a new one). Edit Session changes the date or location for everything in it, merges it into another session, or deletes it.</li>
           <li><b>Par Timer:</b> run a course string by string with start and par beeps, or use the free timer for dry fire. Press Space to start or stop.</li>
           <li><b>Range Bag Checklist:</b> tick items off as you pack, print it, and press Uncheck All for the next trip.</li>
         </ul>
@@ -71,10 +74,13 @@ export default function HelpPage() {
         </ul>
       </Guide>
 
-      <Guide id="counts" title="Ammo, Round Counts & Corrections" keywords="ammo on hand goal low correct count reset rounds fired lifetime adjust part counter barrel">
+      <Guide id="counts" title="Ammo, Round Counts & Corrections" keywords="ammo on hand goal low correct count reset rounds fired lifetime adjust part counter barrel type grain brand pick">
         <ul>
-          <li>Ammo on hand = purchases − rounds logged as fired (range sessions and Update Rounds Fired with Deduct checked) ± corrections.</li>
-          <li><b>Correct count</b> (on each caliber on the Ammo page, or on a firearm&apos;s Shots Fired) sets the real number. It&apos;s saved as a dated correction you can remove, so history and stats stay intact.</li>
+          <li>Ammo on hand = purchases − rounds logged as fired (course runs, and practice with Deduct checked) ± corrections.</li>
+          <li><b>Which ammo:</b> when you log rounds, pick the ammo used (caliber, type, grain, brand). It defaults to the last ammo used in that firearm, and those rounds come off that exact line. Rounds logged without a pick show as &quot;Not specified&quot; under their caliber.</li>
+          <li><b>Goals</b> are per caliber, and can be narrowed to a type and grain (e.g. 9mm · JHP · 124gr). They show across the top of the Ammo page and on the dashboard.</li>
+          <li><b>Totals:</b> the boxes at the top of the Ammo page open full lists by caliber, by caliber · brand · grain, and by caliber · type · grain.</li>
+          <li><b>Correct count</b> (open a type/grain line on the Ammo page and use it on a brand, or on a firearm&apos;s Shots Fired) sets the real number. It&apos;s saved as a dated correction you can remove, so history and stats stay intact.</li>
           <li><b>Controls › Armory / Ammo</b> have bulk corrections for many at once. Type RESET to confirm. A safety copy of the database is saved first.</li>
           <li><b>Part Counters</b> (on a firearm) track rounds on a barrel, spring, and so on. Replaced starts the counter over and logs the swap.</li>
         </ul>

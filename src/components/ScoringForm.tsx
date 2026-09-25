@@ -7,6 +7,8 @@ import { passFail, type ScorecardField, type ZoneDef } from "@/lib/cof-shared";
 import SubmitButton from "@/components/SubmitButton";
 import { todayISO } from "@/lib/settings-shared";
 import { firearmMatchesCategories } from "@/lib/course-categories";
+import AmmoPick from "@/components/AmmoPick";
+import { defaultPickFor, type PickOpt } from "@/lib/ammo-pick";
 
 const inputCls = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";
 
@@ -23,7 +25,9 @@ export default function ScoringForm({
   initial,
   matchCategories = [],
   graderDateFollows = false,
-  submitLabel = "Save Range Session",
+  submitLabel = "Save Course Run",
+  ammoOptions = [],
+  lastPicks = {},
 }: {
   zones: ZoneDef[];
   fields: ScorecardField[];
@@ -41,18 +45,24 @@ export default function ScoringForm({
     counts: Record<string, number>;
     notes: string | null;
     passing: number | null;
+    pick?: string;
   };
+  ammoOptions?: PickOpt[];
+  lastPicks?: Record<string, string>;
   submitLabel?: string;
   matchCategories?: string[];
   graderDateFollows?: boolean;
 }) {
-  const [sessionDate, setSessionDate] = useState(initial?.date ?? todayISO());
+  const [sessionDate, setSessionDate] = useState(initial?.date ?? defaults.date ?? todayISO());
   const [graderDate, setGraderDate] = useState(defaults.grader_date ?? "");
   const [graderTouched, setGraderTouched] = useState(Boolean(defaults.grader_date) || !graderDateFollows);
   const shownGraderDate = graderTouched ? graderDate : sessionDate;
   const matching = matchCategories.length ? firearms.filter((f) => firearmMatchesCategories(f.platform, matchCategories)) : [];
   const others = matching.length ? firearms.filter((f) => !matching.includes(f)) : firearms;
   const [counts, setCounts] = useState<Record<string, number>>(initial?.counts ?? {});
+  const [firearmId, setFirearmId] = useState(initial?.firearm_id ?? "");
+  const caliberOf = (id: string) => firearms.find((f) => f.id === id)?.caliber ?? null;
+  const [pick, setPick] = useState(initial ? initial.pick ?? "" : defaultPickFor(ammoOptions, caliberOf(firearmId), lastPicks[firearmId]));
 
   const totalPoints = zones.reduce((sum, z) => sum + z.value * (counts[z.zone_label] ?? 0), 0);
   const roundsCounted = zones.reduce((sum, z) => sum + (counts[z.zone_label] ?? 0), 0);
@@ -76,7 +86,16 @@ export default function ScoringForm({
         </label>
         <label className="flex flex-col gap-1 text-sm">
           Firearm
-          <select name="firearm_id" required defaultValue={initial?.firearm_id ?? ""} className={inputCls}>
+          <select
+            name="firearm_id"
+            required
+            value={firearmId}
+            onChange={(e) => {
+              setFirearmId(e.target.value);
+              setPick(defaultPickFor(ammoOptions, caliberOf(e.target.value), lastPicks[e.target.value]));
+            }}
+            className={inputCls}
+          >
             <option value="">— Select —</option>
             {matching.length > 0 ? (
               <>
@@ -105,6 +124,10 @@ export default function ScoringForm({
               ))
             )}
           </select>
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Ammo Used
+          <AmmoPick options={ammoOptions} caliber={caliberOf(firearmId)} value={pick} onChange={setPick} className={inputCls} />
         </label>
         <label className="flex flex-col gap-1 text-sm">
           Rounds Fired

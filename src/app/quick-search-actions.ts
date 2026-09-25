@@ -19,7 +19,12 @@ const PAGES: QuickHit[] = [
   { group: "Pages", label: "Target Types", href: "/targets" },
   { group: "Pages", label: "Range Log", href: "/range-log" },
   { group: "Pages", label: "Log a Range Session", href: "/range-log/new" },
-  { group: "Pages", label: "Range Day", href: "/range-day" },
+  { group: "Pages", label: "Log Practice (several firearms)", href: "/range-day" },
+  { group: "Pages", label: "Ammo by caliber (full list)", href: "/ammo/breakdown/caliber" },
+  { group: "Pages", label: "Ammo by caliber, brand, grain", href: "/ammo/breakdown/brand" },
+  { group: "Pages", label: "Ammo by caliber, type, grain", href: "/ammo/breakdown/type" },
+  { group: "Pages", label: "Log Ammo Purchase", href: "/ammo?open=purchase" },
+  { group: "Pages", label: "Set an Ammo Goal", href: "/ammo?open=goal" },
   { group: "Pages", label: "Par Timer", href: "/timer" },
   { group: "Pages", label: "Range Bag Checklist", href: "/checklist" },
   { group: "Pages", label: "Stats", href: "/stats" },
@@ -79,6 +84,21 @@ export async function quickSearch(query: string): Promise<QuickHit[]> {
     .prepare(`select id, title, doc_type, number from documents where lower(title || ' ' || doc_type || ' ' || coalesce(number,'') || ' ' || coalesce(issuer,'')) like ? limit 20`)
     .all(like) as { id: string; title: string; doc_type: string; number: string | null }[];
   for (const d of docs) if (match(`${d.title} ${d.doc_type} ${d.number ?? ""}`)) out.push({ group: "Documents", label: d.title, sub: d.doc_type, href: `/documents/${d.id}` });
+  const trips = db
+    .prepare(
+      `select id, number, date, location from range_sessions
+       where lower('#' || substr('0000' || number, -4) || ' ' || number || ' ' || date || ' ' || coalesce(location,'')) like ?
+       order by date desc limit 20`
+    )
+    .all(like) as { id: string; number: number; date: string; location: string | null }[];
+  for (const t of trips)
+    if (match(`#${String(t.number).padStart(4, "0")} ${t.number} ${t.date} ${t.location ?? ""}`))
+      out.push({
+        group: "Range Sessions",
+        label: `#${String(t.number).padStart(4, "0")} · ${fd(t.date)}`,
+        sub: t.location ?? undefined,
+        href: `/range-log/session/${t.id}`,
+      });
   const sessions = db
     .prepare(
       `select r.id, r.date, c.name as course, firearm_label(f.make_model, f.nickname) as firearm, r.final_score_percent as score
@@ -89,7 +109,7 @@ export async function quickSearch(query: string): Promise<QuickHit[]> {
     .all(like) as { id: string; date: string; course: string | null; firearm: string | null; score: number | null }[];
   for (const s of sessions)
     out.push({
-      group: "Range Sessions",
+      group: "Course Runs",
       label: `${fd(s.date)} · ${s.course ?? "Unlisted course"}`,
       sub: [s.firearm, s.score != null ? `${s.score}%` : null].filter(Boolean).join(" · "),
       href: `/range-log/${s.id}`,

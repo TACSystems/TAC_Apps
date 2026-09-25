@@ -26,19 +26,22 @@ const EXPORTS: Record<string, { headers: string[]; sql: string }> = {
           from ammo_purchases order by date_purchased desc`,
   },
   "range-sessions": {
-    headers: ["DATE", "COURSE", "COURSE CODE", "FIREARM", "CALIBER", "AMMO LOT", "RANGE LOCATION", "WEATHER", "ROUNDS FIRED", "ROUNDS COUNTED", "TOTAL POINTS", "FINAL SCORE %", "PASSING %", "RESULT", "GRADER", "NOTES"],
-    sql: `select r.date, c.name, c.code, coalesce(f.make_model, r.weapon_used), r.caliber, r.ammo_lot, r.range_location,
+    headers: ["SESSION #", "DATE", "COURSE", "COURSE CODE", "FIREARM", "CALIBER", "AMMO TYPE", "AMMO GRAIN", "AMMO BRAND", "AMMO LOT", "RANGE LOCATION", "WEATHER", "ROUNDS FIRED", "ROUNDS COUNTED", "TOTAL POINTS", "FINAL SCORE %", "PASSING %", "RESULT", "GRADER", "NOTES"],
+    sql: `select s.number, r.date, c.name, c.code, coalesce(f.make_model, r.weapon_used), r.caliber, r.ammo_type, r.ammo_grain, r.ammo_manufacturer, r.ammo_lot, r.range_location,
             r.weather_conditions, r.rounds_fired, r.rounds_counted, r.total_points, r.final_score_percent, r.passing_score_percent,
             case when r.passing_score_percent is null or r.final_score_percent is null then null
                  when r.final_score_percent >= r.passing_score_percent then 'PASS' else 'FAIL' end,
             r.grader_name, r.notes
           from range_log r left join courses_of_fire c on c.id = r.cof_id left join firearms f on f.id = r.firearm_id
+          left join range_sessions s on s.id = r.session_id
           order by r.date desc`,
   },
   "rounds-fired": {
-    headers: ["DATE", "FIREARM", "ROUNDS", "CALIBER", "AMMO LOT", "DEDUCTED FROM AMMO", "NOTES"],
-    sql: `select r.date, f.make_model, r.rounds, r.caliber, r.ammo_lot, case when r.deduct_from_ammo = 1 then 'YES' else 'NO' end, r.notes
-          from rounds_fired_log r left join firearms f on f.id = r.firearm_id order by r.date desc`,
+    headers: ["SESSION #", "DATE", "RANGE LOCATION", "FIREARM", "ROUNDS", "CALIBER", "AMMO TYPE", "AMMO GRAIN", "AMMO BRAND", "AMMO LOT", "DEDUCTED FROM AMMO", "NOTES"],
+    sql: `select s.number, r.date, r.range_location, f.make_model, r.rounds, r.caliber, r.ammo_type, r.ammo_grain, r.ammo_manufacturer, r.ammo_lot,
+            case when r.deduct_from_ammo = 1 then 'YES' else 'NO' end, r.notes
+          from rounds_fired_log r left join firearms f on f.id = r.firearm_id left join range_sessions s on s.id = r.session_id
+          order by r.date desc`,
   },
   maintenance: {
     headers: ["DATE", "FIREARM", "TYPE", "ROUND COUNT", "NOTES"],

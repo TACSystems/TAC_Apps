@@ -402,7 +402,7 @@ export default function CourseBuilder({
             <span className="px-2 py-1 text-neutral-500">Max possible: {maxPoints} pts</span>
           </div>
         ) : (
-          <p className="text-xs text-neutral-500">Without a target type, range sessions on this course can&apos;t be scored.</p>
+          <p className="text-xs text-neutral-500">Without a target type, runs of this course can&apos;t be scored.</p>
         )}
       </section>
 
@@ -736,7 +736,7 @@ export default function CourseBuilder({
       <section className="flex flex-col gap-3">
         <h2 className="font-medium text-neutral-200">5 · Scorecard Fields</h2>
         <p className="text-xs text-neutral-500">
-          These lines print on the scorecard and appear on the Log a Range Session form. &quot;Wide&quot; spans the full width;
+          These lines print on the scorecard and appear on the scoring form. &quot;Wide&quot; spans the full width;
           &quot;Print only&quot; is for lines like signatures that are filled in by hand.
         </p>
         {(["header", "signoff"] as const).map((list) => (

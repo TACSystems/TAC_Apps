@@ -6,6 +6,7 @@ import type { Firearm, RangeLog, RangeLogZoneCount } from "@/lib/db/types";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import ScoringForm from "@/components/ScoringForm";
 import { updateRangeLog } from "../../actions";
+import { encodePick, pickOptions } from "@/lib/ammo";
 
 export const dynamic = "force-dynamic";
 
@@ -48,9 +49,9 @@ export default async function EditRangeSessionPage({ params }: { params: Promise
   return (
     <div className="max-w-4xl">
       <Link href={`/range-log/${id}`} className="text-xs text-brand-amber hover:text-brand-amber-light">
-        ← Back to session
+        ← Back to course run
       </Link>
-      <h1 className="text-xl font-semibold">Edit Range Session</h1>
+      <h1 className="text-xl font-semibold">Edit Course Run</h1>
       <p className="mb-4 text-sm text-neutral-400">
         {course?.name ?? "Course no longer on file"} · scored with the zone values it was logged with. Changing the
         firearm or rounds fired updates both firearms&apos; shot counts.
@@ -75,7 +76,12 @@ export default async function EditRangeSessionPage({ params }: { params: Promise
           counts,
           notes: log.notes,
           passing: log.passing_score_percent,
+          pick:
+            log.caliber && (log.ammo_type || log.ammo_grain != null || log.ammo_manufacturer)
+              ? encodePick({ caliber: log.caliber, ammo_type: log.ammo_type, grain: log.ammo_grain, manufacturer: log.ammo_manufacturer })
+              : "",
         }}
+        ammoOptions={pickOptions(db)}
         action={updateRangeLog.bind(null, id)}
         submitLabel="Save Changes"
       />

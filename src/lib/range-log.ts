@@ -8,6 +8,7 @@ import {
   type ZoneDef,
 } from "@/lib/cof-shared";
 import type { Firearm } from "@/lib/db/types";
+import { decodePick } from "@/lib/ammo";
 
 function str(v: FormDataEntryValue | null) {
   const s = typeof v === "string" ? v.trim() : "";
@@ -51,7 +52,10 @@ export function parseRangeLogForm(
     const v = str(formData.get(`field:${f.key}`));
     if (v) custom[f.key] = v;
   }
-  const grain = str(formData.get("field:grain"));
+  const pick = decodePick(formData.get("ammo_pick"));
+  if (pick) caliber = pick.caliber;
+  const grainField = str(formData.get("field:grain"));
+  const grain = grainField ?? (pick?.grain != null ? String(pick.grain) : null);
 
   return {
     zoneRows,
@@ -73,6 +77,9 @@ export function parseRangeLogForm(
       grader_name: str(formData.get("field:grader_name")),
       custom_fields_json: Object.keys(custom).length ? JSON.stringify(custom) : null,
       notes: str(formData.get("notes")),
+      ammo_type: pick?.ammo_type ?? null,
+      ammo_grain: pick?.grain ?? null,
+      ammo_manufacturer: pick?.manufacturer ?? null,
     },
   };
 }

@@ -2,6 +2,7 @@
 
 import { getDb } from "@/lib/db";
 import { randomUUID } from "crypto";
+import { upsertGoal } from "@/lib/ammo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -24,23 +25,21 @@ export async function createAmmoPurchase(formData: FormData) {
 
   revalidatePath("/ammo");
   revalidatePath("/");
-  redirect("/ammo");
+  redirect(`/ammo?done=purchase-${Date.now()}`);
 }
 
 export async function setAmmoGoal(formData: FormData) {
-  const db = getDb();
-  db.prepare(
-    `insert into ammo_goals (id, caliber, goal_quantity)
-     values (@id, @caliber, @goal_quantity)
-     on conflict(caliber) do update set goal_quantity = excluded.goal_quantity`
-  ).run({
-    id: randomUUID(),
-    caliber: String(formData.get("caliber")),
-    goal_quantity: Number(formData.get("goal_quantity") || 0),
-  });
-
+  const caliber = String(formData.get("caliber") ?? "").trim();
+  const goal = Math.round(Number(formData.get("goal_quantity") || 0));
+  if (caliber && goal > 0) {
+    const type = String(formData.get("ammo_type") ?? "").trim() || null;
+    const grainRaw = String(formData.get("grain") ?? "").trim();
+    const grain = grainRaw && Number.isFinite(Number(grainRaw)) ? Math.round(Number(grainRaw)) : null;
+    upsertGoal(getDb(), { caliber, ammo_type: type, grain, goal });
+  }
   revalidatePath("/ammo");
-  redirect("/ammo");
+  revalidatePath("/");
+  redirect(`/ammo?done=goal-${Date.now()}`);
 }
 
 export async function deleteAmmoPurchase(id: string) {
@@ -50,8 +49,8 @@ export async function deleteAmmoPurchase(id: string) {
   redirect("/ammo");
 }
 
-export async function deleteAmmoGoal(caliber: string) {
-  getDb().prepare(`delete from ammo_goals where caliber = ?`).run(caliber);
+export async function deleteAmmoGoal(id: string) {
+  getDb().prepare(`delete from ammo_goals where id = ?`).run(id);
   revalidatePath("/ammo");
   revalidatePath("/");
   redirect("/ammo");

@@ -7,11 +7,19 @@ import ScoringForm from "@/components/ScoringForm";
 import { getSettings } from "@/lib/settings";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import { submitRangeLog } from "./actions";
+import { lastPicks, pickOptions } from "@/lib/ammo";
 
 export const dynamic = "force-dynamic";
 
-export default async function LogRunPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function LogRunPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ date?: string; location?: string }>;
+}) {
   const { id } = await params;
+  const sp = await searchParams;
   const db = getDb();
   const course = loadCourse(db, id);
   if (!course) notFound();
@@ -25,6 +33,8 @@ export default async function LogRunPage({ params }: { params: Promise<{ id: str
   if (settings.defaultShooterName) defaults.shooter_name = settings.defaultShooterName;
   if (settings.defaultGraderName) defaults.grader_name = settings.defaultGraderName;
   if (settings.defaultRangeLocation) defaults.range_location = settings.defaultRangeLocation;
+  if (sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date)) defaults.date = sp.date;
+  if (sp.location !== undefined) defaults.range_location = String(sp.location).slice(0, 200);
   const matchCategories = course.categories;
   const suggestions = {
     range_location: getDropdownOptions(db, "range_location"),
@@ -70,6 +80,8 @@ export default async function LogRunPage({ params }: { params: Promise<{ id: str
           defaults={defaults}
           suggestions={suggestions}
           action={submitRangeLog.bind(null, id)}
+          ammoOptions={pickOptions(db)}
+          lastPicks={lastPicks(db)}
         />
       ) : (
         <p className="text-sm text-neutral-400">

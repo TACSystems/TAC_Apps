@@ -9,6 +9,10 @@ import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import { listAttachments } from "@/lib/attachments";
 import { daysUntil, docState, type DocRow } from "@/lib/documents";
 import { deleteDocument, updateDocument } from "../actions";
+import Collapsible from "@/components/Collapsible";
+import SectionTools from "@/components/SectionTools";
+import { pageSections } from "@/lib/page-sections";
+import { fd } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +32,10 @@ export default async function DocumentPage({
   const firearms = db
     .prepare(`select id, firearm_label(make_model, nickname) as label from firearms order by make_model`)
     .all() as { id: string; label: string }[];
+  const open = pageSections(db, "document");
+  const scans = listAttachments(db, "document", id);
   return (
-    <div className="flex max-w-4xl flex-col gap-6">
+    <div data-scope="document" className="flex max-w-4xl flex-col gap-4">
       <div>
         <Link href="/documents" className="text-xs text-brand-amber hover:text-brand-amber-light">
           ← Permits &amp; Documents
@@ -53,16 +59,25 @@ export default async function DocumentPage({
         </div>
         {saved && <p className="mt-2 text-sm text-green-400">Saved.</p>}
       </div>
-      <DocumentForm doc={doc} firearms={firearms} action={updateDocument.bind(null, id)} submitLabel="Save Changes" />
+      <SectionTools scope="document" remember />
+      <Collapsible
+        id="details"
+        scope="document"
+        title="Details"
+        defaultOpen={open("details", true)}
+        summary={[doc.issuer, doc.number, doc.expires_date ? `expires ${fd(doc.expires_date)}` : null].filter(Boolean).join(" · ")}
+      >
+        <DocumentForm doc={doc} firearms={firearms} action={updateDocument.bind(null, id)} submitLabel="Save Changes" />
+      </Collapsible>
+      <Collapsible id="scans" scope="document" title="Scans & Photos" defaultOpen={open("scans", true)} summary={`${scans.length} file${scans.length === 1 ? "" : "s"}`}>
       <AttachmentGallery
-        id="scans"
-        title="Scans & Photos"
-        items={listAttachments(db, "document", id)}
+        items={scans}
         ownerType="document"
         ownerId={id}
         kind="document"
         emptyText="No scans attached yet. Photograph both sides of a permit card, or attach the PDF."
       />
+      </Collapsible>
     </div>
   );
 }

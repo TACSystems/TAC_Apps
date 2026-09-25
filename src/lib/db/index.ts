@@ -8,6 +8,8 @@ import { LockedError, dataKey, isEncrypted, isUnlocked, sqlKey } from "@/lib/sec
 import { preMigrationBackup } from "@/lib/auto-backup";
 import { registerLabelFunction, setDateFormat, setLabelMode } from "@/lib/display";
 import { getSettings } from "@/lib/settings";
+import { createAmmoViews, migrateAmmoGoals } from "@/lib/ammo";
+import { backfillSessions } from "@/lib/sessions";
 
 declare global {
   var __firearmsDb: Database.Database | undefined;
@@ -249,6 +251,24 @@ function initDb(): Database.Database {
     db.exec(`update cof_strings set sort_order = rowid`);
   }
   rebuildCofStringsIfNeeded(db);
+  db.exec(`drop view if exists ammo_on_hand; drop view if exists ammo_stock;`);
+  const ref = "TEXT REFERENCES range_sessions(id) ON DELETE SET NULL";
+  for (const t of ["range_log", "rounds_fired_log"]) {
+    addColumnIfMissing(db, t, "session_id", ref);
+    addColumnIfMissing(db, t, "ammo_type", "TEXT");
+    addColumnIfMissing(db, t, "ammo_grain", "INTEGER");
+    addColumnIfMissing(db, t, "ammo_manufacturer", "TEXT");
+  }
+  addColumnIfMissing(db, "rounds_fired_log", "range_location", "TEXT");
+  addColumnIfMissing(db, "count_adjustments", "ammo_type", "TEXT");
+  addColumnIfMissing(db, "count_adjustments", "grain", "INTEGER");
+  addColumnIfMissing(db, "count_adjustments", "manufacturer", "TEXT");
+  migrateAmmoGoals(db);
+  createAmmoViews(db);
+  db.exec(`
+    create index if not exists range_log_session on range_log(session_id);
+    create index if not exists rounds_fired_session on rounds_fired_log(session_id);
+  `);
 
   migrateScoringZonesToTargetTypes(db);
   dropGroupTables(db);
@@ -266,6 +286,7 @@ function initDb(): Database.Database {
   }
 
   seedDropdownOptions(db);
+  backfillSessions(db);
 
   registerLabelFunction(db);
   const initial = getSettings(db);

@@ -155,6 +155,10 @@ export type RangeLog = {
   passing_score_percent: number | null;
   custom_fields_json: string | null;
   notes: string | null;
+  session_id: string | null;
+  ammo_type: string | null;
+  ammo_grain: number | null;
+  ammo_manufacturer: string | null;
   created_at: string;
 };
 

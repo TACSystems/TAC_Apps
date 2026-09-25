@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
-import { ammoStatus } from "@/lib/ammo";
+import { caliberTotals } from "@/lib/ammo";
 import type { DropdownCategory } from "@/lib/options";
 import HomeLayoutEditor from "@/components/HomeLayoutEditor";
 import DropdownListEditor from "@/components/DropdownListEditor";
@@ -35,7 +35,7 @@ export default async function ControlsPage({ searchParams }: { searchParams: Pro
       .prepare(`select id, shots_fired, firearm_label(make_model, nickname) as label from firearms where status != 'sold' order by make_model`)
       .all() as { id: string; shots_fired: number; label: string }[]
   ).map((f) => ({ key: f.id, label: f.label, current: f.shots_fired }));
-  const calibers = ammoStatus(db, s.lowAmmoPercent).map((a) => ({ key: a.caliber, label: a.caliber, current: a.on_hand }));
+  const calibers = caliberTotals(db).map((a) => ({ key: a.caliber, label: a.caliber, current: a.on_hand }));
   const ret = "/controls";
 
   return (
@@ -88,7 +88,7 @@ export default async function ControlsPage({ searchParams }: { searchParams: Pro
         {(["course_category", "position"] as DropdownCategory[]).map(list)}
       </Group>
 
-      <Group id="page-range" title="Range Sessions" blurb="Log a Range Session, Range Day">
+      <Group id="page-range" title="Range Sessions" blurb="Log a Range Session, Log Practice">
         <Collapsible id="controls-range-defaults" title="Range Session Defaults" keywords="shooter grader range location defaults grader date" defaultOpen={saved === "range"}>
           <RangeDefaultsForm s={s} saved={saved === "range"} returnTo={ret} />
         </Collapsible>

@@ -21,7 +21,7 @@ export default function AttachmentGallery({
   imagesOnly = false,
   id,
 }: {
-  title: string;
+  title?: string;
   items: Attachment[];
   ownerType: OwnerType;
   ownerId: string;
@@ -32,7 +32,7 @@ export default function AttachmentGallery({
 }) {
   return (
     <section id={id}>
-      <h2 className="mb-2 font-medium text-neutral-200">{title}</h2>
+      {title && <h2 className="mb-2 font-medium text-neutral-200">{title}</h2>}
       <AttachmentGrid
         emptyText={emptyText}
         items={items.map((r) => ({

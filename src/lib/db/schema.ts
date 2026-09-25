@@ -122,8 +122,19 @@ create table if not exists ammo_purchases (
 
 create table if not exists ammo_goals (
   id text primary key,
-  caliber text not null unique,
+  caliber text not null,
+  ammo_type text,
+  grain integer,
   goal_quantity integer not null default 0
+);
+
+create table if not exists range_sessions (
+  id text primary key,
+  number integer not null unique,
+  date text not null,
+  location text,
+  notes text,
+  created_at text not null default (datetime('now'))
 );
 
 create table if not exists target_types (
@@ -201,6 +212,10 @@ create table if not exists range_log (
   passing_score_percent real,
   custom_fields_json text,
   notes text,
+  session_id text references range_sessions(id) on delete set null,
+  ammo_type text,
+  ammo_grain integer,
+  ammo_manufacturer text,
   created_at text not null default (datetime('now'))
 );
 
@@ -230,6 +245,11 @@ create table if not exists rounds_fired_log (
   ammo_lot text,
   deduct_from_ammo integer not null default 1,
   notes text,
+  range_location text,
+  session_id text references range_sessions(id) on delete set null,
+  ammo_type text,
+  ammo_grain integer,
+  ammo_manufacturer text,
   created_at text not null default (datetime('now'))
 );
 
@@ -268,6 +288,9 @@ create table if not exists count_adjustments (
   kind text not null,
   firearm_id text references firearms(id) on delete cascade,
   caliber text,
+  ammo_type text,
+  grain integer,
+  manufacturer text,
   date text not null,
   delta integer not null,
   set_to integer,
@@ -285,37 +308,4 @@ create table if not exists firearm_counters (
   notes text,
   created_at text not null default (datetime('now'))
 );
-
-drop view if exists ammo_on_hand;
-
-create view ammo_on_hand as
-with purchased as (
-  select caliber, sum(quantity) as qty from ammo_purchases group by caliber
-),
-fired as (
-  select caliber, sum(rounds) as qty from (
-    select caliber, coalesce(rounds_fired, 0) as rounds from range_log where caliber is not null
-    union all
-    select caliber, rounds from rounds_fired_log where deduct_from_ammo = 1 and caliber is not null
-  ) group by caliber
-),
-adjusted as (
-  select caliber, sum(delta) as qty from count_adjustments where kind = 'ammo' and caliber is not null group by caliber
-),
-calibers as (
-  select caliber from purchased
-  union select caliber from fired
-  union select caliber from ammo_goals
-  union select caliber from adjusted
-)
-select
-  c.caliber,
-  coalesce(p.qty, 0) as purchased,
-  coalesce(f.qty, 0) as fired,
-  coalesce(a.qty, 0) as adjusted,
-  coalesce(p.qty, 0) - coalesce(f.qty, 0) + coalesce(a.qty, 0) as on_hand
-from calibers c
-left join purchased p on p.caliber = c.caliber
-left join fired f on f.caliber = c.caliber
-left join adjusted a on a.caliber = c.caliber;
 `;

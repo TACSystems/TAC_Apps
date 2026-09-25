@@ -1,7 +1,7 @@
 import type Database from "better-sqlite3-multiple-ciphers";
 import type { AppSettings } from "@/lib/settings-shared";
 import { maintenanceSchedule } from "@/lib/maintenance";
-import { ammoStatus } from "@/lib/ammo";
+import { goalStatus } from "@/lib/ammo";
 import { expiringDocuments } from "@/lib/documents";
 import { label } from "@/lib/display";
 
@@ -31,9 +31,9 @@ export function collectReminders(db: Database.Database, s: AppSettings): Reminde
       tone: "red",
     });
   }
-  const low = ammoStatus(db, s.lowAmmoPercent, true).filter((a) => a.low);
+  const low = goalStatus(db, s.lowAmmoPercent).filter((a) => a.low);
   if (low.length) {
-    out.push({ key: "ammo", text: `Low ammo: ${low.map((a) => a.caliber).join(", ")}`, href: "/ammo", tone: "amber" });
+    out.push({ key: "ammo", text: `Low ammo: ${low.map((a) => a.label).join(", ")}`, href: "/ammo", tone: "amber" });
   }
   for (const d of expiringDocuments(db, s.docWarnDays, s.docUrgentDays)) {
     out.push({

@@ -10,6 +10,9 @@ export type CountAdjustment = {
   kind: "firearm" | "ammo";
   firearm_id: string | null;
   caliber: string | null;
+  ammo_type: string | null;
+  grain: number | null;
+  manufacturer: string | null;
   date: string;
   delta: number;
   set_to: number | null;
@@ -57,17 +60,47 @@ export function correctFirearmCount(db: Database.Database, firearmId: string, ta
   return id;
 }
 
-export function correctAmmoCount(db: Database.Database, caliber: string, target: number, note: string | null, date = todayISO()) {
-  const row = db.prepare(`select on_hand from ammo_on_hand where caliber = ?`).get(caliber) as { on_hand: number } | undefined;
-  const current = row?.on_hand ?? 0;
+export type AmmoLineKey = { caliber: string; ammo_type: string | null; grain: number | null; manufacturer: string | null };
+
+export function correctAmmoLine(db: Database.Database, key: AmmoLineKey, target: number, note: string | null, date = todayISO()) {
+  const row = db
+    .prepare(
+      `select on_hand from ammo_stock where caliber = ? and ammo_type is ? and grain is ? and manufacturer is ?`
+    )
+    .get(key.caliber, key.ammo_type, key.grain, key.manufacturer) as { on_hand: number } | undefined;
   const setTo = Math.round(target);
-  const delta = setTo - current;
+  const delta = setTo - (row?.on_hand ?? 0);
   if (delta === 0) return null;
   const id = randomUUID();
   db.prepare(
-    `insert into count_adjustments (id, kind, caliber, date, delta, set_to, note) values (?, 'ammo', ?, ?, ?, ?, ?)`
-  ).run(id, caliber, date, delta, setTo, note);
+    `insert into count_adjustments (id, kind, caliber, ammo_type, grain, manufacturer, date, delta, set_to, note)
+     values (?, 'ammo', ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(id, key.caliber, key.ammo_type, key.grain, key.manufacturer, date, delta, setTo, note);
   return id;
+}
+
+export function correctAmmoCount(db: Database.Database, caliber: string, target: number, note: string | null, date = todayISO()) {
+  const setTo = Math.round(target);
+  const lines = db.prepare(`select * from ammo_stock where caliber = ?`).all(caliber) as (AmmoLineKey & { on_hand: number })[];
+  const current = lines.reduce((s, l) => s + l.on_hand, 0);
+  if (setTo === current) return null;
+  let first: string | null = null;
+  db.transaction(() => {
+    if (setTo === 0) {
+      for (const l of lines) {
+        if (l.on_hand === 0) continue;
+        const id = correctAmmoLine(db, l, 0, note, date);
+        first = first ?? id;
+      }
+      return;
+    }
+    const id = randomUUID();
+    db.prepare(
+      `insert into count_adjustments (id, kind, caliber, date, delta, set_to, note) values (?, 'ammo', ?, ?, ?, ?, ?)`
+    ).run(id, caliber, date, setTo - current, setTo, note);
+    first = id;
+  })();
+  return first;
 }
 
 export function deleteAdjustment(db: Database.Database, id: string) {

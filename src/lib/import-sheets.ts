@@ -1,3 +1,4 @@
+import { upsertGoal } from "@/lib/ammo";
 import type Database from "better-sqlite3-multiple-ciphers";
 import { randomUUID } from "crypto";
 import { excelDate, type Cell, type Sheet } from "@/lib/xlsx";
@@ -351,7 +352,7 @@ export function planImport(db: Database.Database, sheets: Sheet[]): Plan {
         const caliber = clean(r.caliber);
         const goal = num(r.goal);
         if (!caliber || !goal || goal <= 0) continue;
-        const existing = db.prepare(`select goal_quantity from ammo_goals where caliber = ?`).get(caliber) as
+        const existing = db.prepare(`select goal_quantity from ammo_goals where caliber = ? and ammo_type is null and grain is null`).get(caliber) as
           | { goal_quantity: number }
           | undefined;
         if (!plan.goals.some((g) => g.caliber === caliber)) {
@@ -435,13 +436,9 @@ export function commitImport(db: Database.Database, plan: Plan) {
       insAmmo.run({ id: randomUUID(), ...row });
       counts.ammo++;
     }
-    const upGoal = db.prepare(
-      `insert into ammo_goals (id, caliber, goal_quantity) values (?, ?, ?)
-       on conflict(caliber) do update set goal_quantity = excluded.goal_quantity`
-    );
     for (const g of plan.goals) {
       if (g.duplicate) continue;
-      upGoal.run(randomUUID(), g.caliber, g.goal);
+      upsertGoal(db, { caliber: g.caliber, ammo_type: null, grain: null, goal: g.goal });
       counts.goals++;
     }
   })();

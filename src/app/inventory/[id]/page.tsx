@@ -26,7 +26,6 @@ import { maintenanceInfo } from "@/lib/maintenance";
 import { getSettings, money } from "@/lib/settings";
 import { getMaintenanceTypes } from "@/lib/db/dropdown-options";
 import SuggestInput from "@/components/SuggestInput";
-import SelectOrOther from "@/components/SelectOrOther";
 import SubmitButton from "@/components/SubmitButton";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import type {
@@ -46,6 +45,13 @@ import CountCorrector from "@/components/CountCorrector";
 import { firearmAdjustments, listCounters } from "@/lib/counts";
 import { correctFirearm, createCounter, removeAdjustment, removeCounter, replaceCounter } from "@/app/counts/actions";
 import HelpTip from "@/components/HelpTip";
+import Collapsible from "@/components/Collapsible";
+import SectionTools from "@/components/SectionTools";
+import { pageSections } from "@/lib/page-sections";
+import AmmoPickField from "@/components/AmmoPickField";
+import { defaultPickFor } from "@/lib/ammo-pick";
+import { lastPicks, pickLabel, pickOptions } from "@/lib/ammo";
+import { sessionNo } from "@/lib/sessions";
 
 export default async function FirearmDetailPage({
   params,
@@ -117,7 +123,26 @@ export default async function FirearmDetailPage({
     ammo_lot: string | null;
     deduct_from_ammo: number;
     notes: string | null;
+    range_location: string | null;
+    session_id: string | null;
+    ammo_type: string | null;
+    ammo_grain: number | null;
+    ammo_manufacturer: string | null;
   }[];
+  const sessions = db
+    .prepare(
+      `select s.id, s.number, s.date, s.location,
+         coalesce((select sum(coalesce(rounds_fired, 0)) from range_log where session_id = s.id and firearm_id = @id), 0)
+           + coalesce((select sum(rounds) from rounds_fired_log where session_id = s.id and firearm_id = @id), 0) as rounds
+       from range_sessions s
+       where exists (select 1 from range_log where session_id = s.id and firearm_id = @id)
+          or exists (select 1 from rounds_fired_log where session_id = s.id and firearm_id = @id)
+       order by s.date desc, s.number desc`
+    )
+    .all({ id }) as { id: string; number: number; date: string; location: string | null; rounds: number }[];
+  const open = pageSections(db, "firearm");
+  const ammoOptions = pickOptions(db);
+  const rangeLocations = getDropdownOptions(db, "range_location");
   const maintenanceTypes = getMaintenanceTypes(db);
   const malfunctionTypes = getDropdownOptions(db, "malfunction_type");
   const zeroDistances = getDropdownOptions(db, "zero_distance");
@@ -138,8 +163,11 @@ export default async function FirearmDetailPage({
   const platformOptions = getDropdownOptions(db, "platform");
   const caliberOptions = getDropdownOptions(db, "caliber");
 
+  const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  const lastOf = (d?: string | null) => (d ? ` · last ${fd(d)}` : "");
+
   return (
-    <div className="flex flex-col gap-8">
+    <div data-scope="firearm" className="flex flex-col gap-4">
       <div>
         <Link href="/inventory" className="text-xs text-brand-amber hover:text-brand-amber-light">
           ← Armory
@@ -165,17 +193,7 @@ export default async function FirearmDetailPage({
           </form>
           </div>
         </div>
-        <div className="max-w-4xl">
-          <FirearmForm
-            firearm={firearm}
-            action={updateWithId}
-            submitLabel="Save Changes"
-            platformOptions={platformOptions}
-            caliberOptions={caliberOptions}
-          />
-        </div>
       </div>
-
       <div className="grid grid-cols-2 gap-4 border border-neutral-800 bg-neutral-900 p-4 sm:max-w-4xl sm:grid-cols-4">
         <div>
           <div className="text-xs text-neutral-500">Shots Fired</div>
@@ -212,11 +230,30 @@ export default async function FirearmDetailPage({
         </div>
       </div>
 
-      <section id="rounds-fired">
-        <h2 className="mb-1 font-medium text-neutral-200">Update Rounds Fired</h2>
+      <div className="sm:max-w-4xl">
+        <SectionTools scope="firearm" remember />
+      </div>
+
+      <Collapsible id="details" scope="firearm" title="Firearm Details" defaultOpen={open("details", false)}
+        summary={[firearm.caliber, firearm.platform, firearm.serial_number ? `SN ${firearm.serial_number}` : null, firearm.status].filter(Boolean).join(" · ")}>
+        <div className="max-w-4xl">
+          <FirearmForm
+            firearm={firearm}
+            action={updateWithId}
+            submitLabel="Save Changes"
+            platformOptions={platformOptions}
+            caliberOptions={caliberOptions}
+          />
+        </div>
+      </Collapsible>
+
+      <Collapsible id="rounds-fired" scope="firearm" title="Update Rounds Fired" defaultOpen={open("rounds-fired", true)}
+        summary={`${firearm.shots_fired.toLocaleString()} lifetime${roundsLog[0] ? lastOf(roundsLog[0].date) : ""}`}>
+
+        
         <p className="mb-3 text-sm text-neutral-400">
-          Record rounds fired outside a logged range session (practice, plinking, function checks). Adds to this
-          firearm&apos;s shot count and cleaning counter.
+          Record practice, plinking, or function-check rounds. Adds to this firearm&apos;s shot count and cleaning counter,
+          and joins the range session for that date and location.
         </p>
         <form action={logRoundsFired.bind(null, id)} className="grid grid-cols-1 gap-2 sm:max-w-4xl sm:grid-cols-4">
           <label className="flex flex-col gap-1 text-xs">
@@ -240,9 +277,18 @@ export default async function FirearmDetailPage({
               className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
             />
           </label>
+          <label className="flex flex-col gap-1 text-xs sm:col-span-2">
+            Ammo Used
+            <AmmoPickField
+              options={ammoOptions}
+              caliber={firearm.caliber}
+              defaultValue={defaultPickFor(ammoOptions, firearm.caliber, lastPicks(db)[id])}
+              className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+            />
+          </label>
           <label className="flex flex-col gap-1 text-xs">
-            Caliber
-            <SelectOrOther name="caliber" options={caliberOptions} defaultValue={firearm.caliber} />
+            Range / Location
+            <SuggestInput name="range_location" listId="rf-locations" options={rangeLocations} defaultValue={settings.defaultRangeLocation || undefined} placeholder="Optional" />
           </label>
           <label className="flex flex-col gap-1 text-xs">
             Ammo Lot #
@@ -274,7 +320,18 @@ export default async function FirearmDetailPage({
                 className="flex items-center justify-between gap-2 border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-sm"
               >
                 <span>
-                  {fd(r.date)} · {r.rounds} rds{r.caliber ? ` · ${r.caliber}` : ""}
+                  {r.session_id ? (
+                    <Link href={`/range-log/session/${r.session_id}`} className="text-brand-amber hover:text-brand-amber-light">
+                      {fd(r.date)}
+                    </Link>
+                  ) : (
+                    fd(r.date)
+                  )}{" "}
+                  · {r.rounds} rds
+                  {r.caliber
+                    ? ` · ${pickLabel({ caliber: r.caliber, ammo_type: r.ammo_type, grain: r.ammo_grain, manufacturer: r.ammo_manufacturer })}`
+                    : ""}
+                  {r.range_location ? ` · ${r.range_location}` : ""}
                   {r.ammo_lot ? ` · Lot ${r.ammo_lot}` : ""}
                   {!r.deduct_from_ammo ? <span className="text-neutral-500"> · not deducted from ammo</span> : null}
                   {r.notes ? <span className="text-neutral-500"> · {r.notes}</span> : null}
@@ -318,10 +375,37 @@ export default async function FirearmDetailPage({
             ))}
           </div>
         )}
-      </section>
+            </Collapsible>
 
-      <section id="part-counters">
-        <h2 className="mb-1 font-medium text-neutral-200">Part Counters</h2>
+      <Collapsible id="range-sessions" scope="firearm" title="Range Sessions" defaultOpen={open("range-sessions", false)}
+        summary={`${count(sessions.length, "session")} · ${count(logs.length, "course run")}${lastOf(sessions[0]?.date)}`}>
+        <div className="flex flex-col gap-2">
+          {sessions.map((sn) => {
+            const runs = logs.filter((l) => l.session_id === sn.id);
+            return (
+              <Link
+                key={sn.id}
+                href={`/range-log/session/${sn.id}`}
+                className="flex flex-wrap items-center justify-between gap-2 border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm hover:border-neutral-600"
+              >
+                <span>
+                  <span className="text-brand-amber">{sessionNo(sn.number)}</span> · {fd(sn.date)}
+                  {sn.location ? ` · ${sn.location}` : ""} · {sn.rounds.toLocaleString()} rds
+                </span>
+                <span className="text-neutral-400">
+                  {runs.map((l) => `${l.cof_name ?? "Course"} ${l.final_score_percent != null ? `${l.final_score_percent}%` : ""}`).join(" · ")}
+                </span>
+              </Link>
+            );
+          })}
+          {sessions.length === 0 && <p className="text-sm text-neutral-500">No range sessions with this firearm yet.</p>}
+        </div>
+      </Collapsible>
+
+      <Collapsible id="part-counters" scope="firearm" title="Part Counters" defaultOpen={open("part-counters", counters.length > 0)}
+        summary={counters.length ? counters.map((c) => `${c.name} ${Math.max(0, firearm.shots_fired - c.start_shots).toLocaleString()}`).join(" · ") : "None"}>
+
+        
         <p className="mb-3 text-sm text-neutral-400">
           Track rounds on a barrel, recoil spring, or other part separately from the lifetime total. When you replace the
           part, click Replaced: the counter starts over and the swap is added to the maintenance log.
@@ -403,10 +487,12 @@ export default async function FirearmDetailPage({
             <SubmitButton className="w-fit bg-brand-olive px-3 py-2 text-sm font-medium hover:bg-brand-olive-light sm:col-span-4">Add Counter</SubmitButton>
           </form>
         </details>
-      </section>
+            </Collapsible>
 
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">Accessories</h2>
+      <Collapsible id="accessories" scope="firearm" title="Accessories" defaultOpen={open("accessories", false)}
+        summary={count(accessories.length, "linked", "linked")}>
+
+        
         <div className="flex flex-col gap-2">
           {accessories.map((a) => (
             <Link
@@ -444,31 +530,33 @@ export default async function FirearmDetailPage({
             ))}
           </div>
         )}
-      </section>
+            </Collapsible>
 
-      <AttachmentGallery
-        id="photos"
-        title="Photos"
-        items={photos}
-        ownerType="firearm"
-        ownerId={id}
-        kind="photo"
-        imagesOnly
-        emptyText="No photos yet. Photos of each side and the serial number help with insurance claims."
-      />
+      <Collapsible id="photos" scope="firearm" title="Photos" defaultOpen={open("photos", false)} summary={count(photos.length, "photo")}>
+        <AttachmentGallery
+          items={photos}
+          ownerType="firearm"
+          ownerId={id}
+          kind="photo"
+          imagesOnly
+          emptyText="No photos yet. Photos of each side and the serial number help with insurance claims."
+        />
+      </Collapsible>
 
-      <AttachmentGallery
-        id="receipts"
-        title="Receipts & Documents"
-        items={receipts}
-        ownerType="firearm"
-        ownerId={id}
-        kind="receipt"
-        emptyText="No receipts uploaded yet."
-      />
+      <Collapsible id="receipts" scope="firearm" title="Receipts & Documents" defaultOpen={open("receipts", false)} summary={count(receipts.length, "file")}>
+        <AttachmentGallery
+          items={receipts}
+          ownerType="firearm"
+          ownerId={id}
+          kind="receipt"
+          emptyText="No receipts uploaded yet."
+        />
+      </Collapsible>
 
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">Maintenance / Cleaning</h2>
+      <Collapsible id="maintenance" scope="firearm" title="Maintenance / Cleaning" defaultOpen={open("maintenance", false)}
+        summary={`${count(maintenanceLog.length, "entry", "entries")}${lastOf(maintenanceLog[0]?.date)}`}>
+
+        
         <div className="mb-3 flex flex-col gap-2">
           {maintenanceLog.map((m) => (
             <MaintenanceEntry key={JSON.stringify(m)} firearmId={id} entry={m} types={maintenanceTypes} />
@@ -503,10 +591,12 @@ export default async function FirearmDetailPage({
             Log Entry
           </SubmitButton>
         </form>
-      </section>
+            </Collapsible>
 
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">Malfunction History</h2>
+      <Collapsible id="malfunctions" scope="firearm" title="Malfunction History" defaultOpen={open("malfunctions", false)}
+        summary={`${count(malfunctionLog.length, "entry", "entries")}${lastOf(malfunctionLog[0]?.date)}`}>
+
+        
         <div className="mb-3 flex flex-col gap-2">
           {malfunctionLog.map((m) => (
             <MalfunctionEntry key={JSON.stringify(m)} firearmId={id} entry={m} types={malfunctionTypes} />
@@ -551,10 +641,12 @@ export default async function FirearmDetailPage({
             Log Malfunction
           </SubmitButton>
         </form>
-      </section>
+            </Collapsible>
 
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">Zero Log</h2>
+      <Collapsible id="zero" scope="firearm" title="Zero Log" defaultOpen={open("zero", false)}
+        summary={`${count(zeroRecords.length, "entry", "entries")}${lastOf(zeroRecords[0]?.date)}`}>
+
+        
         <div className="mb-3 flex flex-col gap-2">
           {zeroRecords.map((z) => (
             <ZeroEntry key={JSON.stringify(z)} firearmId={id} entry={z} distances={zeroDistances} />
@@ -603,10 +695,12 @@ export default async function FirearmDetailPage({
             Log Zero
           </SubmitButton>
         </form>
-      </section>
+            </Collapsible>
 
-      <section id="disposition">
-        <h2 className="mb-1 font-medium text-neutral-200">Sale / Transfer Record</h2>
+      <Collapsible id="disposition" scope="firearm" title="Sale / Transfer Record" defaultOpen={open("disposition", dispositions.length > 0 || firearm.status === "sold")}
+        summary={dispositions.length ? `${dispositions[0].type} ${fd(dispositions[0].date)}` : "None"}>
+
+        
         <p className="mb-3 text-sm text-neutral-400">
           Record when this firearm leaves your possession: sold, transferred, traded, lost, or stolen.
         </p>
@@ -645,30 +739,7 @@ export default async function FirearmDetailPage({
             />
           </div>
         )}
-      </section>
-
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">Range Log</h2>
-        <div className="flex flex-col gap-2">
-          {logs.map((l) => (
-            <Link
-              key={l.id}
-              href={`/range-log/${l.id}`}
-              className="flex items-center justify-between border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm hover:border-neutral-600"
-            >
-              <span>
-                {fd(l.date)} · {l.cof_name ?? "Unlisted course"}
-              </span>
-              <span className="text-neutral-400">
-                {l.final_score_percent != null ? `${l.final_score_percent}%` : "—"}
-              </span>
-            </Link>
-          ))}
-          {logs.length === 0 && (
-            <p className="text-sm text-neutral-500">No range log entries for this firearm.</p>
-          )}
-        </div>
-      </section>
+            </Collapsible>
     </div>
   );
 }

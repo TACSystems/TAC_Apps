@@ -9,6 +9,10 @@ import { caliberCosts, categoryStats, courseStats, firearmStats, overview, round
 import { getSettings, money } from "@/lib/settings";
 import EmptyState from "@/components/EmptyState";
 
+import Collapsible from "@/components/Collapsible";
+import SectionTools from "@/components/SectionTools";
+import { pageSections } from "@/lib/page-sections";
+
 export const dynamic = "force-dynamic";
 
 const th = "px-3 py-2";
@@ -60,10 +64,12 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
   const personalBest = logs.reduce((b, l) => Math.max(b, l.final_score_percent ?? 0), 0);
   const zones = selectedId ? zoneDistribution(db, selectedId) : [];
   const zoneTotal = zones.reduce((s, z) => s + z.counted, 0);
+  const open = pageSections(db, "stats");
+  const sessionCount = (db.prepare(`select count(*) as n from range_sessions`).get() as { n: number }).n;
   const totalAmmoSpend = costs.reduce((s, c) => s + (c.fired_cost ?? 0), 0);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div data-scope="stats" className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold">Stats</h1>
       {ov.sessions === 0 && ov.totalRounds === 0 && (
         <EmptyState
@@ -79,32 +85,35 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
       )}
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <Tile label="Range sessions" value={ov.sessions.toLocaleString()} />
+        <Tile label="Range sessions" value={sessionCount.toLocaleString()} sub={`${ov.sessions.toLocaleString()} course runs`} />
         <Tile label="Rounds fired (all time)" value={ov.totalRounds.toLocaleString()} />
         <Tile label={`Rounds fired ${new Date().getFullYear()}`} value={ov.roundsThisYear.toLocaleString()} />
         <Tile label="Average score" value={ov.avgScore != null ? `${ov.avgScore}%` : "—"} />
         <Tile
           label="Pass rate"
           value={ov.graded ? `${Math.round((ov.passed / ov.graded) * 100)}%` : "—"}
-          sub={ov.graded ? `${ov.passed} of ${ov.graded} graded sessions` : "No graded sessions yet"}
+          sub={ov.graded ? `${ov.passed} of ${ov.graded} graded runs` : "No graded runs yet"}
         />
       </section>
 
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">Rounds Fired per Month</h2>
+      <SectionTools scope="stats" remember />
+
+      <Collapsible id="months" scope="stats" title="Rounds Fired per Month" defaultOpen={open("months", true)}>
         <p className="mb-2 text-xs text-neutral-500">Range sessions plus Update Rounds Fired entries, last 12 months.</p>
         <BarList
           rows={months.map((m) => ({ label: m.month, value: m.rounds }))}
           unit="rounds"
           emptyText="No rounds recorded in the last 12 months."
         />
-      </section>
+      </Collapsible>
 
-      <section className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-medium text-neutral-200">Course Detail</h2>
-          {courses.length > 0 && selectedId && <CourseSelect courses={courses} selectedId={selectedId} />}
-        </div>
+      <Collapsible id="course-detail" scope="stats" title="Course Detail" defaultOpen={open("course-detail", true)} summary={selectedCourse?.name}>
+        <div className="flex flex-col gap-3">
+        {courses.length > 0 && selectedId && (
+          <div className="flex justify-end">
+            <CourseSelect courses={courses} selectedId={selectedId} />
+          </div>
+        )}
         {selectedCourse ? (
           <>
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-neutral-400">
@@ -132,10 +141,10 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
         ) : (
           <p className="text-sm text-neutral-500">No courses of fire yet.</p>
         )}
-      </section>
+        </div>
+      </Collapsible>
 
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">By Category</h2>
+      <Collapsible id="categories" scope="stats" title="By Category" defaultOpen={open("categories", true)}>
         <div className="overflow-x-auto border border-neutral-800">
           <table className="w-full text-left text-sm">
             <thead className="bg-neutral-900 text-neutral-400">
@@ -162,10 +171,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
           {byCategory.length === 0 && <p className="px-3 py-6 text-center text-sm text-neutral-500">No range sessions on a course yet.</p>}
         </div>
         <p className="mt-1 text-xs text-neutral-500">A course in more than one category counts toward each.</p>
-      </section>
+      </Collapsible>
 
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">By Course</h2>
+      <Collapsible id="courses" scope="stats" title="By Course" defaultOpen={open("courses", true)}>
         <div className="overflow-x-auto border border-neutral-800">
           <table className="w-full text-left text-sm">
             <thead className="bg-neutral-900 text-neutral-400">
@@ -197,10 +205,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
           </table>
           {shotCourses.length === 0 && <p className="px-3 py-6 text-center text-sm text-neutral-500">No range sessions logged yet.</p>}
         </div>
-      </section>
+      </Collapsible>
 
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">By Firearm</h2>
+      <Collapsible id="firearms" scope="stats" title="By Firearm" defaultOpen={open("firearms", true)}>
         <div className="overflow-x-auto border border-neutral-800">
           <table className="w-full text-left text-sm">
             <thead className="bg-neutral-900 text-neutral-400">
@@ -235,10 +242,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
             </tbody>
           </table>
         </div>
-      </section>
+      </Collapsible>
 
-      <section>
-        <h2 className="mb-1 font-medium text-neutral-200">Ammo Cost</h2>
+      <Collapsible id="ammo-cost" scope="stats" title="Ammo Cost" defaultOpen={open("ammo-cost", true)}>
         <p className="mb-2 text-xs text-neutral-500">
           Cost per round comes from purchases with a price entered. Estimated spend = rounds fired × cost per round.
         </p>
@@ -279,7 +285,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
           </table>
           {costs.length === 0 && <p className="px-3 py-6 text-center text-sm text-neutral-500">No ammo purchases logged yet.</p>}
         </div>
-      </section>
+      </Collapsible>
     </div>
   );
 }

@@ -1,30 +1,30 @@
-import { passFail } from "@/lib/cof-shared";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import type { RangeLog } from "@/lib/db/types";
 import SearchBox from "@/components/SearchBox";
 import { fd } from "@/lib/display";
 import ClickRow from "@/components/ClickRow";
 import EmptyState from "@/components/EmptyState";
+import { listSessions, sessionNo } from "@/lib/sessions";
+import SessionCourses, { parseCourses } from "@/components/SessionCourses";
 
 export const dynamic = "force-dynamic";
 
 export default async function RangeLogPage() {
   const db = getDb();
-  const logs = db
-    .prepare(
-      `select rl.*, c.name as cof_name, firearm_label(f.make_model, f.nickname) as firearm_make_model
-       from range_log rl
-       left join courses_of_fire c on c.id = rl.cof_id
-       left join firearms f on f.id = rl.firearm_id
-       order by rl.date desc`
-    )
-    .all() as (RangeLog & { cof_name: string | null; firearm_make_model: string | null })[];
+  const sessions = listSessions(db);
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">Range Log</h1>
+        <div>
+          <h1 className="text-xl font-semibold">Range Log</h1>
+          {sessions.length > 0 && (
+            <p className="text-sm text-neutral-400">
+              {sessions.length} session{sessions.length === 1 ? "" : "s"} ·{" "}
+              {sessions.reduce((s, x) => s + x.rounds, 0).toLocaleString()} rounds
+            </p>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/checklist" className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
             Range Bag Checklist
@@ -32,65 +32,60 @@ export default async function RangeLogPage() {
           <Link href="/timer" className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
             Par Timer
           </Link>
-          <Link href="/range-day" className="border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800">
-            Range Day
-          </Link>
           <Link href="/range-log/new" className="bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light">
             Log a Range Session
           </Link>
         </div>
       </div>
-      {logs.length === 0 ? (
+      {sessions.length === 0 ? (
         <EmptyState
           title="No range sessions yet"
           actions={[
             { href: "/range-log/new", label: "Log a Range Session", primary: true },
-            { href: "/range-day", label: "Range Day (several firearms)" },
             { href: "/courses", label: "Browse Courses of Fire" },
           ]}
         >
-          Score a course of fire target by target, or use Range Day to log a whole trip at once.
+          A session is one trip to the range. Score courses of fire and log practice rounds; everything from the same date and
+          location lands in the same session.
         </EmptyState>
       ) : (
-      <SearchBox
-        placeholder="Search by course, firearm, or date…"
-        emptyMessage="No range log entries found."
-        head={
-          <tr>
-            <th className="px-3 py-2">Date</th>
-            <th className="px-3 py-2">Course</th>
-            <th className="px-3 py-2">Firearm</th>
-            <th className="px-3 py-2">Score</th>
-          </tr>
-        }
-        rows={logs.map((l) => ({
-          key: l.id,
-          text: `${l.cof_name ?? ""} ${l.firearm_make_model ?? ""} ${l.date} ${fd(l.date)}`,
-          row: (
-            <ClickRow key={l.id} href={`/range-log/${l.id}`} className="border-t border-neutral-800 hover:bg-neutral-900">
-              <td className="px-3 py-2">
-                <Link href={`/range-log/${l.id}`} className="text-brand-amber hover:text-brand-amber-light">
-                  {fd(l.date)}
-                </Link>
-              </td>
-              <td className="px-3 py-2">{l.cof_name ?? "—"}</td>
-              <td className="px-3 py-2">{l.firearm_make_model ?? "—"}</td>
-              <td className="px-3 py-2">
-                {l.final_score_percent != null ? `${l.final_score_percent}%` : "—"}
-                {passFail(l.final_score_percent, l.passing_score_percent) && (
-                  <span
-                    className={`ml-2 text-xs ${
-                      passFail(l.final_score_percent, l.passing_score_percent) === "PASS" ? "text-green-400" : "text-red-400"
-                    }`}
-                  >
-                    {passFail(l.final_score_percent, l.passing_score_percent)}
-                  </span>
-                )}
-              </td>
-            </ClickRow>
-          ),
-        }))}
-      />
+        <SearchBox
+          placeholder="Search by session #, date, location, firearm, or course…"
+          emptyMessage="No range sessions found."
+          head={
+            <tr>
+              <th className="px-3 py-2">Session</th>
+              <th className="px-3 py-2">Date</th>
+              <th className="px-3 py-2">Location</th>
+              <th className="px-3 py-2">Firearms</th>
+              <th className="px-3 py-2 text-right">Rounds</th>
+              <th className="px-3 py-2">Courses</th>
+            </tr>
+          }
+          rows={sessions.map((s) => {
+            const courses = parseCourses(s.courses_json);
+            return {
+              key: s.id,
+              text: `${sessionNo(s.number)} ${s.number} ${s.date} ${fd(s.date)} ${s.location ?? ""} ${s.firearms ?? ""} ${courses.map((c) => c.name).join(" ")}`,
+              row: (
+                <ClickRow key={s.id} href={`/range-log/session/${s.id}`} className="border-t border-neutral-800 align-top hover:bg-neutral-900">
+                  <td className="px-3 py-2">
+                    <Link href={`/range-log/session/${s.id}`} className="text-brand-amber hover:text-brand-amber-light">
+                      {sessionNo(s.number)}
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2">{fd(s.date)}</td>
+                  <td className="px-3 py-2">{s.location ?? <span className="text-neutral-500">—</span>}</td>
+                  <td className="px-3 py-2">{s.firearms ? s.firearms.split(" | ").join(", ") : "—"}</td>
+                  <td className="px-3 py-2 text-right">{s.rounds.toLocaleString()}</td>
+                  <td className="px-3 py-2">
+                    <SessionCourses courses={courses} />
+                  </td>
+                </ClickRow>
+              ),
+            };
+          })}
+        />
       )}
     </div>
   );

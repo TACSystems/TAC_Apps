@@ -5,6 +5,8 @@ import { getDb } from "@/lib/db";
 import {
   addCounter,
   correctAmmoCount,
+  correctAmmoLine,
+  type AmmoLineKey,
   correctFirearmCount,
   deleteAdjustment,
   deleteCounter,
@@ -39,6 +41,21 @@ export async function correctAmmo(caliber: string, value: number, note: string):
   const id = correctAmmoCount(getDb(), String(caliber), target, String(note ?? "").trim() || null);
   refresh();
   return { ok: true, message: id ? `${caliber} on hand set to ${Math.round(target).toLocaleString()}.` : "Already at that number." };
+}
+
+export async function correctAmmoLineAction(key: AmmoLineKey, value: number, note: string): Promise<Res> {
+  const target = num(value);
+  if (target == null || target < 0) return { ok: false, error: "Enter the counted number of rounds (0 or more)." };
+  const k = {
+    caliber: String(key?.caliber ?? ""),
+    ammo_type: key?.ammo_type ?? null,
+    grain: key?.grain ?? null,
+    manufacturer: key?.manufacturer ?? null,
+  };
+  if (!k.caliber) return { ok: false, error: "Missing caliber." };
+  const id = correctAmmoLine(getDb(), k, target, String(note ?? "").trim() || null);
+  refresh();
+  return { ok: true, message: id ? `Set to ${Math.round(target).toLocaleString()}.` : "Already at that number." };
 }
 
 export async function removeAdjustment(id: string) {

@@ -66,12 +66,12 @@ export default function CourseList({ courses, categories }: { courses: CourseCar
               <div className="text-sm text-neutral-400">{c.meta}</div>
               <CategoryTags categories={c.categories} />
               <div className="text-xs text-neutral-500">
-                {c.runs} range session{c.runs === 1 ? "" : "s"} logged
+                {c.runs} run{c.runs === 1 ? "" : "s"} logged
               </div>
             </Link>
             <div className="flex gap-4 border-t border-neutral-800 px-4 py-2 text-xs">
               <Link href={`/courses/${c.id}/log`} className="text-brand-amber hover:text-brand-amber-light">
-                Log a Range Session
+                Score This Course
               </Link>
               <Link href={`/courses/${c.id}/print`} className="text-brand-amber hover:text-brand-amber-light">
                 Print

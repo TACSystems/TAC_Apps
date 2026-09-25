@@ -53,7 +53,7 @@ export default function ScoreTrendChart({ series, dateFormat = "us" }: { series:
   if (series.length === 0 || allDates.length === 0) {
     return (
       <div className="border border-neutral-800 bg-neutral-900 p-6 text-center text-sm text-neutral-500">
-        No scored range sessions yet for this course.
+        No scored runs of this course yet.
       </div>
     );
   }

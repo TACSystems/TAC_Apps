@@ -2,6 +2,28 @@
 
 All notable changes to TAC-LOG, newest first.
 
+## [0.8.0] — 2026-09-24
+
+### Added
+- **Range sessions:** a session is one trip to the range (date + location), numbered #0001, #0002, and so on. Every course run and practice entry from the same date and location joins it automatically, whether it was logged from a course, the practice screen, or Update Rounds Fired.
+  - The Range Log shows one line per session: number, date, location, firearms, rounds, and course scores with PASS/FAIL. Click a session to see everything in it.
+  - On a session page: + Course Run and + Practice add to it with the date and location filled in. Move sends an entry to another session or splits it off into a new one. Edit Session changes the date, location, or notes for everything in it, merges it into another session, or deletes it.
+  - Existing range log and Update Rounds Fired entries are grouped into sessions automatically. Older Range Day entries keep their location.
+- **Which ammo was fired:** course runs, practice, and Update Rounds Fired have an Ammo Used pick (caliber, type, grain, brand) that defaults to the last ammo used in that firearm. Those rounds come off that exact line of ammo.
+- **Ammo page redesign:**
+  - Goals across the top in a 3-wide grid. A goal is per caliber and can be narrowed to a type and grain (e.g. 9mm · JHP · 124gr).
+  - Total boxes: By Caliber, and By Caliber · Brand · Grain. Click one for the full list, which also offers By Caliber · Type · Grain and shows average cost per round.
+  - On Hand is grouped Caliber › Type + Grain, with brands combined on each line. Open a line to see each brand and correct its count.
+  - Log Purchase and Set Goal are buttons at the top right that open in a window.
+- **Pages fold into sections:** firearm, accessory, document, course, range session, Ammo, and Stats pages. Each has Expand All / Collapse All, collapsed headings show a one-line summary (e.g. "Maintenance · 3 entries · last 09/12"), and TAC-LOG remembers which sections you left open.
+- Course pages list your runs of that course with scores and the session each belongs to.
+
+### Changed
+- One **Log a Range Session** button asks "Course of fire, or practice only?". The separate Range Day button is gone; its screen is now Log Practice.
+- A single scored course is now called a course run; the dashboard's Recent Range Sessions lists sessions.
+- Trip notes from the practice screen are saved on the session instead of on every entry.
+- Ammo corrections are made per brand line. Correcting a whole caliber (Controls) to 0 zeroes each line.
+
 ## [0.7.1] — 2026-09-24
 
 ### Changed

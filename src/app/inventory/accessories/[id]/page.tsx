@@ -10,6 +10,9 @@ import AccessoryForm from "@/components/AccessoryForm";
 import AttachmentGallery from "@/components/AttachmentGallery";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import { fd } from "@/lib/display";
+import Collapsible from "@/components/Collapsible";
+import SectionTools from "@/components/SectionTools";
+import { pageSections } from "@/lib/page-sections";
 
 export const dynamic = "force-dynamic";
 
@@ -50,9 +53,10 @@ export default async function AccessoryDetailPage({
     .all(id) as Mount[];
   const photos = listAttachments(db, "accessory", id, ["photo"]);
   const receipts = listAttachments(db, "accessory", id, ["receipt", "document"]);
+  const open = pageSections(db, "accessory");
 
   return (
-    <div className="flex flex-col gap-8">
+    <div data-scope="accessory" className="flex flex-col gap-4">
       <div>
         <Link href="/inventory/accessories" className="text-xs text-brand-amber hover:text-brand-amber-light">
           ← Accessories
@@ -85,6 +89,16 @@ export default async function AccessoryDetailPage({
           )}
         </p>
         {saved && <p className="mb-3 text-sm text-green-400">Saved.</p>}
+        <SectionTools scope="accessory" remember />
+      </div>
+
+      <Collapsible
+        id="details"
+        scope="accessory"
+        title="Accessory Details"
+        defaultOpen={open("details", false)}
+        summary={[accessory.type, accessory.platform, accessory.serial_number ? `SN ${accessory.serial_number}` : null, fd(accessory.acquisition_date)].filter(Boolean).join(" · ")}
+      >
         <div className="max-w-4xl">
           <AccessoryForm
             accessory={accessory}
@@ -95,10 +109,10 @@ export default async function AccessoryDetailPage({
             submitLabel="Save Changes"
           />
         </div>
-      </div>
+      </Collapsible>
 
+      <Collapsible id="photos" scope="accessory" title="Photos" defaultOpen={open("photos", false)} summary={`${photos.length} photo${photos.length === 1 ? "" : "s"}`}>
       <AttachmentGallery
-        title="Photos"
         items={photos}
         ownerType="accessory"
         ownerId={id}
@@ -106,18 +120,25 @@ export default async function AccessoryDetailPage({
         imagesOnly
         emptyText="No photos yet."
       />
+      </Collapsible>
 
+      <Collapsible id="receipts" scope="accessory" title="Receipts & Documents" defaultOpen={open("receipts", false)} summary={`${receipts.length} file${receipts.length === 1 ? "" : "s"}`}>
       <AttachmentGallery
-        title="Receipts & Documents"
         items={receipts}
         ownerType="accessory"
         ownerId={id}
         kind="receipt"
         emptyText="No receipts uploaded yet."
       />
+      </Collapsible>
 
-      <section>
-        <h2 className="mb-2 font-medium text-neutral-200">Mount History</h2>
+      <Collapsible
+        id="mounts"
+        scope="accessory"
+        title="Mount History"
+        defaultOpen={open("mounts", false)}
+        summary={mounts.length ? `${mounts.length} entr${mounts.length === 1 ? "y" : "ies"}` : "Never mounted"}
+      >
         <p className="mb-2 text-sm text-neutral-400">
           Recorded automatically when you change &quot;Mounted On&quot; above.
         </p>
@@ -150,7 +171,7 @@ export default async function AccessoryDetailPage({
           ))}
           {mounts.length === 0 && <p className="text-sm text-neutral-500">Never mounted.</p>}
         </div>
-      </section>
+      </Collapsible>
     </div>
   );
 }

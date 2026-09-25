@@ -8,6 +8,8 @@ import { costPerRound } from "@/lib/stats";
 import { getSettings, money } from "@/lib/settings";
 import { passFail } from "@/lib/cof-shared";
 import { fd } from "@/lib/display";
+import { getSession, sessionNo } from "@/lib/sessions";
+import { pickLabel } from "@/lib/ammo";
 
 export const dynamic = "force-dynamic";
 
@@ -40,15 +42,27 @@ export default async function RangeLogDetailPage({
   const cpr = costPerRound(db, log.caliber);
   const ammoCost = cpr != null && log.rounds_fired ? money(Math.round(cpr * log.rounds_fired * 100) / 100, getSettings(db).currencySymbol) : null;
 
+  const session = log.session_id ? getSession(db, log.session_id) : undefined;
+  const ammoUsed =
+    log.caliber && (log.ammo_type || log.ammo_grain != null || log.ammo_manufacturer)
+      ? pickLabel({ caliber: log.caliber, ammo_type: log.ammo_type, grain: log.ammo_grain, manufacturer: log.ammo_manufacturer })
+      : null;
+
   const zoneCounts = db
     .prepare(`select * from range_log_zone_counts where range_log_id = ?`)
     .all(id) as RangeLogZoneCount[];
 
   return (
     <div className="max-w-xl">
+      {session && (
+        <Link href={`/range-log/session/${session.id}`} className="text-xs text-brand-amber hover:text-brand-amber-light">
+          ← Range Session {sessionNo(session.number)} · {fd(session.date)}
+          {session.location ? ` · ${session.location}` : ""}
+        </Link>
+      )}
       <div className="mb-1 flex items-center justify-between">
         <h1 className="text-xl font-semibold">
-          {log.cof_name ?? "Range Log"} — {fd(log.date)}
+          {log.cof_name ?? "Course Run"} — {fd(log.date)}
         </h1>
         <div className="flex flex-wrap gap-2">
           <a
@@ -64,7 +78,7 @@ export default async function RangeLogDetailPage({
           </Link>
           <form action={deleteRangeLog.bind(null, id)}>
             <ConfirmSubmitButton
-              confirmMessage={`Delete this range session?${
+              confirmMessage={`Delete this course run?${
                 log.rounds_fired ? ` Its ${log.rounds_fired} rounds are taken off the firearm's shot count and returned to ammo on hand.` : ""
               } This cannot be undone.`}
               className="border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200 hover:bg-red-900"
@@ -76,7 +90,9 @@ export default async function RangeLogDetailPage({
       </div>
       <p className="mb-4 text-sm text-neutral-400">
         {log.firearm_make_model ?? log.weapon_used ?? "No firearm linked"}
-        {log.firearm_make_model && log.weapon_used ? ` (${log.weapon_used})` : ""} · {log.range_location}
+        {log.firearm_make_model && log.weapon_used ? ` (${log.weapon_used})` : ""}
+        {log.range_location ? ` · ${log.range_location}` : ""}
+        {ammoUsed ? ` · ${ammoUsed}` : ""}
         {log.ammo_lot ? ` · Lot ${log.ammo_lot}` : ""}
         {ammoCost ? ` · est. ammo cost ${ammoCost}` : ""}
       </p>

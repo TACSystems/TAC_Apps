@@ -5,6 +5,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveRangeDay, type DayRow } from "@/app/range-day/actions";
 import { useUnsaved, clearUnsaved } from "@/components/UnsavedGuard";
+import AmmoPick from "@/components/AmmoPick";
+import { defaultPickFor, type PickOpt } from "@/lib/ammo-pick";
 
 type F = { id: string; label: string; caliber: string | null };
 type C = { id: string; name: string };
@@ -12,20 +14,22 @@ type C = { id: string; name: string };
 const input = "border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-sm normal-case";
 
 function blank(): DayRow {
-  return { firearmId: "", rounds: 0, caliber: "", ammoLot: "", deduct: true, courseId: "", score: "", notes: "" };
+  return { firearmId: "", rounds: 0, caliber: "", ammo: "", ammoLot: "", deduct: true, courseId: "", score: "", notes: "" };
 }
 
 export default function RangeDay({
   firearms,
   courses,
-  calibers,
   locations,
   weather,
   defaults,
+  ammoOptions,
+  lastPicks,
 }: {
   firearms: F[];
   courses: C[];
-  calibers: string[];
+  ammoOptions: PickOpt[];
+  lastPicks: Record<string, string>;
   locations: string[];
   weather: string[];
   defaults: { date: string; location: string; shooter: string; deduct: boolean };
@@ -40,10 +44,17 @@ export default function RangeDay({
 
   const set = (i: number, patch: Partial<DayRow>) => setRows(rows.map((r, k) => (k === i ? { ...r, ...patch } : r)));
   const total = rows.reduce((s, r) => s + (Number(r.rounds) || 0), 0);
-  const noCal = rows.filter((r) => r.firearmId && Number(r.rounds) > 0 && !(r.caliber || firearms.find((f) => f.id === r.firearmId)?.caliber)).length;
+  const pickCal = (r: DayRow) => {
+    try {
+      return r.ammo ? (JSON.parse(r.ammo)[0] as string) : "";
+    } catch {
+      return "";
+    }
+  };
+  const noCal = rows.filter((r) => r.firearmId && Number(r.rounds) > 0 && !(pickCal(r) || firearms.find((f) => f.id === r.firearmId)?.caliber)).length;
   const byCal = new Map<string, number>();
   for (const r of rows) {
-    const cal = r.caliber || firearms.find((f) => f.id === r.firearmId)?.caliber || "";
+    const cal = pickCal(r) || firearms.find((f) => f.id === r.firearmId)?.caliber || "";
     if (cal && r.deduct && Number(r.rounds) > 0) byCal.set(cal, (byCal.get(cal) ?? 0) + Number(r.rounds));
   }
 
@@ -72,7 +83,6 @@ export default function RangeDay({
         </label>
         <datalist id="rd-locations">{locations.map((o) => <option key={o} value={o} />)}</datalist>
         <datalist id="rd-weather">{weather.map((o) => <option key={o} value={o} />)}</datalist>
-        <datalist id="rd-calibers">{calibers.map((o) => <option key={o} value={o} />)}</datalist>
       </div>
 
       <div className="overflow-x-auto border border-neutral-800">
@@ -81,7 +91,7 @@ export default function RangeDay({
             <tr>
               <th className="px-2 py-2">Firearm</th>
               <th className="px-2 py-2">Rounds</th>
-              <th className="px-2 py-2">Caliber</th>
+              <th className="px-2 py-2">Ammo Used</th>
               <th className="px-2 py-2">Ammo Lot</th>
               <th className="px-2 py-2">Deduct Ammo</th>
               <th className="px-2 py-2">Course (optional)</th>
@@ -96,7 +106,14 @@ export default function RangeDay({
               return (
                 <tr key={i} className="border-t border-neutral-800 align-top">
                   <td className="px-2 py-1.5">
-                    <select value={r.firearmId} onChange={(e) => set(i, { firearmId: e.target.value })} className={`${input} min-w-[12rem]`}>
+                    <select
+                      value={r.firearmId}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        set(i, { firearmId: id, ammo: defaultPickFor(ammoOptions, firearms.find((x) => x.id === id)?.caliber, lastPicks[id]) });
+                      }}
+                      className={`${input} min-w-[12rem]`}
+                    >
                       <option value="">— Select —</option>
                       {firearms.map((x) => (
                         <option key={x.id} value={x.id}>
@@ -109,7 +126,7 @@ export default function RangeDay({
                     <input type="number" min={0} value={r.rounds || ""} onChange={(e) => set(i, { rounds: Number(e.target.value) })} className={`${input} w-24`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <input list="rd-calibers" value={r.caliber} placeholder={f?.caliber ?? ""} onChange={(e) => set(i, { caliber: e.target.value })} className={`${input} w-28`} />
+                    <AmmoPick name={`ammo-${i}`} options={ammoOptions} caliber={f?.caliber} value={r.ammo} onChange={(v) => set(i, { ammo: v })} className={`${input} w-56`} />
                   </td>
                   <td className="px-2 py-1.5">
                     <input value={r.ammoLot} onChange={(e) => set(i, { ammoLot: e.target.value })} className={`${input} w-28`} />
@@ -157,7 +174,7 @@ export default function RangeDay({
         </button>
         {noCal > 0 && (
           <span className="text-xs text-amber-300">
-            {noCal} row{noCal === 1 ? " has" : "s have"} no caliber, so {noCal === 1 ? "it" : "they"} won&apos;t come off ammo on hand.
+            {noCal} row{noCal === 1 ? " has" : "s have"} no caliber, so {noCal === 1 ? "it" : "they"} won&apos;t come off ammo on hand. Pick the ammo used.
           </span>
         )}
         <span className="text-sm text-neutral-400">
@@ -175,6 +192,10 @@ export default function RangeDay({
               const res = await saveRangeDay(header, rows);
               if (res.ok) {
                 clearUnsaved();
+                if (res.sessionId) {
+                  router.push(`/range-log/session/${res.sessionId}`);
+                  return;
+                }
                 setMsg({ ok: true, text: `Saved ${res.saved} firearm${res.saved === 1 ? "" : "s"}${res.sessions ? `, including ${res.sessions} scored session${res.sessions === 1 ? "" : "s"}` : ""}.` });
                 setRows([{ ...blank(), deduct: defaults.deduct }]);
                 router.refresh();
@@ -183,7 +204,7 @@ export default function RangeDay({
           }
           className="bg-brand-olive px-5 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60"
         >
-          {pending ? "Saving…" : "Save Range Day"}
+          {pending ? "Saving…" : "Save Practice"}
         </button>
         {msg && (
           <span className={`text-sm ${msg.ok ? "text-green-400" : "text-red-400"}`}>
@@ -192,8 +213,8 @@ export default function RangeDay({
         )}
       </div>
       <p className="text-xs text-neutral-500">
-        Practice rows go into each firearm&apos;s Rounds Fired log. Rows with a course become range sessions with the score you
-        enter; to score zone by zone, use Log a Range Session on the course instead.
+        Everything saved here joins the range session for this date and location. Rows with a course become course runs with
+        the score you enter; to score zone by zone, choose Course of fire on Log a Range Session instead.
       </p>
     </div>
   );

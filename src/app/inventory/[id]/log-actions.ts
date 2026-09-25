@@ -4,6 +4,8 @@ import { getDb } from "@/lib/db";
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { todayISO } from "@/lib/settings-shared";
+import { decodePick } from "@/lib/ammo";
+import { assignEntry, cleanLocation, pruneSessions } from "@/lib/sessions";
 
 function s(formData: FormData, key: string) {
   const v = formData.get(key);
@@ -88,22 +90,32 @@ export async function logRoundsFired(firearmId: string, formData: FormData) {
     | undefined;
   if (!firearm) return;
 
+  const pick = decodePick(formData.get("ammo_pick"));
+  const id = randomUUID();
   db.transaction(() => {
     db.prepare(
-      `insert into rounds_fired_log (id, firearm_id, date, rounds, caliber, ammo_lot, deduct_from_ammo, notes)
-       values (@id, @firearm_id, @date, @rounds, @caliber, @ammo_lot, @deduct_from_ammo, @notes)`
+      `insert into rounds_fired_log (id, firearm_id, date, rounds, caliber, ammo_lot, deduct_from_ammo, notes,
+         range_location, ammo_type, ammo_grain, ammo_manufacturer)
+       values (@id, @firearm_id, @date, @rounds, @caliber, @ammo_lot, @deduct_from_ammo, @notes,
+         @range_location, @ammo_type, @ammo_grain, @ammo_manufacturer)`
     ).run({
-      id: randomUUID(),
+      id,
       firearm_id: firearmId,
       date: String(formData.get("date") || todayISO()),
       rounds,
-      caliber: s(formData, "caliber") ?? firearm.caliber,
+      caliber: pick?.caliber ?? s(formData, "caliber") ?? firearm.caliber,
       ammo_lot: s(formData, "ammo_lot"),
       deduct_from_ammo: formData.get("deduct_from_ammo") === "on" ? 1 : 0,
       notes: s(formData, "notes"),
+      range_location: cleanLocation(formData.get("range_location")),
+      ammo_type: pick?.ammo_type ?? null,
+      ammo_grain: pick?.grain ?? null,
+      ammo_manufacturer: pick?.manufacturer ?? null,
     });
+    assignEntry(db, "rounds_fired_log", id);
     db.prepare(`update firearms set shots_fired = shots_fired + ? where id = ?`).run(rounds, firearmId);
   })();
+  revalidatePath("/range-log");
 
   revalidatePath(`/inventory/${firearmId}`);
   revalidatePath("/");
@@ -118,6 +130,7 @@ export async function deleteRoundsFired(firearmId: string, entryId: string) {
   if (entry) {
     db.transaction(() => {
       db.prepare(`delete from rounds_fired_log where id = ?`).run(entryId);
+      pruneSessions(db);
       db.prepare(`update firearms set shots_fired = max(0, shots_fired - ?) where id = ?`).run(
         entry.rounds,
         firearmId

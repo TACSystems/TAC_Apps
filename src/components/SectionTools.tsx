@@ -2,12 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { saveDashboardAll } from "@/app/dashboard-actions";
+import { savePageSectionsAll } from "@/app/page-section-actions";
 
 function sections(scope: string) {
   return Array.from(document.querySelectorAll<HTMLDetailsElement>(`[data-scope="${scope}"] details[data-section]`));
 }
 
-export default function SectionTools({ scope, search = false, persist = false }: { scope: string; search?: boolean; persist?: boolean }) {
+export default function SectionTools({
+  scope,
+  search = false,
+  persist = false,
+  remember = false,
+  placeholder = "Search settings (e.g. backup, PIN, date format)…",
+}: {
+  scope: string;
+  search?: boolean;
+  persist?: boolean;
+  remember?: boolean;
+  placeholder?: string;
+}) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<number | null>(null);
 
@@ -30,6 +43,7 @@ export default function SectionTools({ scope, search = false, persist = false }:
       setTimeout(() => delete d.dataset.bulk, 0);
     }
     if (persist) saveDashboardAll(list.map((d) => d.dataset.section ?? ""), open);
+    if (remember) savePageSectionsAll(scope, list.map((d) => d.dataset.section ?? ""), open);
     setQ("");
     setHits(null);
   }
@@ -60,7 +74,7 @@ export default function SectionTools({ scope, search = false, persist = false }:
         <input
           value={q}
           onChange={(e) => filter(e.target.value)}
-          placeholder="Search settings (e.g. backup, PIN, date format)…"
+          placeholder={placeholder}
           className="min-w-[16rem] flex-1 border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
         />
       )}
