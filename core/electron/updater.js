@@ -147,7 +147,8 @@ function createUpdater({ owner, repo, productName, installerPattern, notify }) {
       });
       if (!skipped && installsItself) await downloadWindows(release);
     } catch (err) {
-      set({ status: "error", error: err && err.message ? err.message : "Couldn't check for updates.", manual });
+      const msg = err && err.message ? err.message : "";
+      set({ status: "error", error: /^net::/.test(msg) ? `Couldn't reach GitHub to check for updates (${msg.replace(/^net::/, "")}).` : msg || "Couldn't check for updates.", manual });
     } finally {
       busy = false;
     }

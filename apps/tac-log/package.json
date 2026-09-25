@@ -40,6 +40,7 @@
   "build": {
     "appId": "systems.precision.tac-log",
     "productName": "TAC-LOG",
+    "electronVersion": "38.8.6",
     "copyright": "Copyright \u00a9 Precision Systems",
     "directories": {
       "output": "release"

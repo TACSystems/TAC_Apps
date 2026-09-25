@@ -44,7 +44,7 @@ fs.mkdirSync(seedOutDir, { recursive: true });
 fs.cpSync(standaloneDir, serverOut, { recursive: true });
 
 const appOut = path.join(serverOut, appRel);
-for (const stray of ["data", "src", "electron", "scripts", "release", "sql", "tsconfig.tsbuildinfo", "AGENTS.md", "CLAUDE.md", "CHANGELOG.md", "SETUP.md", "eslint.config.mjs", "next.config.ts"]) {
+for (const stray of ["data", "src", "electron", "scripts", "release", "sql", "tsconfig.tsbuildinfo", "AGENTS.md", "CLAUDE.md", "CHANGELOG.md", "SETUP.md", "eslint.config.mjs", "next.config.ts", "test", "tsconfig.json", "postcss.config.mjs", "docs"]) {
   fs.rmSync(path.join(appOut, stray), { recursive: true, force: true });
 }
 for (const stray of ["core", "package-lock.json", "README.md", "node_modules/@img", "node_modules/sharp", "node_modules/@tac", "node_modules/tac-log"]) {
