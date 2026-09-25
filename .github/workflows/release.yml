@@ -1,0 +1,187 @@
+name: Build and publish a release
+
+# Push a version tag and this builds the app on real macOS and Windows
+# runners, then publishes a GitHub Release — with the installers and a
+# SHA256SUMS.txt — to that app's public Releases repository.
+#
+#   tac-log-v0.10.0        -> TACSystems/TAC-LOG-Releases
+#   tac-qual-v0.2.0        -> TACSystems/TAC-QUAL-Releases
+#   tac-qual-blue-v0.1.0   -> TACSystems/TAC-QUAL-BLUE-Releases
+#
+# Why real runners: better-sqlite3's native module has to match the OS it
+# runs on, and a macOS .app is held together by symlinks inside its
+# Electron framework. Building the .dmg on macOS is what keeps both of
+# those correct — it is not a convenience.
+#
+# SETUP, once:
+#   1. Create a fine-grained PAT with Contents: Read and write on the three
+#      Releases repositories.
+#   2. Save it in TAC_Apps as the repository secret RELEASES_TOKEN
+#      (Settings -> Secrets and variables -> Actions).
+#   3. Each Releases repository needs at least one commit before a release
+#      can attach to it. The workflow adds a README if one is missing.
+#
+# The in-app updater reads the latest release and SHA256SUMS.txt from these
+# repositories, so publishing here is what makes Check for Updates work.
+
+on:
+  push:
+    tags:
+      - "tac-log-v*"
+      - "tac-qual-v*"
+      - "tac-qual-blue-v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build and publish (e.g. tac-qual-v0.2.0)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  identify:
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.map.outputs.app }}
+      repo: ${{ steps.map.outputs.repo }}
+      version: ${{ steps.map.outputs.version }}
+      tag: ${{ steps.map.outputs.tag }}
+    steps:
+      - id: map
+        shell: bash
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          case "$TAG" in
+            tac-qual-blue-v*) APP=tac-qual-blue; REPO=TAC-QUAL-BLUE-Releases; V="${TAG#tac-qual-blue-v}" ;;
+            tac-qual-v*)      APP=tac-qual;      REPO=TAC-QUAL-Releases;      V="${TAG#tac-qual-v}" ;;
+            tac-log-v*)       APP=tac-log;       REPO=TAC-LOG-Releases;       V="${TAG#tac-log-v}" ;;
+            *) echo "::error::Tag '$TAG' does not match tac-log-v*, tac-qual-v* or tac-qual-blue-v*"; exit 1 ;;
+          esac
+          {
+            echo "app=$APP"
+            echo "repo=$REPO"
+            echo "version=$V"
+            echo "tag=$TAG"
+          } >> "$GITHUB_OUTPUT"
+          echo "Building $APP $V -> TACSystems/$REPO"
+
+  build:
+    needs: identify
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            script: dist:mac
+            glob: "release/*.dmg"
+          - os: windows-latest
+            script: dist:win
+            glob: "release/*.exe"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.identify.outputs.tag }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The app's own package.json version is the source of truth; the tag
+      # must agree with it, or the updater will compare the wrong numbers.
+      - name: Check the tag matches the app version
+        shell: bash
+        run: |
+          PKG=$(node -p "require('./apps/${{ needs.identify.outputs.app }}/package.json').version")
+          if [ "$PKG" != "${{ needs.identify.outputs.version }}" ]; then
+            echo "::error::Tag says ${{ needs.identify.outputs.version }} but apps/${{ needs.identify.outputs.app }}/package.json says $PKG"
+            exit 1
+          fi
+
+      - run: npm install
+
+      # Runs core tests, the app's unit tests, then next build, then
+      # electron-builder — the same chain used locally.
+      - run: npm run ${{ matrix.script }}
+        working-directory: apps/${{ needs.identify.outputs.app }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.identify.outputs.app }}-${{ matrix.os }}
+          path: apps/${{ needs.identify.outputs.app }}/${{ matrix.glob }}
+          if-no-files-found: error
+
+  publish:
+    needs: [identify, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.identify.outputs.tag }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: incoming
+
+      - name: Collect installers and write SHA256SUMS.txt
+        shell: bash
+        run: |
+          mkdir -p dist
+          find incoming -type f \( -name '*.dmg' -o -name '*.exe' \) -exec cp {} dist/ \;
+          cd dist
+          ls -la
+          # The updater downloads SHA256SUMS.txt and checks the installer
+          # against it, so the plain "hash  filename" format matters.
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Release notes from the changelog
+        shell: bash
+        run: |
+          APP="${{ needs.identify.outputs.app }}"
+          V="${{ needs.identify.outputs.version }}"
+          CL="apps/$APP/CHANGELOG.md"
+          if [ -f "$CL" ]; then
+            awk -v v="$V" '$0 ~ "^## \\[?" v "\\]?" {f=1; next} /^## / {f=0} f' "$CL" | sed '/./,$!d' > notes.md
+          fi
+          [ -s notes.md ] || printf '%s %s\n' "$APP" "$V" > notes.md
+          cat notes.md
+
+      - name: Make sure the Releases repository has a commit
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          REPO: TACSystems/${{ needs.identify.outputs.repo }}
+        shell: bash
+        run: |
+          if gh api "repos/$REPO/contents/README.md" >/dev/null 2>&1; then
+            echo "README already present."
+          else
+            echo "Empty repository — adding a README so a release can attach to it."
+            NAME="${{ needs.identify.outputs.app }}"
+            BODY=$(printf '# %s Releases\n\nInstallers only. Source lives in the private TACSystems/TAC_Apps repository.\n' "${NAME^^}" | base64 -w0)
+            gh api -X PUT "repos/$REPO/contents/README.md" \
+              -f message="Initialise releases repository" \
+              -f content="$BODY" >/dev/null
+          fi
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          REPO: TACSystems/${{ needs.identify.outputs.repo }}
+          TAG: v${{ needs.identify.outputs.version }}
+        shell: bash
+        run: |
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "::error::Release $TAG already exists on $REPO. Bump the version or delete the release first."
+            exit 1
+          fi
+          gh release create "$TAG" \
+            --repo "$REPO" \
+            --title "${{ needs.identify.outputs.app }} ${{ needs.identify.outputs.version }}" \
+            --notes-file notes.md \
+            --latest \
+            dist/*
+          echo "Published $TAG to $REPO"
