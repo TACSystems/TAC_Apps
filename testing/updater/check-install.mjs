@@ -1,0 +1,23 @@
+const W = process.env.TL_WORK || "/tmp/tl-test";
+import { chromium } from "playwright";
+import fs from "fs";
+const b = await chromium.connectOverCDP("http://127.0.0.1:9334");
+const p = b.contexts()[0].pages().find((x) => x.url().startsWith("http://127.0.0.1")) ?? b.contexts()[0].pages()[0];
+const ok = (c, m) => console.log(c ? "PASS" : "FAIL", m);
+await p.waitForSelector("[data-update-banner]", { timeout: 20000 }).catch(() => {});
+let t = await p.locator("[data-update-banner]").innerText().catch(() => "");
+for (let i = 0; i < 20 && !/ready to install/i.test(t); i++) { await p.waitForTimeout(500); t = await p.locator("[data-update-banner]").innerText().catch(() => ""); }
+ok(t.includes(process.env.TL_VERSION.replace(/(\d+)$/, (m) => String(Number(m) + 1))) && /ready to install/i.test(t), "banner shows downloaded update: " + t.replace(/\s+/g, " ").slice(0, 120));
+await p.getByText("Skip setup and tour", { exact: false }).click().catch(() => {}); await p.waitForTimeout(800);
+await p.getByRole("button", { name: "What's new" }).click();
+ok((await p.locator("[data-update-banner]").innerText()).includes("Test release notes"), "release notes shown");
+await p.goto(p.url().split("/").slice(0, 3).join("/") + "/settings#settings-updates"); await p.waitForTimeout(1500);
+ok((await p.locator("[data-update-status]").innerText()).includes(process.env.TL_VERSION.replace(/(\d+)$/, (m) => String(Number(m) + 1))), "settings shows update status");
+const log = fs.readFileSync(W + "/upd/requests.log", "utf8");
+ok(log.includes("TAC-LOG/" + process.env.TL_VERSION) && log.includes("/dl/SHA256SUMS.txt"), "checked API with app user-agent, fetched checksums");
+await p.screenshot({ path: "upd-before.png" });
+console.log("buttons:", await p.locator("[data-update-banner] button").allInnerTexts());
+await p.locator("[data-update-banner]").getByRole("button", { name: /Restart to Update/i }).click({ timeout: 5000 }).catch((e) => console.log("click err", e.message.split("\n")[0]));
+await new Promise((r) => setTimeout(r, 3000));
+ok(fs.existsSync(W + "/upd/installed.txt") && fs.readFileSync(W + "/upd/installed.txt", "utf8").includes("/S --updated --force-run"), "installer launched silently: " + (fs.existsSync(W + "/upd/installed.txt") ? fs.readFileSync(W + "/upd/installed.txt", "utf8").trim() : "none"));
+await b.close().catch(() => {});

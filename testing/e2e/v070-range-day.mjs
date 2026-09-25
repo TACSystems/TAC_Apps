@@ -1,0 +1,67 @@
+const W = process.env.TL_WORK || "/tmp/tl-test";
+import { chromium } from "playwright";
+import { createRequire } from "module";
+const req = createRequire(import.meta.url);
+const D = req("../../node_modules/better-sqlite3-multiple-ciphers");
+const base = "http://127.0.0.1:3100";
+const DIR = process.argv[2];
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium" });
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+
+await p.addInitScript(() => { setInterval(() => { const d = document.querySelector("[role=alertdialog]"); if (d) { const bs = d.querySelectorAll("button"); bs[bs.length - 1].click(); } }, 150); });
+p.on("dialog", d => d.accept());
+p.on("pageerror", e => console.log("PAGEERROR", e.message));
+const ok = (c, m) => console.log(c ? "PASS" : "FAIL", m);
+const body = async () => (await p.locator("body").innerText()).toLowerCase();
+const q = (sql, ...a) => { const d = new D(DIR + "/firearms.db", { readonly: true }); try { return d.prepare(sql).get(...a); } finally { d.close(); } };
+const w = (sql) => { const d = new D(DIR + "/firearms.db"); d.exec(sql); d.close(); };
+w("insert into firearms (id, make_model, caliber, platform, status, date_of_entry) values ('f2','Test AR','5.56mm / .223','Rifle (Semi-Auto)','active', date('now'))");
+
+const f1 = q("select id, shots_fired, caliber from firearms where id != 'f2' and caliber is not null limit 1");
+const f2 = q("select shots_fired from firearms where id = 'f2'");
+const ammoBefore = q("select on_hand from ammo_on_hand where caliber = ?", f1.caliber)?.on_hand ?? 0;
+const rlBefore = q("select count(*) n from range_log").n;
+
+await p.goto(base + "/range-day");
+const rows = p.locator("tbody tr");
+await rows.nth(0).locator("select").first().selectOption(f1.id);
+await rows.nth(0).locator("input[type=number]").first().fill("100");
+await p.getByRole("button", { name: "+ Add Firearm" }).click();
+await rows.nth(1).locator("select").first().selectOption("f2");
+await rows.nth(1).locator("input[type=number]").first().fill("60");
+const course = q("select id from courses_of_fire limit 1").id;
+await rows.nth(1).locator("select").nth(2).selectOption(course);
+await rows.nth(1).locator("input[type=number]").nth(1).fill("88");
+ok((await body()).includes("160 rounds total"), "running total");
+await p.getByRole("button", { name: "Save Practice" }).click(); await p.waitForTimeout(2500);
+ok(p.url().includes("/range-log/session/"), "practice saved, opened session");
+ok(q("select shots_fired from firearms where id = ?", f1.id).shots_fired === f1.shots_fired + 100 && q("select shots_fired from firearms where id='f2'").shots_fired === f2.shots_fired + 60, "shot counts updated");
+ok((q("select on_hand from ammo_on_hand where caliber = ?", f1.caliber)?.on_hand ?? 0) === ammoBefore - 100, "ammo deducted");
+ok(q("select count(*) n from range_log").n === rlBefore + 1 && q("select final_score_percent s from range_log where firearm_id='f2'").s === 88, "scored row became range session");
+
+await p.goto(base + "/timer?course=" + course);
+ok((await body()).includes("string 1 of"), "timer loads course strings");
+await p.locator("input[type=number]").nth(0).fill("0");
+await p.locator("input[type=number]").nth(1).fill("0");
+await p.getByRole("button", { name: /Start/ }).click(); await p.waitForTimeout(400);
+ok(/\d+\.\d\d/.test(await p.locator(".tabular-nums").innerText()), "timer running");
+await p.getByRole("button", { name: /Stop/ }).click();
+await p.keyboard.press("ArrowRight"); await p.waitForTimeout(200);
+ok((await body()).includes("string 2 of"), "next string");
+await p.goto(base + "/timer");
+ok((await body()).includes("par (seconds)"), "free timer mode");
+
+await p.goto(base + "/checklist");
+ok((await body()).includes("range bag checklist") && (await p.locator("input[type=checkbox]").count()) >= 20, "default range bag seeded");
+await p.locator("input[type=checkbox]").first().check(); await p.waitForTimeout(800);
+await p.reload();
+ok(await p.locator("input[type=checkbox]").first().isChecked(), "check persists");
+await p.getByPlaceholder("e.g. Shot timer").fill("Shot timer");
+await p.getByRole("button", { name: "Add", exact: true }).click(); await p.waitForTimeout(1000);
+ok((await body()).includes("shot timer"), "item added");
+await p.getByRole("button", { name: "Uncheck All" }).click(); await p.waitForTimeout(1000);
+ok(!(await p.locator("input[type=checkbox]").first().isChecked()), "uncheck all");
+await p.emulateMedia({ media: "print" });
+await p.pdf({ path: W + "/checklist.pdf", format: "Letter" });
+ok(true, "printed to PDF");
+await b.close();
