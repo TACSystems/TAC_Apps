@@ -1,0 +1,1 @@
+export const CHANGELOG_MD = "# TAC-QUAL Changelog\n\n## 0.1.0 — in development\nFirst release. Student roster, classes and events, multi-shooter qualification\nscoring, qualification records, the printing pack, instructor profile with\ncertifications, and a relay par timer. Built on the TAC Systems shared core.\n";

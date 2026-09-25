@@ -1,0 +1,46 @@
+:root {
+  color-scheme: dark;
+  --background: #17191b;
+  --foreground: #e4e6e8;
+  --tl-n950: #17191b;
+  --tl-n900: #1f2225;
+  --tl-n800: #282c30;
+  --tl-n700: #33383c;
+  --tl-n600: #4a5054;
+  --tl-n500: #8a9196;
+  --tl-n400: #a8aeb2;
+  --tl-n300: #c4c9cc;
+  --tl-n200: #d6dadd;
+  --tl-n100: #e4e6e8;
+  /* Gold does the interactive work: primary buttons, links, focus rings. */
+  --tl-olive: #d4a537;
+  --tl-olive-light: #e3bb5c;
+  --tl-on-primary: #17191b;
+  --tl-amber: #d4a537;
+  --tl-amber-light: #e3bb5c;
+  --tl-tile: #c8102e;
+  --tq-scarlet: #c8102e;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --background: #f2f3f4;
+  --foreground: #16181a;
+  --tl-n950: #f2f3f4;
+  --tl-n900: #e6e8ea;
+  --tl-n800: #d2d6d9;
+  --tl-n700: #b0b6ba;
+  --tl-n600: #8d9498;
+  --tl-n500: #5f666a;
+  --tl-n400: #474d51;
+  --tl-n300: #343a3d;
+  --tl-n200: #24292b;
+  --tl-n100: #16181a;
+  --tl-olive: #8a6410;
+  --tl-olive-light: #a07717;
+  --tl-on-primary: #f2f3f4;
+  --tl-amber: #8a6410;
+  --tl-amber-light: #a07717;
+  --tl-tile: #c8102e;
+  --tq-scarlet: #b00d28;
+}

@@ -1,0 +1,145 @@
+@import "tailwindcss";
+@import "./brand-tokens.css";
+@import "../../../../core/src/styles/tokens.css";
+@import "../../../../core/src/styles/ui.css";
+@source "../../../../core/src";
+
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-tactical-mono);
+}
+
+h1, h2, h3,
+label,
+th,
+button,
+nav a {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill,
+input:autofill {
+  -webkit-text-fill-color: var(--foreground);
+  -webkit-box-shadow: 0 0 0 1000px var(--tl-n900) inset;
+  box-shadow: 0 0 0 1000px var(--tl-n900) inset;
+  caret-color: var(--foreground);
+  transition: background-color 99999s ease-out 0s;
+}
+
+input, select, textarea {
+  letter-spacing: 0.02em;
+  font-family: inherit;
+}
+
+h1, h2, h3, th {
+  font-weight: 700;
+}
+
+::placeholder {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+@media print {
+  nav,
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  :root {
+    color-scheme: light;
+  }
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+  main,
+  .print-sheet {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  body:has(.recovery-card) main * {
+    visibility: hidden;
+  }
+  body:has(.recovery-card) .recovery-card,
+  body:has(.recovery-card) .recovery-card * {
+    visibility: visible;
+    color: #000000 !important;
+    background: #ffffff !important;
+  }
+  body:has(.recovery-card) .recovery-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+  .print-checklist > div {
+    border-color: #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .print-checklist h2 {
+    color: #000 !important;
+  }
+  .print-checklist input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid #000;
+    background: #fff;
+  }
+  .print-checklist span {
+    color: #000 !important;
+    text-decoration: none !important;
+  }
+  .page-break {
+    break-before: page;
+  }
+}
+
+@page {
+  margin: 0.5in;
+}
+
+/* Print: black on white with one scarlet rule that degrades to black on a
+   mono printer. Range printers are usually mono. */
+@media print {
+  .print-sheet {
+    color: #000;
+    background: #fff;
+  }
+  .print-rule {
+    height: 3px;
+    background: var(--tq-scarlet);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-sheet table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .print-sheet th {
+    border-bottom: 2px solid #000;
+    text-align: left;
+  }
+  .print-sheet td {
+    border-bottom: 1px solid #bbb;
+  }
+  .print-sheet .sign-line {
+    border-bottom: 1px solid #000;
+    min-width: 12rem;
+    display: inline-block;
+  }
+  .page-break {
+    break-after: page;
+  }
+}
