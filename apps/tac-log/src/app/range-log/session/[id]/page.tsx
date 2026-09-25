@@ -13,6 +13,9 @@ import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
 import SubmitButton from "@core/components/SubmitButton";
 import SuggestInput from "@core/components/SuggestInput";
 import ToastOnLoad from "@core/components/ToastOnLoad";
+import PrintButton from "@core/components/PrintButton";
+import PrintHeader from "@core/components/PrintHeader";
+import { todayISO } from "@core/lib/format";
 import { deletePractice, deleteSession, mergeInto, moveEntryAction, saveSession } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -114,6 +117,7 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
 
   return (
     <div data-scope="session" className="flex max-w-5xl flex-col gap-4">
+      <PrintHeader app="TAC-LOG" title={`${title} · ${fd(session.date)}${session.location ? ` · ${session.location}` : ""}`} printed={fd(todayISO())} />
       {done.startsWith("saved") && <ToastOnLoad text="Session saved." />}
       {done.startsWith("merged") && <ToastOnLoad text="Sessions merged." />}
       {done.startsWith("moved") && <ToastOnLoad text="Entry moved." />}
@@ -129,7 +133,8 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
             {weather ? ` · ${weather}` : ""}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="no-print flex flex-wrap gap-2">
+          <PrintButton label="Print" />
           <Link href={`/range-log/new?mode=course&${qs}`} className="btn btn-secondary">
             + Course Run
           </Link>

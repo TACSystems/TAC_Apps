@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import FileDrop from "@core/components/FileDrop";
+import Spinner from "@core/components/Spinner";
 
 type Preview = {
   firearms: { make_model: string; serial: string | null; caliber: string | null; duplicate: boolean }[];
@@ -73,7 +74,7 @@ export default function SpreadsheetImport() {
         </div>
         <ul className="ml-4 list-disc text-xs text-neutral-300">
           {items.slice(0, 12).map((i, k) => (
-            <li key={k} className={i.dup ? "text-neutral-600 line-through" : ""}>
+            <li key={k} className={i.dup ? "text-neutral-500 line-through" : ""}>
               {i.label}
             </li>
           ))}
@@ -103,7 +104,13 @@ export default function SpreadsheetImport() {
           onClick={() => send("preview")}
           className="btn btn-secondary"
         >
-          {busy && !preview ? "Reading…" : "Preview Import"}
+          {busy && !preview ? (
+            <>
+              <Spinner /> Reading…
+            </>
+          ) : (
+            "Preview Import"
+          )}
         </button>
       </div>
       {preview && (
@@ -128,7 +135,13 @@ export default function SpreadsheetImport() {
               onClick={() => send("commit")}
               className="btn btn-primary w-fit"
             >
-              {busy ? "Importing…" : `Import ${newCount} item${newCount === 1 ? "" : "s"}`}
+              {busy ? (
+                <>
+                  <Spinner /> Importing…
+                </>
+              ) : (
+                `Import ${newCount} item${newCount === 1 ? "" : "s"}`
+              )}
             </button>
           ) : (
             <p className="text-sm text-neutral-400">Nothing new to import.</p>

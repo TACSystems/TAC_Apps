@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { BREAKDOWNS, breakdown, goalStatus, type BreakdownKind } from "@/lib/ammo";
 import { getSettings, money } from "@/lib/settings";
+import PrintButton from "@core/components/PrintButton";
+import PrintHeader from "@core/components/PrintHeader";
+import { fd } from "@/lib/display";
+import { todayISO } from "@core/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +28,7 @@ export default async function AmmoBreakdownPage({ params }: { params: Promise<{ 
 
   return (
     <div className="flex flex-col gap-4">
+      <PrintHeader app="TAC-LOG" title={`Ammo ${BREAKDOWNS[k].title}`} printed={fd(todayISO())} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <Link href="/ammo" className="text-xs text-brand-amber hover:text-brand-amber-light">
@@ -32,7 +37,8 @@ export default async function AmmoBreakdownPage({ params }: { params: Promise<{ 
           <h1 className="text-xl font-semibold">Ammo {BREAKDOWNS[k].title}</h1>
           <p className="text-sm text-neutral-400">{num(totals.on_hand)} rounds on hand</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="no-print flex flex-wrap gap-2">
+          <PrintButton label="Print" />
           {(Object.keys(BREAKDOWNS) as BreakdownKind[]).map((b) => (
             <Link
               key={b}

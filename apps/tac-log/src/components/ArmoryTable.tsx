@@ -106,7 +106,7 @@ export default function ArmoryTable({ rows }: { rows: ArmoryRow[] }) {
         {sortButton(key, text)}
         {key === "label" && (
           <>
-            <span className="mx-1 text-neutral-600">·</span>
+            <span className="mx-1 text-neutral-500">·</span>
             {sortButton("purchaseDate", "Purchased")}
           </>
         )}

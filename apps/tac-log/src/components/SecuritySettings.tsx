@@ -14,6 +14,7 @@ import {
   savePin,
 } from "@/app/lock/actions";
 import type { ActionResult } from "@core/lib/forms";
+import Spinner from "@core/components/Spinner";
 
 type Res = ActionResult & { recoveryKey?: string };
 
@@ -192,7 +193,13 @@ export default function SecuritySettings({
               <Field label="Confirm password" value={confirm} onChange={setConfirm} />
             </div>
             <button type="button" disabled={pending} onClick={() => run(() => enableEncryption(current, next, confirm))} className={`${primary} w-fit`}>
-              {pending ? "Encrypting…" : "Encrypt my data"}
+              {pending ? (
+                <>
+                  <Spinner /> Encrypting…
+                </>
+              ) : (
+                "Encrypt my data"
+              )}
             </button>
           </>
         )}

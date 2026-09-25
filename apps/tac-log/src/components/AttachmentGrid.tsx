@@ -57,7 +57,7 @@ export default function AttachmentGrid({ items, emptyText }: { items: GridItem[]
             <div className="mt-1 truncate text-neutral-400" title={r.name}>
               {r.name}
             </div>
-            <div className="flex items-center justify-between text-neutral-600">
+            <div className="flex items-center justify-between text-neutral-500">
               <span>{r.date}</span>
               <form action={r.remove}>
                 <ConfirmSubmitButton confirmMessage={r.confirmMessage} className="btn-link btn-link-danger">

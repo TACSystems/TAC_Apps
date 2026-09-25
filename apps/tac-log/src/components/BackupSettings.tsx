@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { backupNow, clearBackupPassword, saveAutoBackupSettings, setBackupPassword } from "@/app/settings/actions";
 import type { ActionResult } from "@core/lib/forms";
+import Spinner from "@core/components/Spinner";
 
 type Res = ActionResult;
 
@@ -146,7 +147,13 @@ export default function BackupSettings({
           </button>
           {folder && (
             <button type="button" disabled={pending} className={btn} onClick={() => run(() => backupNow())}>
-              {pending ? "Working…" : "Back up now"}
+              {pending ? (
+                <>
+                  <Spinner /> Working…
+                </>
+              ) : (
+                "Back up now"
+              )}
             </button>
           )}
         </div>

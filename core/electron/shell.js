@@ -58,7 +58,7 @@ module.exports = function startShell(config) {
     const fallback = { width: 1440, height: 940 };
     try {
       const st = JSON.parse(fs.readFileSync(windowStateFile(), "utf8"));
-      if (!(st.width >= 960 && st.height >= 640)) return fallback;
+      if (!(st.width >= 760 && st.height >= 560)) return fallback;
       if (typeof st.x === "number" && typeof st.y === "number") {
         const area = screen.getDisplayMatching({ x: st.x, y: st.y, width: st.width, height: st.height }).workArea;
         const visible =
@@ -292,8 +292,8 @@ module.exports = function startShell(config) {
       width: state.width,
       height: state.height,
       ...(typeof state.x === "number" && typeof state.y === "number" ? { x: state.x, y: state.y } : {}),
-      minWidth: 960,
-      minHeight: 640,
+      minWidth: 760,
+      minHeight: 560,
       backgroundColor,
       title: productName,
       icon: config.iconPath,

@@ -7,6 +7,7 @@ import CategoryPicker from "@core/components/CategoryPicker";
 import { commitCourseImport, previewCourseImport } from "@/app/courses/import-actions";
 import { normalizeCategories, suggestCategories } from "@core/lib/course-categories";
 import type { CofPatch } from "@core/lib/cof";
+import Spinner from "@core/components/Spinner";
 
 type Incoming = {
   key: string;
@@ -158,7 +159,13 @@ export default function ImportCofForm() {
               }
               className="btn btn-primary"
             >
-              {pending ? "Importing…" : `Import ${items.length} Course${items.length === 1 ? "" : "s"}`}
+              {pending ? (
+                <>
+                  <Spinner /> Importing…
+                </>
+              ) : (
+                `Import ${items.length} Course${items.length === 1 ? "" : "s"}`
+              )}
             </button>
             <button
               type="button"

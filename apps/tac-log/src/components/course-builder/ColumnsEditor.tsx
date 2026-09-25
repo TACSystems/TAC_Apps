@@ -24,7 +24,7 @@ export default function ColumnsEditor({ columns, setColumns }: { columns: Course
                 onChange={(e) => setColumns((cs) => cs.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))}
                 className={`${input} w-56`}
               />
-              <span className="text-xs text-neutral-600">
+              <span className="text-xs text-neutral-500">
                 {c.key in BUILTIN_COLUMN_LABELS ? "standard" : "custom"}
                 {c.key === "rounds" ? " · used for round totals" : ""}
               </span>

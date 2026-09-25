@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDialogs } from "@core/components/Dialogs";
 import FileDrop from "@core/components/FileDrop";
+import Spinner from "@core/components/Spinner";
 
 export default function RestoreForm() {
   const router = useRouter();
@@ -97,7 +98,13 @@ export default function RestoreForm() {
           disabled={busy}
           className="btn btn-danger"
         >
-          {busy ? "Restoring…" : "Restore Backup"}
+          {busy ? (
+            <>
+              <Spinner /> Restoring…
+            </>
+          ) : (
+            "Restore Backup"
+          )}
         </button>
       </div>
       {status && <p className={`text-sm ${status.ok ? "text-green-400" : "text-red-400"}`}>{status.message}</p>}
