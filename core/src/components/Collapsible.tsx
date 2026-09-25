@@ -1,8 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { saveDashboardSection } from "@/app/dashboard-actions";
-import { savePageSection } from "@/app/page-section-actions";
 
 export default function Collapsible({
   id,
@@ -33,8 +31,9 @@ export default function Collapsible({
       open={defaultOpen}
       onToggle={(e) => {
         if (e.currentTarget.dataset.bulk === "1") return;
-        if (scope) savePageSection(scope, id, e.currentTarget.open);
-        else if (persist) saveDashboardSection(id, e.currentTarget.open);
+        if (scope || persist) {
+          window.dispatchEvent(new CustomEvent("taclog:section", { detail: { scope: scope ?? "dashboard", ids: [id], open: e.currentTarget.open } }));
+        }
       }}
       className="group border border-neutral-800 bg-neutral-900"
     >

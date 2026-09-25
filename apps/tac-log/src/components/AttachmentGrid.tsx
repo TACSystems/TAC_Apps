@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
 
 export type GridItem = {
   id: string;

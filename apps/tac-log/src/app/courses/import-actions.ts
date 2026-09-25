@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 import { getDb } from "@/lib/db";
-import { applyCofPatch, type CofPatch } from "@/lib/cof";
+import { applyCofPatch, type CofPatch } from "@core/lib/cof";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
-import { normalizeCategories } from "@/lib/course-categories";
+import { normalizeCategories } from "@core/lib/course-categories";
 
 export async function previewCourseImport(codes: string[]) {
   const db = getDb();

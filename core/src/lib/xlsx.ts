@@ -1,4 +1,4 @@
-import { readZip } from "@/lib/zip";
+import { readZip } from "@core/lib/zip";
 
 export type Cell = string | number | null;
 export type Sheet = { name: string; rows: Cell[][]; dateCols?: Set<string> };

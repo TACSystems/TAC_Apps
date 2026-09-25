@@ -4,7 +4,7 @@ import { getSettings } from "@/lib/settings";
 import { daysUntil, docState, listDocuments } from "@/lib/documents";
 import { fd } from "@/lib/display";
 import DocStateBadge from "@/components/DocStateBadge";
-import ClickRow from "@/components/ClickRow";
+import ClickRow from "@core/components/ClickRow";
 
 export const dynamic = "force-dynamic";
 

@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db";
-import { loadCourse } from "@/lib/cof";
+import { loadCourse } from "@core/lib/cof";
 import { adjustShots, parseRangeLogForm, writeZoneCounts } from "@/lib/range-log";
 import type { RangeLog, RangeLogZoneCount } from "@/lib/db/types";
 import { assignEntry, pruneSessions } from "@/lib/sessions";

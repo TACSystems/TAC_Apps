@@ -1,7 +1,7 @@
 import type { AmmoPurchase } from "@/lib/db/types";
-import SelectOrOther from "@/components/SelectOrOther";
-import SuggestInput from "@/components/SuggestInput";
-import HelpTip from "@/components/HelpTip";
+import SelectOrOther from "@core/components/SelectOrOther";
+import SuggestInput from "@core/components/SuggestInput";
+import HelpTip from "@core/components/HelpTip";
 
 const input = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";
 

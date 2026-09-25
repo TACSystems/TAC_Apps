@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { saveCourse, validateCourseDef } from "@/lib/cof";
+import { saveCourse, validateCourseDef } from "@core/lib/cof";
 
 export async function saveCourseAction(payload: unknown): Promise<{ error: string } | { id: string }> {
   const checked = validateCourseDef(payload);

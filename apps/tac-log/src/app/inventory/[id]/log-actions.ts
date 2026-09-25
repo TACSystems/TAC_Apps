@@ -6,18 +6,11 @@ import { revalidatePath } from "next/cache";
 import { todayISO } from "@/lib/settings-shared";
 import { decodePick } from "@/lib/ammo";
 import { assignEntry, cleanLocation, pruneSessions } from "@/lib/sessions";
+import { dateOr, number, text } from "@core/lib/forms";
 
-function s(formData: FormData, key: string) {
-  const v = formData.get(key);
-  return v && v !== "" ? String(v) : null;
-}
-
-function n(formData: FormData, key: string) {
-  const v = formData.get(key);
-  if (!v || v === "") return null;
-  const num = Number(v);
-  return Number.isNaN(num) ? null : num;
-}
+const s = (formData: FormData, key: string) => text(formData, key);
+const n = (formData: FormData, key: string) => number(formData, key);
+const d = (formData: FormData) => dateOr(formData, "date", todayISO());
 
 export async function logMaintenance(firearmId: string, formData: FormData) {
   const db = getDb();
@@ -32,7 +25,7 @@ export async function logMaintenance(firearmId: string, formData: FormData) {
   ).run({
     id: randomUUID(),
     firearm_id: firearmId,
-    date: String(formData.get("date")),
+    date: d(formData),
     shots_fired_at_time: firearm?.shots_fired ?? null,
     type,
     notes: s(formData, "notes"),
@@ -52,7 +45,7 @@ export async function logMalfunction(firearmId: string, formData: FormData) {
   ).run({
     id: randomUUID(),
     firearm_id: firearmId,
-    date: String(formData.get("date")),
+    date: d(formData),
     round_count_at_failure: n(formData, "round_count_at_failure"),
     malfunction_type: s(formData, "malfunction_type"),
     cause: s(formData, "cause"),
@@ -70,7 +63,7 @@ export async function logZeroRecord(firearmId: string, formData: FormData) {
   ).run({
     id: randomUUID(),
     firearm_id: firearmId,
-    date: String(formData.get("date")),
+    date: d(formData),
     distance: s(formData, "distance"),
     ammo_description: s(formData, "ammo_description"),
     optic: s(formData, "optic"),
@@ -101,7 +94,7 @@ export async function logRoundsFired(firearmId: string, formData: FormData) {
     ).run({
       id,
       firearm_id: firearmId,
-      date: String(formData.get("date") || todayISO()),
+      date: d(formData),
       rounds,
       caliber: pick?.caliber ?? s(formData, "caliber") ?? firearm.caliber,
       ammo_lot: s(formData, "ammo_lot"),
@@ -171,7 +164,7 @@ export async function updateMaintenance(firearmId: string, entryId: string, form
     .run({
       id: entryId,
       firearm_id: firearmId,
-      date: String(formData.get("date")),
+      date: d(formData),
       type: s(formData, "type") ?? "Cleaning",
       shots: n(formData, "shots_fired_at_time"),
       notes: s(formData, "notes"),
@@ -196,7 +189,7 @@ export async function updateMalfunction(firearmId: string, entryId: string, form
     .run({
       id: entryId,
       firearm_id: firearmId,
-      date: String(formData.get("date")),
+      date: d(formData),
       round: n(formData, "round_count_at_failure"),
       type: s(formData, "malfunction_type"),
       cause: s(formData, "cause"),
@@ -220,7 +213,7 @@ export async function updateZero(firearmId: string, entryId: string, formData: F
     .run({
       id: entryId,
       firearm_id: firearmId,
-      date: String(formData.get("date")),
+      date: d(formData),
       distance: s(formData, "distance"),
       optic: s(formData, "optic"),
       ammo_description: s(formData, "ammo_description"),
@@ -237,7 +230,7 @@ export async function deleteZero(firearmId: string, entryId: string) {
 
 function dispositionParams(formData: FormData) {
   return {
-    date: String(formData.get("date")),
+    date: d(formData),
     type: s(formData, "type") ?? "Sold",
     recipient_name: s(formData, "recipient_name"),
     recipient_ffl: s(formData, "recipient_ffl"),

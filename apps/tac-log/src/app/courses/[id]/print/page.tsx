@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { loadCourse } from "@/lib/cof";
-import PrintButton from "@/components/PrintButton";
-import { CourseStrings, PrintFooter, PrintHeader, PrintScorecard } from "@/components/CourseSheet";
+import { loadCourse } from "@core/lib/cof";
+import PrintButton from "@core/components/PrintButton";
+import { CourseStrings, PrintFooter, PrintHeader, PrintScorecard } from "@core/components/CourseSheet";
 
 export const dynamic = "force-dynamic";
 

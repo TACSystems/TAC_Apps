@@ -1,10 +1,10 @@
 import { fd } from "@/lib/display";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { DEFAULT_SCORECARD, loadCourse, parseJson, type LoadedCourse } from "@/lib/cof";
+import { DEFAULT_SCORECARD, loadCourse, parseJson, type LoadedCourse } from "@core/lib/cof";
 import type { RangeLog, RangeLogZoneCount } from "@/lib/db/types";
-import PrintButton from "@/components/PrintButton";
-import { PrintFooter, PrintHeader, PrintScorecard } from "@/components/CourseSheet";
+import PrintButton from "@core/components/PrintButton";
+import { PrintFooter, PrintHeader, PrintScorecard } from "@core/components/CourseSheet";
 
 export const dynamic = "force-dynamic";
 

@@ -4,9 +4,9 @@ import type { Accessory } from "@/lib/db/types";
 
 export const dynamic = "force-dynamic";
 import { deleteAccessory } from "@/app/inventory/actions";
-import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
-import ClickRow from "@/components/ClickRow";
-import EmptyState from "@/components/EmptyState";
+import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
+import ClickRow from "@core/components/ClickRow";
+import EmptyState from "@core/components/EmptyState";
 
 export default async function AccessoriesPage() {
   const db = getDb();

@@ -8,18 +8,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { deleteAttachmentsFor } from "@/lib/attachments";
 import { todayISO } from "@/lib/settings-shared";
+import { isoDate, number, text } from "@core/lib/forms";
 
-function s(formData: FormData, key: string) {
-  const v = formData.get(key);
-  return v && v !== "" ? String(v) : null;
-}
-
-function n(formData: FormData, key: string) {
-  const v = formData.get(key);
-  if (!v || v === "") return null;
-  const num = Number(v);
-  return Number.isNaN(num) ? null : num;
-}
+const s = (formData: FormData, key: string) => (/_date$/.test(key) ? isoDate(formData, key) : text(formData, key));
+const n = (formData: FormData, key: string) => number(formData, key);
 
 export async function createFirearm(formData: FormData) {
   const db = getDb();

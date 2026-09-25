@@ -6,8 +6,8 @@ import { caliberTotals } from "@/lib/ammo";
 import type { DropdownCategory } from "@/lib/options";
 import HomeLayoutEditor from "@/components/HomeLayoutEditor";
 import DropdownListEditor from "@/components/DropdownListEditor";
-import Collapsible from "@/components/Collapsible";
-import SectionTools from "@/components/SectionTools";
+import Collapsible from "@core/components/Collapsible";
+import SectionTools from "@core/components/SectionTools";
 import BulkCounts from "@/components/BulkCounts";
 import { AmmoDefaultsForm, DocumentWarningsForm, MaintenanceDefaultsForm, RangeDefaultsForm } from "@/components/SettingsForms";
 

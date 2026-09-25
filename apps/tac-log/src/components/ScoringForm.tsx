@@ -1,12 +1,12 @@
 "use client";
 
-import UnsavedGuard from "@/components/UnsavedGuard";
+import UnsavedGuard from "@core/components/UnsavedGuard";
 import { useState } from "react";
 import type { Firearm } from "@/lib/db/types";
-import { passFail, type ScorecardField, type ZoneDef } from "@/lib/cof-shared";
-import SubmitButton from "@/components/SubmitButton";
+import { passFail, type ScorecardField, type ZoneDef } from "@core/lib/cof-shared";
+import SubmitButton from "@core/components/SubmitButton";
 import { todayISO } from "@/lib/settings-shared";
-import { firearmMatchesCategories } from "@/lib/course-categories";
+import { firearmMatchesCategories } from "@core/lib/course-categories";
 import AmmoPick from "@/components/AmmoPick";
 import { defaultPickFor, type PickOpt } from "@/lib/ammo-pick";
 

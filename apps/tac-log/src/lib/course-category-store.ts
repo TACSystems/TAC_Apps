@@ -2,9 +2,9 @@ import type Database from "better-sqlite3-multiple-ciphers";
 import fs from "fs";
 import path from "path";
 import { dataDir } from "@/lib/db";
-import { loadCourse } from "@/lib/cof";
+import { loadCourse } from "@core/lib/cof";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
-import { normalizeCategories, suggestCategories } from "@/lib/course-categories";
+import { normalizeCategories, suggestCategories } from "@core/lib/course-categories";
 
 const DISMISS_KEY = "flag:categorize_dismissed";
 

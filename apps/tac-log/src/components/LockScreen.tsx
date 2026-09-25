@@ -1,6 +1,6 @@
 "use client";
 
-import PasswordInput from "@/components/PasswordInput";
+import PasswordInput from "@core/components/PasswordInput";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { unlock, unlockWithRecovery } from "@/app/lock/actions";

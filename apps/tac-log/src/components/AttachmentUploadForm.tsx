@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import FileDrop from "@/components/FileDrop";
+import FileDrop from "@core/components/FileDrop";
 
 export const MAX_ATTACHMENT_MB = 24;
 

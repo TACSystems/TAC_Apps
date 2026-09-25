@@ -1,10 +1,10 @@
 "use client";
 
-import PasswordInput from "@/components/PasswordInput";
+import PasswordInput from "@core/components/PasswordInput";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useDialogs } from "@/components/Dialogs";
-import FileDrop from "@/components/FileDrop";
+import { useDialogs } from "@core/components/Dialogs";
+import FileDrop from "@core/components/FileDrop";
 
 export default function RestoreForm() {
   const router = useRouter();

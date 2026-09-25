@@ -4,14 +4,14 @@ import type { CourseOfFire, RangeLog } from "@/lib/db/types";
 import CourseSelect from "@/components/CourseSelect";
 import { dateFormat, fd } from "@/lib/display";
 import ScoreTrendChart, { type ChartSeries } from "@/components/ScoreTrendChart";
-import BarList from "@/components/BarList";
+import BarList from "@core/components/BarList";
 import { caliberCosts, categoryStats, courseStats, firearmStats, overview, roundsByMonth, zoneDistribution } from "@/lib/stats";
 import { getSettings, money } from "@/lib/settings";
-import EmptyState from "@/components/EmptyState";
+import EmptyState from "@core/components/EmptyState";
 
-import Collapsible from "@/components/Collapsible";
-import SectionTools from "@/components/SectionTools";
-import { pageSections } from "@/lib/page-sections";
+import Collapsible from "@core/components/Collapsible";
+import SectionTools from "@core/components/SectionTools";
+import { pageSections } from "@core/lib/page-sections";
 
 export const dynamic = "force-dynamic";
 

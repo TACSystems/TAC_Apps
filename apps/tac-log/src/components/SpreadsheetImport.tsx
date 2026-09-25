@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import FileDrop from "@/components/FileDrop";
+import FileDrop from "@core/components/FileDrop";
 
 type Preview = {
   firearms: { make_model: string; serial: string | null; caliber: string | null; duplicate: boolean }[];

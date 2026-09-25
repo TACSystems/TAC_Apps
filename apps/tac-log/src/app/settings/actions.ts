@@ -13,8 +13,9 @@ import {
   type AutoBackupFrequency,
 } from "@/lib/auto-backup";
 import { isEncrypted } from "@/lib/security-state";
+import type { ActionResult } from "@core/lib/forms";
 
-type Result = { ok: boolean; error?: string; message?: string };
+type Result = ActionResult;
 
 export async function saveSettingsForm(formData: FormData) {
   const has = (k: string) => formData.has(k);

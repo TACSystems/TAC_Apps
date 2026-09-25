@@ -1,7 +1,7 @@
 "use server";
 
 import { getDb } from "@/lib/db";
-import { setPageSections } from "@/lib/page-sections";
+import { setPageSections } from "@core/lib/page-sections";
 
 export async function savePageSection(scope: string, id: string, open: boolean) {
   setPageSections(getDb(), String(scope), [String(id)], Boolean(open));

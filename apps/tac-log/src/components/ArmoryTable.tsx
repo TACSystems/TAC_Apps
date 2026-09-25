@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import StatusBadge from "@/components/StatusBadge";
-import EmptyState from "@/components/EmptyState";
-import ClickRow from "@/components/ClickRow";
+import StatusBadge from "@core/components/StatusBadge";
+import EmptyState from "@core/components/EmptyState";
+import ClickRow from "@core/components/ClickRow";
 
 export type ArmoryRow = {
   id: string;

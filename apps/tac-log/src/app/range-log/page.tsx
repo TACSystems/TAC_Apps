@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import SearchBox from "@/components/SearchBox";
+import SearchBox from "@core/components/SearchBox";
 import { fd } from "@/lib/display";
-import ClickRow from "@/components/ClickRow";
-import EmptyState from "@/components/EmptyState";
+import ClickRow from "@core/components/ClickRow";
+import EmptyState from "@core/components/EmptyState";
 import { listSessions, sessionNo } from "@/lib/sessions";
 import SessionCourses, { parseCourses } from "@/components/SessionCourses";
 

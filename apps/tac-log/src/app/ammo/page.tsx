@@ -1,26 +1,26 @@
 import { getDb } from "@/lib/db";
 import type { AmmoPurchase } from "@/lib/db/types";
 import { createAmmoPurchase, setAmmoGoal, deleteAmmoPurchase, deleteAmmoGoal } from "./actions";
-import SelectOrOther from "@/components/SelectOrOther";
+import SelectOrOther from "@core/components/SelectOrOther";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import { getSettings, money } from "@/lib/settings";
 import { breakdown, goalStatus, isUnassigned, lineLabel, stockLines, type StockLine } from "@/lib/ammo";
 import AmmoPurchaseFields from "@/components/AmmoPurchaseFields";
-import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
 import Link from "next/link";
 import { fd } from "@/lib/display";
-import CountCorrector from "@/components/CountCorrector";
+import CountCorrector from "@core/components/CountCorrector";
 import { ammoAdjustments } from "@/lib/counts";
 import { correctAmmoLineAction, removeAdjustment } from "@/app/counts/actions";
-import ClickRow from "@/components/ClickRow";
-import EmptyState from "@/components/EmptyState";
-import ModalButton from "@/components/ModalButton";
-import ToastOnLoad from "@/components/ToastOnLoad";
-import Collapsible from "@/components/Collapsible";
-import SectionTools from "@/components/SectionTools";
-import { pageSections } from "@/lib/page-sections";
-import SubmitButton from "@/components/SubmitButton";
-import HelpTip from "@/components/HelpTip";
+import ClickRow from "@core/components/ClickRow";
+import EmptyState from "@core/components/EmptyState";
+import ModalButton from "@core/components/ModalButton";
+import ToastOnLoad from "@core/components/ToastOnLoad";
+import Collapsible from "@core/components/Collapsible";
+import SectionTools from "@core/components/SectionTools";
+import { pageSections } from "@core/lib/page-sections";
+import SubmitButton from "@core/components/SubmitButton";
+import HelpTip from "@core/components/HelpTip";
 
 export const dynamic = "force-dynamic";
 

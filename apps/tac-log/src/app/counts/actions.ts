@@ -14,8 +14,9 @@ import {
   safetyCopy,
 } from "@/lib/counts";
 import { runAutoBackupNow, getAutoBackup } from "@/lib/auto-backup";
+import type { ActionResult } from "@core/lib/forms";
 
-type Res = { ok: boolean; error?: string; message?: string };
+type Res = ActionResult;
 
 function refresh(firearmId?: string | null) {
   revalidatePath("/", "layout");

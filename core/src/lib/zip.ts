@@ -105,7 +105,7 @@ export function readZip(buf: Buffer): ZipEntry[] {
     p += 46 + nameLen + extraLen + commentLen;
 
     if (name.endsWith("/")) continue;
-    if (method !== 0 && method !== 8) throw new Error("This file uses a zip compression method TAC-LOG can't read.");
+    if (method !== 0 && method !== 8) throw new Error("This file uses a zip compression method this app can't read.");
 
     const lNameLen = buf.readUInt16LE(localOffset + 26);
     const lExtraLen = buf.readUInt16LE(localOffset + 28);

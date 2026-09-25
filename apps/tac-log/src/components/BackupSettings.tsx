@@ -1,12 +1,13 @@
 "use client";
 
-import { useDialogs } from "@/components/Dialogs";
-import PasswordInput from "@/components/PasswordInput";
+import { useDialogs } from "@core/components/Dialogs";
+import PasswordInput from "@core/components/PasswordInput";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { backupNow, clearBackupPassword, saveAutoBackupSettings, setBackupPassword } from "@/app/settings/actions";
+import type { ActionResult } from "@core/lib/forms";
 
-type Res = { ok: boolean; error?: string; message?: string };
+type Res = ActionResult;
 
 declare global {
   interface Window {

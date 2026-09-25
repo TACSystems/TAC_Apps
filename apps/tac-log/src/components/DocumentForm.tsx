@@ -1,5 +1,5 @@
-import SubmitButton from "@/components/SubmitButton";
-import UnsavedGuard from "@/components/UnsavedGuard";
+import SubmitButton from "@core/components/SubmitButton";
+import UnsavedGuard from "@core/components/UnsavedGuard";
 import { DOC_TYPES, NFA_STATUSES, type DocRow } from "@/lib/documents";
 
 const input = "border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm normal-case";

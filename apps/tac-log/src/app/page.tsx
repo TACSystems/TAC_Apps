@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Collapsible from "@/components/Collapsible";
+import Collapsible from "@core/components/Collapsible";
 import DocStateBadge from "@/components/DocStateBadge";
 import { expiringDocuments } from "@/lib/documents";
-import SectionTools from "@/components/SectionTools";
+import SectionTools from "@core/components/SectionTools";
 import CategorizeBanner from "@/components/CategorizeBanner";
 import TourOffer from "@/components/TourOffer";
 import FirstRun from "@/components/FirstRun";
@@ -16,7 +16,7 @@ import { goalStatus } from "@/lib/ammo";
 import { listSessions, sessionNo } from "@/lib/sessions";
 import SessionCourses, { parseCourses } from "@/components/SessionCourses";
 import { logMaintenance } from "@/app/inventory/[id]/log-actions";
-import SubmitButton from "@/components/SubmitButton";
+import SubmitButton from "@core/components/SubmitButton";
 import { label, fd } from "@/lib/display";
 import { todayISO } from "@/lib/settings-shared";
 

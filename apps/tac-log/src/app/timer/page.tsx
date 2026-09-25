@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import { loadCourse } from "@/lib/cof";
-import { parseParSeconds } from "@/lib/par";
-import ParTimer, { type TimerString } from "@/components/ParTimer";
+import { loadCourse } from "@core/lib/cof";
+import { parseParSeconds } from "@core/lib/par";
+import ParTimer, { type TimerString } from "@core/components/ParTimer";
 
 export const dynamic = "force-dynamic";
 

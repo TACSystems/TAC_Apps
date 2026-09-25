@@ -1,8 +1,8 @@
 import type { Firearm } from "@/lib/db/types";
-import SelectOrOther from "@/components/SelectOrOther";
-import SubmitButton from "@/components/SubmitButton";
-import UnsavedGuard from "@/components/UnsavedGuard";
-import HelpTip from "@/components/HelpTip";
+import SelectOrOther from "@core/components/SelectOrOther";
+import SubmitButton from "@core/components/SubmitButton";
+import UnsavedGuard from "@core/components/UnsavedGuard";
+import HelpTip from "@core/components/HelpTip";
 
 export default function FirearmForm({
   firearm,

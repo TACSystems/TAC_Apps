@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { loadCourse } from "@/lib/cof";
-import { CourseStrings } from "@/components/CourseSheet";
-import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import { loadCourse } from "@core/lib/cof";
+import { CourseStrings } from "@core/components/CourseSheet";
+import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
 import { deleteCourse } from "../actions";
-import CategoryTags from "@/components/CategoryTags";
-import Collapsible from "@/components/Collapsible";
-import SectionTools from "@/components/SectionTools";
-import { pageSections } from "@/lib/page-sections";
+import CategoryTags from "@core/components/CategoryTags";
+import Collapsible from "@core/components/Collapsible";
+import SectionTools from "@core/components/SectionTools";
+import { pageSections } from "@core/lib/page-sections";
 import { fd } from "@/lib/display";
-import { passFail } from "@/lib/cof-shared";
+import { passFail } from "@core/lib/cof-shared";
 import { sessionNo } from "@/lib/sessions";
 
 export const dynamic = "force-dynamic";

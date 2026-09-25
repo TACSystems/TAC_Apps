@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { dataDir } from "@/lib/db";
-import Collapsible from "@/components/Collapsible";
-import SectionTools from "@/components/SectionTools";
+import Collapsible from "@core/components/Collapsible";
+import SectionTools from "@core/components/SectionTools";
 
 export const dynamic = "force-dynamic";
 

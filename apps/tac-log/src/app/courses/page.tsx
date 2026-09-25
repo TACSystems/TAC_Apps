@@ -3,7 +3,7 @@ import { getDb } from "@/lib/db";
 import type { CourseOfFire } from "@/lib/db/types";
 import CourseList from "@/components/CourseList";
 import CategorizeBanner from "@/components/CategorizeBanner";
-import { normalizeCategories } from "@/lib/course-categories";
+import { normalizeCategories } from "@core/lib/course-categories";
 import { categorizePromptVisible, courseCategoryOptions } from "@/lib/course-category-store";
 
 export const dynamic = "force-dynamic";

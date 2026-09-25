@@ -1,7 +1,7 @@
 "use client";
 
-import { useDialogs } from "@/components/Dialogs";
-import PasswordInput from "@/components/PasswordInput";
+import { useDialogs } from "@core/components/Dialogs";
+import PasswordInput from "@core/components/PasswordInput";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -13,8 +13,9 @@ import {
   saveAutoLock,
   savePin,
 } from "@/app/lock/actions";
+import type { ActionResult } from "@core/lib/forms";
 
-type Res = { ok: boolean; error?: string; message?: string; recoveryKey?: string };
+type Res = ActionResult & { recoveryKey?: string };
 
 const input = "border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm";
 const primary = "bg-brand-olive px-4 py-2 text-sm font-medium hover:bg-brand-olive-light disabled:opacity-60";

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { loadCourse, maxPointsFor } from "@/lib/cof";
+import { loadCourse, maxPointsFor } from "@core/lib/cof";
 import type { Firearm } from "@/lib/db/types";
 import ScoringForm from "@/components/ScoringForm";
 import { getSettings } from "@/lib/settings";

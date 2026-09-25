@@ -4,6 +4,6 @@
   "private": true,
   "description": "Shared core for TAC-LOG and TAC-QUAL",
   "scripts": {
-    "test": "node --test --experimental-strip-types test/*.test.ts"
+    "test": "node --import ./test/register.mjs --experimental-strip-types --no-warnings --test test/*.test.ts"
   }
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { lockedResponse } from "@/lib/api-guard";
 import { getDb } from "@/lib/db";
-import { parseCsv, parseXlsx, type Sheet } from "@/lib/xlsx";
+import { parseCsv, parseXlsx, type Sheet } from "@core/lib/xlsx";
 import { commitImport, planImport, previewOf } from "@/lib/import-sheets";
 
 export const dynamic = "force-dynamic";

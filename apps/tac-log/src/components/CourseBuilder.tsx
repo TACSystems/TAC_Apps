@@ -16,13 +16,13 @@ import {
   type ScorecardField,
   type StringRow,
   type TargetTypeDef,
-} from "@/lib/cof-shared";
+} from "@core/lib/cof-shared";
 import { saveCourseAction } from "@/app/courses/actions";
 import TargetTypeEditor from "@/components/TargetTypeEditor";
-import CategoryPicker from "@/components/CategoryPicker";
-import { useDialogs } from "@/components/Dialogs";
-import { clearUnsaved, useUnsaved } from "@/components/UnsavedGuard";
-import HelpTip from "@/components/HelpTip";
+import CategoryPicker from "@core/components/CategoryPicker";
+import { useDialogs } from "@core/components/Dialogs";
+import { clearUnsaved, useUnsaved } from "@core/components/UnsavedGuard";
+import HelpTip from "@core/components/HelpTip";
 
 type BRow = StringRow & { uid: string };
 type BPhase = { uid: string; title: string; notes: string; total: string; strings: BRow[] };

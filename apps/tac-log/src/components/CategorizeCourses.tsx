@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import CategoryPicker from "@/components/CategoryPicker";
+import CategoryPicker from "@core/components/CategoryPicker";
 import { saveCategorized } from "@/app/courses/categorize/actions";
 
 type Row = { id: string; code: string; name: string; suggested: string[] };

@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import { upsertGoal } from "@/lib/ammo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isoDate, number, text } from "@core/lib/forms";
 
 export async function createAmmoPurchase(formData: FormData) {
   const db = getDb();
@@ -13,14 +14,14 @@ export async function createAmmoPurchase(formData: FormData) {
      values (@id, @manufacturer, @ammo_type, @caliber, @grain, @lot_number, @quantity, @date_purchased, @price)`
   ).run({
     id: randomUUID(),
-    manufacturer: (formData.get("manufacturer") as string) || null,
-    ammo_type: (formData.get("ammo_type") as string) || null,
-    caliber: String(formData.get("caliber")),
-    grain: formData.get("grain") ? Number(formData.get("grain")) : null,
-    lot_number: (formData.get("lot_number") as string) || null,
-    quantity: Number(formData.get("quantity") || 0),
-    date_purchased: (formData.get("date_purchased") as string) || null,
-    price: formData.get("price") ? Number(formData.get("price")) : null,
+    manufacturer: text(formData, "manufacturer", 100),
+    ammo_type: text(formData, "ammo_type", 100),
+    caliber: text(formData, "caliber", 100) ?? "Unknown",
+    grain: number(formData, "grain", { min: 1, max: 2000, int: true }),
+    lot_number: text(formData, "lot_number", 100),
+    quantity: number(formData, "quantity", { int: true }) ?? 0,
+    date_purchased: isoDate(formData, "date_purchased"),
+    price: number(formData, "price", { min: 0 }),
   });
 
   revalidatePath("/ammo");
@@ -66,14 +67,14 @@ export async function updateAmmoPurchase(id: string, formData: FormData) {
     )
     .run({
       id,
-      manufacturer: (formData.get("manufacturer") as string) || null,
-      ammo_type: (formData.get("ammo_type") as string) || null,
-      caliber: String(formData.get("caliber")),
-      grain: formData.get("grain") ? Number(formData.get("grain")) : null,
-      lot_number: (formData.get("lot_number") as string) || null,
-      quantity: Number(formData.get("quantity") || 0),
-      date_purchased: (formData.get("date_purchased") as string) || null,
-      price: formData.get("price") ? Number(formData.get("price")) : null,
+      manufacturer: text(formData, "manufacturer", 100),
+      ammo_type: text(formData, "ammo_type", 100),
+      caliber: text(formData, "caliber", 100) ?? "Unknown",
+      grain: number(formData, "grain", { min: 1, max: 2000, int: true }),
+      lot_number: text(formData, "lot_number", 100),
+      quantity: number(formData, "quantity", { int: true }) ?? 0,
+      date_purchased: isoDate(formData, "date_purchased"),
+      price: number(formData, "price", { min: 0 }),
     });
   revalidatePath("/ammo");
   revalidatePath("/");

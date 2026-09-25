@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { saveDashboardAll } from "@/app/dashboard-actions";
-import { savePageSectionsAll } from "@/app/page-section-actions";
 
 function sections(scope: string) {
   return Array.from(document.querySelectorAll<HTMLDetailsElement>(`[data-scope="${scope}"] details[data-section]`));
@@ -42,8 +40,11 @@ export default function SectionTools({
       d.style.display = "";
       setTimeout(() => delete d.dataset.bulk, 0);
     }
-    if (persist) saveDashboardAll(list.map((d) => d.dataset.section ?? ""), open);
-    if (remember) savePageSectionsAll(scope, list.map((d) => d.dataset.section ?? ""), open);
+    if (persist || remember) {
+      window.dispatchEvent(
+        new CustomEvent("taclog:section", { detail: { scope: persist ? "dashboard" : scope, ids: list.map((d) => d.dataset.section ?? ""), open, all: true } })
+      );
+    }
     setQ("");
     setHits(null);
   }

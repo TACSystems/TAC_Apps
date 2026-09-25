@@ -8,11 +8,11 @@ import { getSettings, money } from "@/lib/settings";
 import { deleteAccessory, deleteMountEntry, updateAccessory } from "@/app/inventory/actions";
 import AccessoryForm from "@/components/AccessoryForm";
 import AttachmentGallery from "@/components/AttachmentGallery";
-import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
 import { fd } from "@/lib/display";
-import Collapsible from "@/components/Collapsible";
-import SectionTools from "@/components/SectionTools";
-import { pageSections } from "@/lib/page-sections";
+import Collapsible from "@core/components/Collapsible";
+import SectionTools from "@core/components/SectionTools";
+import { pageSections } from "@core/lib/page-sections";
 
 export const dynamic = "force-dynamic";
 

@@ -4,9 +4,9 @@ import { getDb } from "@/lib/db";
 import type { AmmoPurchase } from "@/lib/db/types";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import AmmoPurchaseFields from "@/components/AmmoPurchaseFields";
-import SubmitButton from "@/components/SubmitButton";
+import SubmitButton from "@core/components/SubmitButton";
 import { updateAmmoPurchase } from "../../actions";
-import UnsavedGuard from "@/components/UnsavedGuard";
+import UnsavedGuard from "@core/components/UnsavedGuard";
 
 export const dynamic = "force-dynamic";
 

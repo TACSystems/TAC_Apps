@@ -4,7 +4,7 @@ import {
   passFail,
   type LoadedCourse,
   type ScorecardField,
-} from "@/lib/cof-shared";
+} from "@core/lib/cof-shared";
 
 type Variant = "screen" | "print";
 

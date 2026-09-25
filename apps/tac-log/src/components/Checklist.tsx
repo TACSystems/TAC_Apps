@@ -1,6 +1,6 @@
 "use client";
 
-import { useDialogs } from "@/components/Dialogs";
+import { useDialogs } from "@core/components/Dialogs";
 import { useOptimistic, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ChecklistItem } from "@/lib/checklist";

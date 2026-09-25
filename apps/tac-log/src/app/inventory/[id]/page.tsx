@@ -25,9 +25,9 @@ import FirearmForm from "@/components/FirearmForm";
 import { maintenanceInfo } from "@/lib/maintenance";
 import { getSettings, money } from "@/lib/settings";
 import { getMaintenanceTypes } from "@/lib/db/dropdown-options";
-import SuggestInput from "@/components/SuggestInput";
-import SubmitButton from "@/components/SubmitButton";
-import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import SuggestInput from "@core/components/SuggestInput";
+import SubmitButton from "@core/components/SubmitButton";
+import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
 import type {
   Firearm,
   Accessory,
@@ -41,13 +41,13 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { label, fd } from "@/lib/display";
 import { todayISO } from "@/lib/settings-shared";
-import CountCorrector from "@/components/CountCorrector";
+import CountCorrector from "@core/components/CountCorrector";
 import { firearmAdjustments, listCounters } from "@/lib/counts";
 import { correctFirearm, createCounter, removeAdjustment, removeCounter, replaceCounter } from "@/app/counts/actions";
-import HelpTip from "@/components/HelpTip";
-import Collapsible from "@/components/Collapsible";
-import SectionTools from "@/components/SectionTools";
-import { pageSections } from "@/lib/page-sections";
+import HelpTip from "@core/components/HelpTip";
+import Collapsible from "@core/components/Collapsible";
+import SectionTools from "@core/components/SectionTools";
+import { pageSections } from "@core/lib/page-sections";
 import AmmoPickField from "@/components/AmmoPickField";
 import { defaultPickFor } from "@/lib/ammo-pick";
 import { lastPicks, pickLabel, pickOptions } from "@/lib/ammo";

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { TargetTypeDef } from "@/lib/cof-shared";
+import type { TargetTypeDef } from "@core/lib/cof-shared";
 import { saveTargetTypeAction } from "@/app/targets/actions";
 
 type ZoneRow = { key: number; zone_label: string; value: string };

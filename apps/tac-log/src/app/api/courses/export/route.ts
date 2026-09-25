@@ -1,7 +1,7 @@
 import { lockedResponse } from "@/lib/api-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { exportCourse, loadCourse, type CofPatch } from "@/lib/cof";
+import { exportCourse, loadCourse, type CofPatch } from "@core/lib/cof";
 import { todayISO } from "@/lib/settings-shared";
 
 export const dynamic = "force-dynamic";

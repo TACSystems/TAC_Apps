@@ -4,7 +4,7 @@ import { getDb } from "@/lib/db";
 import { randomUUID } from "crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { loadCourse } from "@/lib/cof";
+import { loadCourse } from "@core/lib/cof";
 import { adjustShots, parseRangeLogForm, writeZoneCounts } from "@/lib/range-log";
 import { assignEntry } from "@/lib/sessions";
 

@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3-multiple-ciphers";
-import { normalizeCategories } from "@/lib/course-categories";
+import { normalizeCategories } from "@core/lib/course-categories";
 
 export type CourseStat = {
   id: string;

@@ -1,7 +1,7 @@
 import { upsertGoal } from "@/lib/ammo";
 import type Database from "better-sqlite3-multiple-ciphers";
 import { randomUUID } from "crypto";
-import { excelDate, type Cell, type Sheet } from "@/lib/xlsx";
+import { excelDate, type Cell, type Sheet } from "@core/lib/xlsx";
 import { todayISO } from "@/lib/settings-shared";
 
 const norm = (v: Cell) =>

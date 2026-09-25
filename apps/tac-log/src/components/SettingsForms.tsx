@@ -1,5 +1,5 @@
-import SubmitButton from "@/components/SubmitButton";
-import HelpTip from "@/components/HelpTip";
+import SubmitButton from "@core/components/SubmitButton";
+import HelpTip from "@core/components/HelpTip";
 import { saveSettingsForm } from "@/app/settings/actions";
 import { DATE_FORMATS, FIREARM_LABEL_MODES, TEXT_SIZES, type AppSettings } from "@/lib/settings-shared";
 

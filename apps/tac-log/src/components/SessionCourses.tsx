@@ -1,4 +1,4 @@
-import { passFail } from "@/lib/cof-shared";
+import { passFail } from "@core/lib/cof-shared";
 
 export type CourseChip = { id: string; name: string; score: number | null; pass: number | null };
 

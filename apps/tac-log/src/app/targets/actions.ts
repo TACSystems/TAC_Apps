@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { saveTargetType, type ZoneDef } from "@/lib/cof";
+import { saveTargetType, type ZoneDef } from "@core/lib/cof";
 
 export async function saveTargetTypeAction(payload: {
   id?: string | null;

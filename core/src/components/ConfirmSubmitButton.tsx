@@ -2,7 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 import type { ButtonHTMLAttributes, MouseEvent } from "react";
-import { useDialogs } from "@/components/Dialogs";
+import { useDialogs } from "@core/components/Dialogs";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   confirmMessage: string;

@@ -8,14 +8,15 @@
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/gen-changelog.js && next build",
+    "build": "npm test --prefix ../../core && npm test && node scripts/gen-changelog.js && next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "cd ../.. && eslint apps/tac-log core",
     "electron:dev": "npm run build && electron .",
     "electron:prepare": "npm run build && node scripts/prepare-electron.js",
     "dist": "npm run electron:prepare && electron-builder",
     "dist:mac": "npm run electron:prepare && electron-builder --mac",
-    "dist:win": "npm run electron:prepare && electron-builder --win"
+    "dist:win": "npm run electron:prepare && electron-builder --win",
+    "test": "node --import ../../core/test/register.mjs --experimental-strip-types --no-warnings --test test/*.test.ts"
   },
   "dependencies": {
     "better-sqlite3-multiple-ciphers": "13.0.3",

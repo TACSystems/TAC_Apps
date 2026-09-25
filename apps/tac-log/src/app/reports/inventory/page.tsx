@@ -2,8 +2,8 @@ import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { Accessory, Firearm } from "@/lib/db/types";
 import { getSettings, money } from "@/lib/settings";
-import PrintButton from "@/components/PrintButton";
-import { PrintFooter } from "@/components/CourseSheet";
+import PrintButton from "@core/components/PrintButton";
+import { PrintFooter } from "@core/components/CourseSheet";
 import { fd } from "@/lib/display";
 import { todayISO } from "@/lib/settings-shared";
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveRangeDay, type DayRow } from "@/app/range-day/actions";
-import { useUnsaved, clearUnsaved } from "@/components/UnsavedGuard";
+import { useUnsaved, clearUnsaved } from "@core/components/UnsavedGuard";
 import AmmoPick from "@/components/AmmoPick";
 import { defaultPickFor, type PickOpt } from "@/lib/ammo-pick";
 

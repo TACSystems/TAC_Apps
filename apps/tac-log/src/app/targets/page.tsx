@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import { listTargetTypes } from "@/lib/cof";
-import EmptyState from "@/components/EmptyState";
+import { listTargetTypes } from "@core/lib/cof";
+import EmptyState from "@core/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 

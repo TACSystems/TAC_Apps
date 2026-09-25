@@ -5,11 +5,9 @@ import { redirect } from "next/navigation";
 import { randomUUID } from "crypto";
 import { getDb } from "@/lib/db";
 import { deleteAttachmentsFor } from "@/lib/attachments";
+import { isoDate, text } from "@core/lib/forms";
 
-function s(fd: FormData, k: string) {
-  const v = String(fd.get(k) ?? "").trim();
-  return v === "" ? null : v.slice(0, 500);
-}
+const s = (fd: FormData, k: string) => (/_date$/.test(k) ? isoDate(fd, k) : text(fd, k));
 
 function values(fd: FormData) {
   return {

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { CourseOfFire } from "@/lib/db/types";
 import { fd } from "@/lib/display";
-import CategoryTags from "@/components/CategoryTags";
-import { normalizeCategories } from "@/lib/course-categories";
+import CategoryTags from "@core/components/CategoryTags";
+import { normalizeCategories } from "@core/lib/course-categories";
 
 export const dynamic = "force-dynamic";
 

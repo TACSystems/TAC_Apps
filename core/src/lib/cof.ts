@@ -18,7 +18,7 @@ import {
   type CourseDef,
   type LoadedCourse,
 } from "./cof-shared";
-import { normalizeCategories } from "@/lib/course-categories";
+import { normalizeCategories } from "@core/lib/course-categories";
 
 export * from "./cof-shared";
 

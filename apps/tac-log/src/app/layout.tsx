@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
-import DialogProvider from "@/components/Dialogs";
+import DialogProvider from "@core/components/Dialogs";
+import SectionMemory from "@/components/SectionMemory";
 import LockScreen from "@/components/LockScreen";
 import IdleLock from "@/components/IdleLock";
 import WhatsNewNotice from "@/components/WhatsNewNotice";
@@ -45,7 +46,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {whatsNew && <WhatsNewNotice version={whatsNew} />}
         <LaunchReminders items={reminders} />
         <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6">
-          <DialogProvider>{children}</DialogProvider>
+          <DialogProvider>
+            <SectionMemory />
+            {children}
+          </DialogProvider>
         </main>
         <footer className="border-t border-neutral-800 py-3 text-center text-[11px] tracking-[0.25em] text-neutral-500 print:hidden">
           POWERED BY PRECISION SYSTEMS

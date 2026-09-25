@@ -9,9 +9,9 @@ import {
   updateMalfunction,
   updateZero,
 } from "@/app/inventory/[id]/log-actions";
-import SubmitButton from "@/components/SubmitButton";
-import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
-import SuggestInput from "@/components/SuggestInput";
+import SubmitButton from "@core/components/SubmitButton";
+import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
+import SuggestInput from "@core/components/SuggestInput";
 import { money } from "@/lib/settings-shared";
 import { fd } from "@/lib/display";
 import { todayISO } from "@/lib/settings-shared";

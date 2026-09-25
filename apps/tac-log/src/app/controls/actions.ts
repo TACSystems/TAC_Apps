@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { DEFAULT_OPTIONS, DROPDOWN_CATEGORIES, type DropdownCategory } from "@/lib/options";
 import { updateSettings, type HomeLayout } from "@/lib/settings";
-import { normalizeCategories } from "@/lib/course-categories";
+import { normalizeCategories } from "@core/lib/course-categories";
 
 function isCategory(c: string): c is DropdownCategory {
   return c in DROPDOWN_CATEGORIES;

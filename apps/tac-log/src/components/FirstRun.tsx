@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Tour from "@/components/Tour";
-import PasswordInput from "@/components/PasswordInput";
+import PasswordInput from "@core/components/PasswordInput";
 import { finishTour, saveSetup } from "@/app/tour-actions";
 import { DATE_FORMATS, FIREARM_LABEL_MODES } from "@/lib/settings-shared";
 

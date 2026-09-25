@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import CategoryTags from "@/components/CategoryTags";
+import CategoryTags from "@core/components/CategoryTags";
 
 export type CourseCard = {
   id: string;

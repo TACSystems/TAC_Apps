@@ -6,13 +6,15 @@ import {
   maxPointsFor,
   type ScorecardConfig,
   type ZoneDef,
-} from "@/lib/cof-shared";
+} from "@core/lib/cof-shared";
 import type { Firearm } from "@/lib/db/types";
 import { decodePick } from "@/lib/ammo";
+import { dateOr } from "@core/lib/forms";
+import { todayISO } from "@core/lib/format";
 
 function str(v: FormDataEntryValue | null) {
   const s = typeof v === "string" ? v.trim() : "";
-  return s === "" ? null : s;
+  return s === "" ? null : s.slice(0, 1000);
 }
 
 export function parseRangeLogForm(
@@ -63,7 +65,7 @@ export function parseRangeLogForm(
     roundsFired,
     values: {
       firearm_id: firearmId,
-      date: String(formData.get("date")),
+      date: dateOr(formData, "date", todayISO()),
       range_location: str(formData.get("field:range_location")),
       weapon_used: str(formData.get("field:weapon_used")),
       caliber,

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import { listTargetTypes, loadCourse, type CourseDef } from "@/lib/cof";
+import { listTargetTypes, loadCourse, type CourseDef } from "@core/lib/cof";
 import CourseBuilder from "@/components/CourseBuilder";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
 

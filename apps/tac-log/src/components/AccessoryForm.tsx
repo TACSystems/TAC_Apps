@@ -1,7 +1,7 @@
 import type { Accessory, Firearm } from "@/lib/db/types";
-import SelectOrOther from "@/components/SelectOrOther";
-import SubmitButton from "@/components/SubmitButton";
-import UnsavedGuard from "@/components/UnsavedGuard";
+import SelectOrOther from "@core/components/SelectOrOther";
+import SubmitButton from "@core/components/SubmitButton";
+import UnsavedGuard from "@core/components/UnsavedGuard";
 import { todayISO } from "@/lib/settings-shared";
 
 const input = "rounded border border-neutral-700 bg-neutral-900 px-3 py-2";

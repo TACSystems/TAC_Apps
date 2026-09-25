@@ -1,7 +1,7 @@
 import { lockedResponse } from "@/lib/api-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { applyCofPatch, type CofPatch } from "@/lib/cof";
+import { applyCofPatch, type CofPatch } from "@core/lib/cof";
 
 export async function POST(req: NextRequest) {
   const locked = await lockedResponse();

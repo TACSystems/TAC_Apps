@@ -5,13 +5,13 @@ import { getSettings } from "@/lib/settings";
 import DocumentForm from "@/components/DocumentForm";
 import DocStateBadge from "@/components/DocStateBadge";
 import AttachmentGallery from "@/components/AttachmentGallery";
-import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
 import { listAttachments } from "@/lib/attachments";
 import { daysUntil, docState, type DocRow } from "@/lib/documents";
 import { deleteDocument, updateDocument } from "../actions";
-import Collapsible from "@/components/Collapsible";
-import SectionTools from "@/components/SectionTools";
-import { pageSections } from "@/lib/page-sections";
+import Collapsible from "@core/components/Collapsible";
+import SectionTools from "@core/components/SectionTools";
+import { pageSections } from "@core/lib/page-sections";
 import { fd } from "@/lib/display";
 
 export const dynamic = "force-dynamic";

@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import FileDrop from "@/components/FileDrop";
-import CategoryPicker from "@/components/CategoryPicker";
+import FileDrop from "@core/components/FileDrop";
+import CategoryPicker from "@core/components/CategoryPicker";
 import { commitCourseImport, previewCourseImport } from "@/app/courses/import-actions";
-import { normalizeCategories, suggestCategories } from "@/lib/course-categories";
-import type { CofPatch } from "@/lib/cof";
+import { normalizeCategories, suggestCategories } from "@core/lib/course-categories";
+import type { CofPatch } from "@core/lib/cof";
 
 type Incoming = {
   key: string;

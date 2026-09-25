@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db";
+import { isoDate } from "@core/lib/forms";
 import { adjustShots } from "@/lib/range-log";
 import { cleanLocation, getSession, mergeSessions, moveEntry, pruneSessions, updateSession, type EntryTable } from "@/lib/sessions";
 
@@ -15,8 +16,8 @@ function exists(id: string) {
 }
 
 export async function saveSession(id: string, formData: FormData) {
-  const date = String(formData.get("date") ?? "");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) redirect(`/range-log/session/${id}`);
+  const date = isoDate(formData, "date");
+  if (!date) redirect(`/range-log/session/${id}`);
   const notes = String(formData.get("notes") ?? "").trim().slice(0, 2000) || null;
   updateSession(getDb(), id, { date, location: cleanLocation(formData.get("location")), notes });
   refresh();

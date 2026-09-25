@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { lockedResponse } from "@/lib/api-guard";
 import { getDb } from "@/lib/db";
-import { toCsv } from "@/lib/xlsx";
+import { toCsv } from "@core/lib/xlsx";
 import { todayISO } from "@/lib/settings-shared";
 
 export const dynamic = "force-dynamic";

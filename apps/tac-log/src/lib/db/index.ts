@@ -1,38 +1,21 @@
 import Database from "better-sqlite3-multiple-ciphers";
 import fs from "fs";
 import path from "path";
-import { applyCofPatch, resolveTargetType, type CofPatch, type ZoneDef } from "@/lib/cof";
+import { applyCofPatch, resolveTargetType, type CofPatch, type ZoneDef } from "@core/lib/cof";
 import { seedDropdownOptions } from "./dropdown-options";
 import { SCHEMA_SQL } from "./schema";
-import { LockedError, dataKey, isEncrypted, isUnlocked, sqlKey } from "@/lib/security-state";
+import { LockedError, dataKey, isEncrypted, isUnlocked } from "@core/lib/security-state";
+import { applyKey, dataDir, dbPath, openRaw, registerDbProvider, rekeyFile } from "@core/lib/db-core";
+import "@/lib/app-config";
 import { preMigrationBackup } from "@/lib/auto-backup";
 import { registerLabelFunction, setDateFormat, setLabelMode } from "@/lib/display";
 import { getSettings } from "@/lib/settings";
 import { createAmmoViews, migrateAmmoGoals } from "@/lib/ammo";
 import { backfillSessions } from "@/lib/sessions";
+import { addColumnIfMissing, columns, runMigrations, tableExists, type Migration } from "@core/lib/migrations";
 
 declare global {
   var __firearmsDb: Database.Database | undefined;
-}
-
-type ColumnInfo = { name: string; notnull: number };
-
-function columns(db: Database.Database, table: string) {
-  return db.prepare(`PRAGMA table_info(${table})`).all() as ColumnInfo[];
-}
-
-function tableExists(db: Database.Database, table: string) {
-  return Boolean(
-    db.prepare(`select 1 from sqlite_master where type = 'table' and name = ?`).get(table)
-  );
-}
-
-function addColumnIfMissing(db: Database.Database, table: string, column: string, type: string) {
-  if (!columns(db, table).some((c) => c.name === column)) {
-    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
-    return true;
-  }
-  return false;
 }
 
 function rebuildCofStringsIfNeeded(db: Database.Database) {
@@ -157,51 +140,12 @@ function dropGroupTables(db: Database.Database) {
   `);
 }
 
-export function dataDir() {
-  return process.env.FIREARMS_DB_DIR || path.join(process.cwd(), "data");
-}
 
-export function dbPath() {
-  return path.join(dataDir(), "firearms.db");
-}
 
-export function applyKey(db: Database.Database, key: Buffer) {
-  db.pragma("cipher = 'sqlcipher'");
-  db.pragma("legacy = 4");
-  db.pragma(`key = "${sqlKey(key)}"`);
-}
 
-export function openRaw(file: string, key?: Buffer, options?: Database.Options) {
-  const db = new Database(file, options);
-  if (key) applyKey(db, key);
-  return db;
-}
 
-export function rekeyFile(file: string, fromKey: Buffer | null, toKey: Buffer | null) {
-  const db = openRaw(file, fromKey ?? undefined);
-  try {
-    db.pragma("journal_mode = DELETE");
-    if (toKey) {
-      db.pragma("cipher = 'sqlcipher'");
-      db.pragma("legacy = 4");
-      db.pragma(`rekey = "${sqlKey(toKey)}"`);
-    } else {
-      db.pragma(`rekey = ""`);
-    }
-  } finally {
-    db.close();
-  }
-  const check = openRaw(file, toKey ?? undefined, { fileMustExist: true });
-  try {
-    const ok = check.pragma("integrity_check", { simple: true });
-    if (ok !== "ok") throw new Error("Database check failed after changing encryption.");
-    check.pragma("journal_mode = WAL");
-  } finally {
-    check.close();
-  }
-}
 
-export function closeDb() {
+function closeLocalDb() {
   const db = global.__firearmsDb;
   if (db) {
     try {
@@ -211,6 +155,60 @@ export function closeDb() {
     global.__firearmsDb = undefined;
   }
 }
+
+export const MIGRATIONS: Migration[] = [
+  {
+    id: 1,
+    name: "0.2–0.5 columns: cleaning intervals, lots, scoring extras, course builder, nicknames",
+    up: (db) => {
+      addColumnIfMissing(db, "firearms", "last_cleaned_at_shots", "INTEGER");
+      addColumnIfMissing(db, "firearms", "clean_interval_rounds", "INTEGER");
+      addColumnIfMissing(db, "firearms", "clean_interval_days", "INTEGER");
+      addColumnIfMissing(db, "ammo_purchases", "lot_number", "TEXT");
+      addColumnIfMissing(db, "range_log", "ammo_lot", "TEXT");
+      addColumnIfMissing(db, "range_log", "passing_score_percent", "REAL");
+      addColumnIfMissing(db, "range_log", "custom_fields_json", "TEXT");
+      addColumnIfMissing(db, "courses_of_fire", "target_type_id", "TEXT REFERENCES target_types(id) ON DELETE SET NULL");
+      addColumnIfMissing(db, "courses_of_fire", "passing_score_percent", "REAL");
+      addColumnIfMissing(db, "courses_of_fire", "columns_json", "TEXT");
+      addColumnIfMissing(db, "courses_of_fire", "scorecard_json", "TEXT");
+      addColumnIfMissing(db, "courses_of_fire", "categories_json", "TEXT");
+      addColumnIfMissing(db, "firearms", "nickname", "TEXT");
+      addColumnIfMissing(db, "cof_phases", "notes", "TEXT");
+      const addedSortOrder = addColumnIfMissing(db, "cof_strings", "sort_order", "INTEGER NOT NULL DEFAULT 0");
+      addColumnIfMissing(db, "cof_strings", "row_type", "TEXT NOT NULL DEFAULT 'string'");
+      addColumnIfMissing(db, "cof_strings", "extra_json", "TEXT");
+      if (addedSortOrder) db.exec(`update cof_strings set sort_order = rowid`);
+      rebuildCofStringsIfNeeded(db);
+    },
+  },
+  { id: 2, name: "0.2 scoring zones become target types", up: (db) => migrateScoringZonesToTargetTypes(db) },
+  { id: 3, name: "0.2 remove the Group side", up: (db) => dropGroupTables(db) },
+  { id: 4, name: "0.4 receipt images become attachments", up: (db) => migrateReceiptImages(db) },
+  { id: 5, name: "0.7 attachments can belong to documents", up: (db) => widenAttachmentOwners(db) },
+  {
+    id: 6,
+    name: "0.8 range sessions and ammo type/grain/brand",
+    up: (db) => {
+      const ref = "TEXT REFERENCES range_sessions(id) ON DELETE SET NULL";
+      for (const t of ["range_log", "rounds_fired_log"]) {
+        addColumnIfMissing(db, t, "session_id", ref);
+        addColumnIfMissing(db, t, "ammo_type", "TEXT");
+        addColumnIfMissing(db, t, "ammo_grain", "INTEGER");
+        addColumnIfMissing(db, t, "ammo_manufacturer", "TEXT");
+      }
+      addColumnIfMissing(db, "rounds_fired_log", "range_location", "TEXT");
+      addColumnIfMissing(db, "count_adjustments", "ammo_type", "TEXT");
+      addColumnIfMissing(db, "count_adjustments", "grain", "INTEGER");
+      addColumnIfMissing(db, "count_adjustments", "manufacturer", "TEXT");
+      migrateAmmoGoals(db);
+      db.exec(`
+        create index if not exists range_log_session on range_log(session_id);
+        create index if not exists rounds_fired_session on rounds_fired_log(session_id);
+      `);
+    },
+  },
+];
 
 function initDb(): Database.Database {
   const dir = dataDir();
@@ -230,52 +228,10 @@ function initDb(): Database.Database {
 
   db.exec(SCHEMA_SQL);
 
-  addColumnIfMissing(db, "firearms", "last_cleaned_at_shots", "INTEGER");
-  addColumnIfMissing(db, "firearms", "clean_interval_rounds", "INTEGER");
-  addColumnIfMissing(db, "firearms", "clean_interval_days", "INTEGER");
-  addColumnIfMissing(db, "ammo_purchases", "lot_number", "TEXT");
-  addColumnIfMissing(db, "range_log", "ammo_lot", "TEXT");
-  addColumnIfMissing(db, "range_log", "passing_score_percent", "REAL");
-  addColumnIfMissing(db, "range_log", "custom_fields_json", "TEXT");
-  addColumnIfMissing(db, "courses_of_fire", "target_type_id", "TEXT REFERENCES target_types(id) ON DELETE SET NULL");
-  addColumnIfMissing(db, "courses_of_fire", "passing_score_percent", "REAL");
-  addColumnIfMissing(db, "courses_of_fire", "columns_json", "TEXT");
-  addColumnIfMissing(db, "courses_of_fire", "scorecard_json", "TEXT");
-  addColumnIfMissing(db, "courses_of_fire", "categories_json", "TEXT");
-  addColumnIfMissing(db, "firearms", "nickname", "TEXT");
-  addColumnIfMissing(db, "cof_phases", "notes", "TEXT");
-  const addedSortOrder = addColumnIfMissing(db, "cof_strings", "sort_order", "INTEGER NOT NULL DEFAULT 0");
-  addColumnIfMissing(db, "cof_strings", "row_type", "TEXT NOT NULL DEFAULT 'string'");
-  addColumnIfMissing(db, "cof_strings", "extra_json", "TEXT");
-  if (addedSortOrder) {
-    db.exec(`update cof_strings set sort_order = rowid`);
-  }
-  rebuildCofStringsIfNeeded(db);
   db.exec(`drop view if exists ammo_on_hand; drop view if exists ammo_stock;`);
-  const ref = "TEXT REFERENCES range_sessions(id) ON DELETE SET NULL";
-  for (const t of ["range_log", "rounds_fired_log"]) {
-    addColumnIfMissing(db, t, "session_id", ref);
-    addColumnIfMissing(db, t, "ammo_type", "TEXT");
-    addColumnIfMissing(db, t, "ammo_grain", "INTEGER");
-    addColumnIfMissing(db, t, "ammo_manufacturer", "TEXT");
-  }
-  addColumnIfMissing(db, "rounds_fired_log", "range_location", "TEXT");
-  addColumnIfMissing(db, "count_adjustments", "ammo_type", "TEXT");
-  addColumnIfMissing(db, "count_adjustments", "grain", "INTEGER");
-  addColumnIfMissing(db, "count_adjustments", "manufacturer", "TEXT");
-  migrateAmmoGoals(db);
+  runMigrations(db, MIGRATIONS);
   createAmmoViews(db);
-  db.exec(`
-    create index if not exists range_log_session on range_log(session_id);
-    create index if not exists rounds_fired_session on rounds_fired_log(session_id);
-  `);
-
-  migrateScoringZonesToTargetTypes(db);
-  dropGroupTables(db);
-  migrateReceiptImages(db);
-  widenAttachmentOwners(db);
   seedAccessoryMounts(db);
-
   const courseCount = (db.prepare("select count(*) as n from courses_of_fire").get() as { n: number }).n;
   if (courseCount === 0) {
     const seedPath = path.join(dir, "courses-of-fire.seed.json");
@@ -308,10 +264,16 @@ function initDb(): Database.Database {
   return db;
 }
 
-export function getDb(): Database.Database {
+function openDb(): Database.Database {
   if (!isUnlocked()) throw new LockedError();
   if (!global.__firearmsDb) {
     global.__firearmsDb = initDb();
   }
   return global.__firearmsDb;
 }
+
+registerDbProvider({ getDb: openDb, closeDb: closeLocalDb });
+
+export { applyKey, dataDir, dbPath, openRaw, rekeyFile };
+export const getDb = openDb;
+export const closeDb = closeLocalDb;

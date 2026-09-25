@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { DEFAULT_SCORECARD, loadCourse, maxPointsFor, parseJson } from "@/lib/cof";
+import { DEFAULT_SCORECARD, loadCourse, maxPointsFor, parseJson } from "@core/lib/cof";
 import type { Firearm, RangeLog, RangeLogZoneCount } from "@/lib/db/types";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import ScoringForm from "@/components/ScoringForm";

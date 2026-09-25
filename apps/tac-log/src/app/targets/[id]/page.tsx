@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { loadTargetType } from "@/lib/cof";
+import { loadTargetType } from "@core/lib/cof";
 import TargetTypeEditor from "@/components/TargetTypeEditor";
-import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
 import { deleteTargetType } from "../actions";
 
 export const dynamic = "force-dynamic";
