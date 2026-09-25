@@ -23,13 +23,18 @@ export default function SectionTools({
   const [hits, setHits] = useState<number | null>(null);
 
   useEffect(() => {
-    const id = decodeURIComponent(window.location.hash.slice(1));
-    if (!id) return;
-    const el = document.getElementById(id);
-    if (el instanceof HTMLDetailsElement) {
-      el.open = true;
-      el.scrollIntoView({ block: "start" });
-    }
+    const openHash = () => {
+      const id = decodeURIComponent(window.location.hash.slice(1));
+      if (!id) return;
+      const el = document.getElementById(id);
+      if (el instanceof HTMLDetailsElement) {
+        el.open = true;
+        el.scrollIntoView({ block: "start" });
+      }
+    };
+    openHash();
+    window.addEventListener("hashchange", openHash);
+    return () => window.removeEventListener("hashchange", openHash);
   }, []);
 
   function setAll(open: boolean) {

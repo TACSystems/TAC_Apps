@@ -3,6 +3,7 @@ import type { DateFormat } from "@core/lib/format";
 export { money, formatDate, formatDay, formatDateTime, todayISO, type DateFormat } from "@core/lib/format";
 
 export const HOME_SECTIONS = {
+  tiles: "Stat Tiles",
   quick_actions: "Quick Actions",
   search: "Search Bar",
   maintenance: "Maintenance Schedule",
@@ -67,6 +68,7 @@ export const DATE_FORMATS: Record<DateFormat, string> = {
 
 export const DEFAULT_HOME: HomeLayout = {
   sections: [
+    { key: "tiles", visible: true },
     { key: "quick_actions", visible: true },
     { key: "search", visible: true },
     { key: "maintenance", visible: true },
@@ -117,7 +119,11 @@ export function normalizeHome(raw: unknown): HomeLayout {
       sections.push({ key: s.key, visible: Boolean(s.visible) });
     }
   }
-  for (const k of keys) if (!seen.has(k)) sections.push({ key: k, visible: true });
+  for (const k of keys) {
+    if (seen.has(k)) continue;
+    if (k === "tiles") sections.unshift({ key: k, visible: true });
+    else sections.push({ key: k, visible: true });
+  }
   const recent = Number(r.recentCount);
   return {
     sections,

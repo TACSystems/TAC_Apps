@@ -1,22 +1,22 @@
+import DispositionSection from "@/components/firearm/DispositionSection";
+import ZeroSection from "@/components/firearm/ZeroSection";
+import MalfunctionsSection from "@/components/firearm/MalfunctionsSection";
+import MaintenanceSection from "@/components/firearm/MaintenanceSection";
+import AccessoriesSection from "@/components/firearm/AccessoriesSection";
+import PartCountersSection from "@/components/firearm/PartCountersSection";
+import SessionsSection from "@/components/firearm/SessionsSection";
+import RoundsFiredSection from "@/components/firearm/RoundsFiredSection";
 import { getDb } from "@/lib/db";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import { updateFirearm, deleteFirearm } from "@/app/inventory/actions";
 import {
   logMaintenance,
-  logRoundsFired,
-  deleteRoundsFired,
   logMalfunction,
   logZeroRecord,
-  recordDisposition,
-} from "./log-actions";
+  } from "./log-actions";
 import { listAttachments } from "@/lib/attachments";
 import AttachmentGallery from "@/components/AttachmentGallery";
 import {
-  DispositionEntry,
-  DispositionFields,
-  MaintenanceEntry,
-  MalfunctionEntry,
-  ZeroEntry,
   type Disposition,
 } from "@/components/FirearmLogEntries";
 
@@ -25,8 +25,6 @@ import FirearmForm from "@/components/FirearmForm";
 import { maintenanceInfo } from "@/lib/maintenance";
 import { getSettings, money } from "@/lib/settings";
 import { getMaintenanceTypes } from "@/lib/db/dropdown-options";
-import SuggestInput from "@core/components/SuggestInput";
-import SubmitButton from "@core/components/SubmitButton";
 import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
 import type {
   Firearm,
@@ -40,18 +38,15 @@ import type {
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { label, fd } from "@/lib/display";
-import { todayISO } from "@/lib/settings-shared";
 import CountCorrector from "@core/components/CountCorrector";
 import { firearmAdjustments, listCounters } from "@/lib/counts";
-import { correctFirearm, createCounter, removeAdjustment, removeCounter, replaceCounter } from "@/app/counts/actions";
-import HelpTip from "@core/components/HelpTip";
+import { correctFirearm } from "@/app/counts/actions";
+import Icon from "@core/components/Icon";
+import StatusBadge from "@core/components/StatusBadge";
 import Collapsible from "@core/components/Collapsible";
 import SectionTools from "@core/components/SectionTools";
 import { pageSections } from "@core/lib/page-sections";
-import AmmoPickField from "@/components/AmmoPickField";
-import { defaultPickFor } from "@/lib/ammo-pick";
-import { lastPicks, pickLabel, pickOptions } from "@/lib/ammo";
-import { sessionNo } from "@/lib/sessions";
+import { pickOptions } from "@/lib/ammo";
 
 export default async function FirearmDetailPage({
   params,
@@ -168,67 +163,90 @@ export default async function FirearmDetailPage({
 
   return (
     <div data-scope="firearm" className="flex flex-col gap-4">
-      <div>
-        <Link href="/inventory" className="text-xs text-brand-amber hover:text-brand-amber-light">
-          ← Armory
-        </Link>
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold">{label(firearm)}</h1>
-            {firearm.nickname && label(firearm) === firearm.nickname && (
-              <p className="text-sm text-neutral-400">{firearm.make_model}</p>
-            )}
+      <Link href="/inventory" className="inline-flex items-center gap-1 text-xs text-brand-amber hover:text-brand-amber-light">
+        <Icon name="back" size={12} /> Armory
+      </Link>
+      <section data-firearm-header className="card flex flex-col gap-4 lg:flex-row lg:items-stretch">
+        <div className="flex shrink-0 items-center justify-center border border-neutral-800 bg-neutral-950 lg:w-56" style={{ minHeight: "9rem" }}>
+          {photos[0] ? (
+            <a href="#photos" title="See all photos" className="block h-full w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/api/receipts/${photos[0].file_path}`} alt={label(firearm)} className="h-full max-h-56 w-full object-cover" />
+            </a>
+          ) : (
+            <a href="#photos" className="flex flex-col items-center gap-1 p-4 text-center text-xs text-neutral-500 hover:text-neutral-300">
+              <Icon name="upload" size={22} />
+              Add a photo
+            </a>
+          )}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="flex flex-wrap items-center gap-3 text-xl font-semibold">
+                <span className="break-words">{label(firearm)}</span>
+                <StatusBadge status={firearm.status} />
+              </h1>
+              <p className="text-sm text-neutral-400">
+                {[firearm.nickname && label(firearm) === firearm.nickname ? firearm.make_model : null, firearm.caliber, firearm.platform, firearm.serial_number ? `SN ${firearm.serial_number}` : null]
+                  .filter(Boolean)
+                  .join(" · ") || "No details yet"}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a href="#rounds-fired" className="btn btn-primary btn-sm">
+                <Icon name="plus" size={14} /> Record Rounds
+              </a>
+              <a href="#maintenance" className="btn btn-secondary btn-sm">
+                <Icon name="wrench" size={14} /> Log Cleaning
+              </a>
+              <Link href={`/inventory/new?from=${firearm.id}`} className="btn btn-secondary btn-sm">
+                Add Another Like This
+              </Link>
+              <form action={deleteWithId}>
+                <ConfirmSubmitButton
+                  confirmMessage={`Delete ${label(firearm)}? This also removes its photos, receipts, sale records, maintenance, malfunction, and zero log entries. Its accessories and range log history stay on file but will no longer show a linked firearm. This cannot be undone.`}
+                  className="btn btn-danger btn-sm"
+                >
+                  <Icon name="trash" size={14} /> Delete
+                </ConfirmSubmitButton>
+              </form>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-          <Link href={`/inventory/new?from=${firearm.id}`} className="btn btn-secondary">
-            Add Another Like This
-          </Link>
-          <form action={deleteWithId}>
-            <ConfirmSubmitButton
-              confirmMessage={`Delete ${label(firearm)}? This also removes its photos, receipts, sale records, maintenance, malfunction, and zero log entries. Its accessories and range log history stay on file but will no longer show a linked firearm. This cannot be undone.`}
-              className="btn btn-danger"
-            >
-              Delete
-            </ConfirmSubmitButton>
-          </form>
+          <div className="grid grid-cols-2 gap-4 border-t border-neutral-800 pt-3 sm:grid-cols-4">
+            <div>
+              <div className="text-xs text-neutral-500">Shots Fired</div>
+              <div className="text-lg">{firearm.shots_fired.toLocaleString()}</div>
+              <CountCorrector
+                current={firearm.shots_fired}
+                help="Set this firearm's lifetime rounds fired, e.g. it came used or some trips were never logged. The cleaning counter and part counters are not affected."
+                save={correctFirearm.bind(null, id)}
+              />
+            </div>
+            <div>
+              <div className="text-xs text-neutral-500">Cleaning</div>
+              <div className={`text-lg ${upkeep.status === "due" ? "text-red-400" : upkeep.status === "soon" ? "text-amber-400" : ""}`}>
+                {upkeep.status === "unset"
+                  ? "—"
+                  : upkeep.status === "due"
+                    ? "Due"
+                    : firearm.clean_interval_rounds
+                      ? `${upkeep.roundsSince}/${firearm.clean_interval_rounds}`
+                      : `by ${fd(upkeep.nextDueDate)}`}
+              </div>
+              {lastCleaning && <div className="text-xs text-neutral-500">last {fd(lastCleaning)}</div>}
+            </div>
+            <div>
+              <div className="text-xs text-neutral-500">Malfunctions</div>
+              <div className="text-lg">{firearm.malfunctions + malfunctionLog.length}</div>
+            </div>
+            <div>
+              <div className="text-xs text-neutral-500">Total Investment</div>
+              <div className="text-lg">{money(totalInvestment, settings.currencySymbol)}</div>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4 border border-neutral-800 bg-neutral-900 p-4 sm:max-w-4xl sm:grid-cols-4">
-        <div>
-          <div className="text-xs text-neutral-500">Shots Fired</div>
-          <div className="text-lg">{firearm.shots_fired.toLocaleString()}</div>
-          <CountCorrector
-            current={firearm.shots_fired}
-            help="Set this firearm's lifetime rounds fired, e.g. it came used or some trips were never logged. The cleaning counter and part counters are not affected."
-            save={correctFirearm.bind(null, id)}
-          />
-        </div>
-        <div>
-          <div className="text-xs text-neutral-500">Malfunctions</div>
-          <div className="text-lg">{firearm.malfunctions + malfunctionLog.length}</div>
-        </div>
-        <div>
-          <div className="text-xs text-neutral-500">Total Investment</div>
-          <div className="text-lg">{money(totalInvestment, settings.currencySymbol)}</div>
-        </div>
-        <div>
-          <div className="text-xs text-neutral-500">Cleaning</div>
-          <div
-            className={`text-lg ${
-              upkeep.status === "due" ? "text-red-400" : upkeep.status === "soon" ? "text-amber-400" : ""
-            }`}
-          >
-            {upkeep.status === "unset"
-              ? "—"
-              : upkeep.status === "due"
-                ? "Due"
-                : firearm.clean_interval_rounds
-                  ? `${upkeep.roundsSince}/${firearm.clean_interval_rounds}`
-                  : `by ${fd(upkeep.nextDueDate)}`}
-          </div>
-        </div>
-      </div>
+      </section>
 
       <div className="sm:max-w-4xl">
         <SectionTools scope="firearm" remember />
@@ -249,288 +267,23 @@ export default async function FirearmDetailPage({
 
       <Collapsible id="rounds-fired" icon="ammo" scope="firearm" title="Update Rounds Fired" defaultOpen={open("rounds-fired", true)}
         summary={`${firearm.shots_fired.toLocaleString()} lifetime${roundsLog[0] ? lastOf(roundsLog[0].date) : ""}`}>
-
-        
-        <p className="mb-3 text-sm text-neutral-400">
-          Record practice, plinking, or function-check rounds. Adds to this firearm&apos;s shot count and cleaning counter,
-          and joins the range session for that date and location.
-        </p>
-        <form action={logRoundsFired.bind(null, id)} className="grid grid-cols-1 gap-2 sm:max-w-4xl sm:grid-cols-4">
-          <label className="flex flex-col gap-1 text-xs">
-            <span className="req">Date</span>
-            <input
-              type="date"
-              name="date"
-              required
-              defaultValue={todayISO()}
-              className="input"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-xs">
-            <span className="req">Rounds</span>
-            <input
-              type="number"
-              name="rounds"
-              min={1}
-              required
-              placeholder="e.g. 100"
-              className="input"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-xs sm:col-span-2">
-            Ammo Used
-            <AmmoPickField
-              options={ammoOptions}
-              caliber={firearm.caliber}
-              defaultValue={defaultPickFor(ammoOptions, firearm.caliber, lastPicks(db)[id])}
-              className="border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-xs">
-            Range / Location
-            <SuggestInput name="range_location" listId="rf-locations" options={rangeLocations} defaultValue={settings.defaultRangeLocation || undefined} placeholder="Optional" />
-          </label>
-          <label className="flex flex-col gap-1 text-xs">
-            Ammo Lot #
-            <input name="ammo_lot" placeholder="Optional" className="input" />
-          </label>
-          <input
-            name="notes"
-            placeholder="Notes (optional)"
-            className="input sm:col-span-2"
-          />
-          <label className="flex items-center gap-2 text-xs normal-case sm:col-span-2">
-            <input type="checkbox" name="deduct_from_ammo" defaultChecked={settings.deductManualRoundsByDefault} />
-            <span>
-              Deduct from ammo on hand <HelpTip text="Also subtract these rounds from Ammo On Hand for this caliber. Uncheck for rounds you did not buy, like range rental ammo." />
-            </span>
-          </label>
-          <SubmitButton
-            pendingLabel="Recording…"
-            className="btn btn-primary w-fit sm:col-span-4"
-          >
-            Record Rounds Fired
-          </SubmitButton>
-        </form>
-        {roundsLog.length > 0 && (
-          <div className="mt-3 flex flex-col gap-1 sm:max-w-4xl">
-            {roundsLog.slice(0, 10).map((r) => (
-              <div
-                key={r.id}
-                className="flex items-center justify-between gap-2 border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-sm"
-              >
-                <span>
-                  {r.session_id ? (
-                    <Link href={`/range-log/session/${r.session_id}`} className="text-brand-amber hover:text-brand-amber-light">
-                      {fd(r.date)}
-                    </Link>
-                  ) : (
-                    fd(r.date)
-                  )}{" "}
-                  · {r.rounds} rds
-                  {r.caliber
-                    ? ` · ${pickLabel({ caliber: r.caliber, ammo_type: r.ammo_type, grain: r.ammo_grain, manufacturer: r.ammo_manufacturer })}`
-                    : ""}
-                  {r.range_location ? ` · ${r.range_location}` : ""}
-                  {r.ammo_lot ? ` · Lot ${r.ammo_lot}` : ""}
-                  {!r.deduct_from_ammo ? <span className="text-neutral-500"> · not deducted from ammo</span> : null}
-                  {r.notes ? <span className="text-neutral-500"> · {r.notes}</span> : null}
-                </span>
-                <form action={deleteRoundsFired.bind(null, id, r.id)}>
-                  <ConfirmSubmitButton
-                    confirmMessage={`Remove this entry? ${r.rounds} rounds will be subtracted from this firearm's shot count${
-                      r.deduct_from_ammo ? " and added back to ammo on hand" : ""
-                    }.`}
-                    className="btn-link btn-link-danger text-xs"
-                  >
-                    Remove
-                  </ConfirmSubmitButton>
-                </form>
-              </div>
-            ))}
-            {roundsLog.length > 10 && (
-              <p className="text-xs text-neutral-500">Showing the latest 10 of {roundsLog.length} entries.</p>
-            )}
-          </div>
-        )}
-        {adjustments.length > 0 && (
-          <div className="mt-3 flex flex-col gap-1 sm:max-w-4xl">
-            <div className="text-xs text-neutral-500">Count corrections</div>
-            {adjustments.map((a) => (
-              <div key={a.id} className="flex items-center justify-between gap-2 border border-dashed border-neutral-700 px-3 py-1.5 text-sm">
-                <span>
-                  {fd(a.date)} · set to {a.set_to?.toLocaleString() ?? "?"} ({a.delta >= 0 ? "+" : ""}
-                  {a.delta.toLocaleString()})
-                  {a.note ? <span className="text-neutral-500"> · {a.note}</span> : null}
-                </span>
-                <form action={removeAdjustment.bind(null, a.id)}>
-                  <ConfirmSubmitButton
-                    confirmMessage={`Remove this correction? The shot count goes ${a.delta >= 0 ? "down" : "up"} by ${Math.abs(a.delta)}.`}
-                    className="btn-link btn-link-danger text-xs"
-                  >
-                    Remove
-                  </ConfirmSubmitButton>
-                </form>
-              </div>
-            ))}
-          </div>
-        )}
-            </Collapsible>
+        <RoundsFiredSection id={id} firearm={firearm} roundsLog={roundsLog} adjustments={adjustments} settings={settings} ammoOptions={ammoOptions} rangeLocations={rangeLocations} db={db} />
+</Collapsible>
 
       <Collapsible id="range-sessions" icon="range" scope="firearm" title="Range Sessions" defaultOpen={open("range-sessions", false)}
         summary={`${count(sessions.length, "session")} · ${count(logs.length, "course run")}${lastOf(sessions[0]?.date)}`}>
-        <div className="flex flex-col gap-2">
-          {sessions.map((sn) => {
-            const runs = logs.filter((l) => l.session_id === sn.id);
-            return (
-              <Link
-                key={sn.id}
-                href={`/range-log/session/${sn.id}`}
-                className="flex flex-wrap items-center justify-between gap-2 border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm hover:border-neutral-600"
-              >
-                <span>
-                  <span className="text-brand-amber">{sessionNo(sn.number)}</span> · {fd(sn.date)}
-                  {sn.location ? ` · ${sn.location}` : ""} · {sn.rounds.toLocaleString()} rds
-                </span>
-                <span className="text-neutral-400">
-                  {runs.map((l) => `${l.cof_name ?? "Course"} ${l.final_score_percent != null ? `${l.final_score_percent}%` : ""}`).join(" · ")}
-                </span>
-              </Link>
-            );
-          })}
-          {sessions.length === 0 && <p className="text-sm text-neutral-500">No range sessions with this firearm yet.</p>}
-        </div>
-      </Collapsible>
+        <SessionsSection sessions={sessions} logs={logs} />
+</Collapsible>
 
       <Collapsible id="part-counters" icon="wrench" scope="firearm" title="Part Counters" defaultOpen={open("part-counters", counters.length > 0)}
         summary={counters.length ? counters.map((c) => `${c.name} ${Math.max(0, firearm.shots_fired - c.start_shots).toLocaleString()}`).join(" · ") : "None"}>
-
-        
-        <p className="mb-3 text-sm text-neutral-400">
-          Track rounds on a barrel, recoil spring, or other part separately from the lifetime total. When you replace the
-          part, click Replaced: the counter starts over and the swap is added to the maintenance log.
-        </p>
-        {counters.length > 0 && (
-          <div className="mb-3 flex flex-col gap-2 sm:max-w-4xl">
-            {counters.map((c) => {
-              const since = Math.max(0, firearm.shots_fired - c.start_shots);
-              const pct = c.interval_rounds ? Math.min(100, Math.round((since / c.interval_rounds) * 100)) : null;
-              const due = c.interval_rounds != null && since >= c.interval_rounds;
-              return (
-                <div key={c.id} className={`border bg-neutral-900 px-3 py-2 text-sm ${due ? "border-red-900" : "border-neutral-800"}`}>
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span>
-                      <span className="text-brand-amber">{c.name}</span> · {since.toLocaleString()} rounds since {fd(c.start_date)}
-                      {c.interval_rounds ? (
-                        <span className={due ? " text-red-300" : " text-neutral-500"}>
-                          {" "}
-                          · replace at {c.interval_rounds.toLocaleString()}
-                          {due ? " · DUE" : ""}
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="flex gap-2">
-                      <form action={replaceCounter.bind(null, id, c.id)}>
-                        <ConfirmSubmitButton
-                          confirmMessage={`Record a replacement of the ${c.name} today? Its counter starts over at 0 (the ${since} rounds are noted in the maintenance log).`}
-                          className="btn btn-secondary btn-xs"
-                        >
-                          Replaced
-                        </ConfirmSubmitButton>
-                      </form>
-                      <form action={removeCounter.bind(null, id, c.id)}>
-                        <ConfirmSubmitButton confirmMessage={`Delete the ${c.name} counter?`} className="btn-link btn-link-danger text-xs">
-                          Delete
-                        </ConfirmSubmitButton>
-                      </form>
-                    </span>
-                  </div>
-                  {pct != null && (
-                    <div className="mt-1 h-1 w-full bg-neutral-800">
-                      <div className={`h-1 ${due ? "bg-red-500" : "bg-brand-amber"}`} style={{ width: `${pct}%` }} />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        <details className="group sm:max-w-4xl">
-          <summary className="btn btn-secondary inline-block cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-            <span className="group-open:hidden">+ Add Part Counter</span>
-            <span className="hidden group-open:inline">Cancel</span>
-          </summary>
-          <form action={createCounter.bind(null, id)} className="mt-2 grid grid-cols-1 gap-2 border border-neutral-800 bg-neutral-900/50 p-3 sm:grid-cols-4">
-            <label className="flex flex-col gap-1 text-xs">
-              <span className="req">Part</span>
-              <input name="name" required list="counter-parts" placeholder="e.g. Barrel" className="input" />
-            </label>
-            <label className="flex flex-col gap-1 text-xs">
-              Installed / Since
-              <input type="date" name="start_date" defaultValue={todayISO()} className="input" />
-            </label>
-            <label className="flex flex-col gap-1 text-xs">
-              Rounds on it already
-              <input type="number" name="rounds_since" min={0} defaultValue={0} className="input" />
-            </label>
-            <label className="flex flex-col gap-1 text-xs">
-              <span>
-                Replace every (rounds) <HelpTip text="Optional. The counter turns red and shows in the Heads Up bar when the part reaches this many rounds." />
-              </span>
-              <input type="number" name="interval_rounds" min={1} placeholder="Optional" className="input" />
-            </label>
-            <datalist id="counter-parts">
-              {["Barrel", "Recoil Spring", "Extractor", "Firing Pin", "Bolt", "Buffer Spring", "Gas Rings", "Magazine Springs", "Suppressor Wipes"].map((o) => (
-                <option key={o} value={o} />
-              ))}
-            </datalist>
-            <SubmitButton className="btn btn-primary w-fit sm:col-span-4">Add Counter</SubmitButton>
-          </form>
-        </details>
-            </Collapsible>
+        <PartCountersSection id={id} firearm={firearm} counters={counters} />
+</Collapsible>
 
       <Collapsible id="accessories" icon="target" scope="firearm" title="Accessories" defaultOpen={open("accessories", false)}
         summary={count(accessories.length, "linked", "linked")}>
-
-        
-        <div className="flex flex-col gap-2">
-          {accessories.map((a) => (
-            <Link
-              key={a.id}
-              href={`/inventory/accessories/${a.id}`}
-              className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm hover:border-neutral-600"
-            >
-              {a.make_model} {a.type ? `· ${a.type}` : ""}
-              {a.serial_number ? <span className="text-neutral-500"> · SN {a.serial_number}</span> : null}
-              {a.purchase_value != null ? (
-                <span className="text-neutral-500"> · {money(a.purchase_value, settings.currencySymbol)}</span>
-              ) : null}
-            </Link>
-          ))}
-          {accessories.length === 0 && (
-            <p className="text-sm text-neutral-500">No accessories linked to this firearm.</p>
-          )}
-        </div>
-        <Link
-          href={`/inventory/accessories/new?firearm_id=${id}`}
-          className="mt-2 inline-block text-sm text-brand-amber hover:text-brand-amber-light"
-        >
-          + Add accessory
-        </Link>
-        {pastMounts.length > 0 && (
-          <div className="mt-3 text-sm">
-            <div className="mb-1 text-xs text-neutral-500">Previously mounted</div>
-            {pastMounts.map((m) => (
-              <div key={m.id} className="text-neutral-400">
-                <Link href={`/inventory/accessories/${m.accessory_id}`} className="text-brand-amber hover:text-brand-amber-light">
-                  {m.make_model}
-                </Link>{" "}
-                · {fd(m.from_date) || "?"} → {fd(m.to_date)}
-              </div>
-            ))}
-          </div>
-        )}
-            </Collapsible>
+        <AccessoriesSection id={id} settings={settings} accessories={accessories} pastMounts={pastMounts} />
+</Collapsible>
 
       <Collapsible id="photos" icon="upload" scope="firearm" title="Photos" defaultOpen={open("photos", false)} summary={count(photos.length, "photo")}>
         <AttachmentGallery
@@ -555,191 +308,23 @@ export default async function FirearmDetailPage({
 
       <Collapsible id="maintenance" icon="wrench" scope="firearm" title="Maintenance / Cleaning" defaultOpen={open("maintenance", false)}
         summary={`${count(maintenanceLog.length, "entry", "entries")}${lastOf(maintenanceLog[0]?.date)}`}>
-
-        
-        <div className="mb-3 flex flex-col gap-2">
-          {maintenanceLog.map((m) => (
-            <MaintenanceEntry key={JSON.stringify(m)} firearmId={id} entry={m} types={maintenanceTypes} />
-          ))}
-          {maintenanceLog.length === 0 && (
-            <p className="text-sm text-neutral-500">No maintenance logged yet.</p>
-          )}
-        </div>
-        <form action={maintenanceAction} className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <input
-            type="date"
-            name="date"
-            required
-            defaultValue={todayISO()}
-            className="input"
-          />
-          <select name="type" defaultValue="Cleaning" className="input">
-            {maintenanceTypes.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <input
-            name="notes"
-            placeholder="Notes (optional)"
-            className="input"
-          />
-          <SubmitButton
-            className="btn btn-secondary w-fit sm:col-span-3"
-          >
-            Log Entry
-          </SubmitButton>
-        </form>
-            </Collapsible>
+        <MaintenanceSection id={id} maintenanceLog={maintenanceLog} maintenanceTypes={maintenanceTypes} maintenanceAction={maintenanceAction} />
+</Collapsible>
 
       <Collapsible id="malfunctions" icon="warning" scope="firearm" title="Malfunction History" defaultOpen={open("malfunctions", false)}
         summary={`${count(malfunctionLog.length, "entry", "entries")}${lastOf(malfunctionLog[0]?.date)}`}>
-
-        
-        <div className="mb-3 flex flex-col gap-2">
-          {malfunctionLog.map((m) => (
-            <MalfunctionEntry key={JSON.stringify(m)} firearmId={id} entry={m} types={malfunctionTypes} />
-          ))}
-          {malfunctionLog.length === 0 && (
-            <p className="text-sm text-neutral-500">No malfunctions logged yet.</p>
-          )}
-        </div>
-        <form action={malfunctionAction} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <input
-            type="date"
-            name="date"
-            required
-            defaultValue={todayISO()}
-            className="input"
-          />
-          <input
-            type="number"
-            name="round_count_at_failure"
-            placeholder="Round count at failure"
-            className="input"
-          />
-          <SuggestInput
-            name="malfunction_type"
-            listId="malfunction-types"
-            options={malfunctionTypes}
-            placeholder="Type (e.g. failure to feed)"
-          />
-          <input
-            name="cause"
-            placeholder="Cause (optional)"
-            className="input"
-          />
-          <input
-            name="notes"
-            placeholder="Notes (optional)"
-            className="input sm:col-span-2"
-          />
-          <SubmitButton
-            className="btn btn-secondary w-fit sm:col-span-2"
-          >
-            Log Malfunction
-          </SubmitButton>
-        </form>
-            </Collapsible>
+        <MalfunctionsSection id={id} malfunctionLog={malfunctionLog} malfunctionTypes={malfunctionTypes} malfunctionAction={malfunctionAction} />
+</Collapsible>
 
       <Collapsible id="zero" icon="target" scope="firearm" title="Zero Log" defaultOpen={open("zero", false)}
         summary={`${count(zeroRecords.length, "entry", "entries")}${lastOf(zeroRecords[0]?.date)}`}>
-
-        
-        <div className="mb-3 flex flex-col gap-2">
-          {zeroRecords.map((z) => (
-            <ZeroEntry key={JSON.stringify(z)} firearmId={id} entry={z} distances={zeroDistances} />
-          ))}
-          {zeroRecords.length === 0 && (
-            <p className="text-sm text-neutral-500">No zero data logged yet.</p>
-          )}
-        </div>
-        <form action={zeroAction} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <input
-            type="date"
-            name="date"
-            required
-            defaultValue={todayISO()}
-            className="input"
-          />
-          <SuggestInput
-            name="distance"
-            listId="zero-distances"
-            options={zeroDistances}
-            placeholder="Distance (e.g. 100 yd)"
-          />
-          <input
-            name="optic"
-            placeholder="Optic / sight"
-            className="input"
-          />
-          <input
-            name="ammo_description"
-            placeholder="Ammo used"
-            className="input"
-          />
-          <input
-            name="adjustment"
-            placeholder="Adjustment made (windage/elevation)"
-            className="input sm:col-span-2"
-          />
-          <input
-            name="notes"
-            placeholder="Notes (optional)"
-            className="input sm:col-span-2"
-          />
-          <SubmitButton
-            className="btn btn-secondary w-fit sm:col-span-2"
-          >
-            Log Zero
-          </SubmitButton>
-        </form>
-            </Collapsible>
+        <ZeroSection id={id} zeroRecords={zeroRecords} zeroDistances={zeroDistances} zeroAction={zeroAction} />
+</Collapsible>
 
       <Collapsible id="disposition" icon="external" scope="firearm" title="Sale / Transfer Record" defaultOpen={open("disposition", dispositions.length > 0 || firearm.status === "sold")}
         summary={dispositions.length ? `${dispositions[0].type} ${fd(dispositions[0].date)}` : "None"}>
-
-        
-        <p className="mb-3 text-sm text-neutral-400">
-          Record when this firearm leaves your possession: sold, transferred, traded, lost, or stolen.
-        </p>
-        {dispositions.length > 0 && (
-          <div className="mb-3 flex flex-col gap-2">
-            {dispositions.map((d) => (
-              <DispositionEntry key={JSON.stringify(d)} firearmId={id} entry={d} currency={settings.currencySymbol} />
-            ))}
-          </div>
-        )}
-        <details className="group" open={dispositions.length === 0 && firearm.status === "sold"}>
-          <summary className="btn btn-secondary inline-block cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-            <span className="group-open:hidden">{dispositions.length ? "+ Add Another Record" : "+ Record Sale / Transfer"}</span>
-            <span className="hidden group-open:inline">Cancel</span>
-          </summary>
-          <form action={recordDisposition.bind(null, id)} className="mt-2 grid grid-cols-1 gap-2 border border-neutral-800 bg-neutral-900/50 p-3 sm:grid-cols-2">
-            <DispositionFields />
-            <label className="flex items-center gap-2 text-xs normal-case sm:col-span-2">
-              <input type="checkbox" name="mark_disposed" defaultChecked={firearm.status !== "sold"} />
-              Set this firearm&apos;s status to Sold (removes it from the maintenance schedule and active lists)
-            </label>
-            <SubmitButton className="btn btn-primary w-fit">
-              Save Record
-            </SubmitButton>
-          </form>
-        </details>
-        {(dispositions.length > 0 || billsOfSale.length > 0) && (
-          <div className="mt-4">
-            <AttachmentGallery
-              title="Bill of Sale / Transfer Paperwork"
-              items={billsOfSale}
-              ownerType="firearm"
-              ownerId={id}
-              kind="bill_of_sale"
-              emptyText="No paperwork uploaded yet."
-            />
-          </div>
-        )}
-            </Collapsible>
+        <DispositionSection id={id} firearm={firearm} settings={settings} dispositions={dispositions} billsOfSale={billsOfSale} />
+</Collapsible>
     </div>
   );
 }

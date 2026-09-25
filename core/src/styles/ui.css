@@ -208,3 +208,4 @@
 .input:focus-visible {
   outline: none;
 }
+details[data-section] { scroll-margin-top: calc(var(--tac-nav-h, 0px) + 8px); }

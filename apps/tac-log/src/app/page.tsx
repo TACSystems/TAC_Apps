@@ -12,7 +12,9 @@ import { categorizePromptVisible } from "@/lib/course-category-store";
 import { getDb } from "@/lib/db";
 import { maintenanceSchedule, STATUS_LABEL, type MaintenanceStatus } from "@/lib/maintenance";
 import { getSettings, type HomeSectionKey } from "@/lib/settings";
-import { goalStatus } from "@/lib/ammo";
+import { caliberTotals, goalStatus } from "@/lib/ammo";
+import { collectReminders } from "@/lib/reminders";
+import Icon, { type IconName } from "@core/components/Icon";
 import { listSessions, sessionNo } from "@/lib/sessions";
 import SessionCourses, { parseCourses } from "@/components/SessionCourses";
 import { logMaintenance } from "@/app/inventory/[id]/log-actions";
@@ -67,8 +69,40 @@ export default async function HomePage() {
   const courseCount = db.prepare(`select count(*) as n from courses_of_fire`).get() as { n: number };
 
   const logs = listSessions(db).slice(0, layout.recentCount);
+  const year = today.slice(0, 4);
+  const month = today.slice(0, 7);
+  const roundsThisYear = (
+    db
+      .prepare(
+        `select coalesce((select sum(coalesce(rounds_fired, 0)) from range_log where substr(date, 1, 4) = ?), 0)
+           + coalesce((select sum(rounds) from rounds_fired_log where substr(date, 1, 4) = ?), 0) as n`
+      )
+      .get(year, year) as { n: number }
+  ).n;
+  const sessionsThisMonth = (db.prepare(`select count(*) as n from range_sessions where substr(date, 1, 7) = ?`).get(month) as { n: number }).n;
+  const ammoTotal = caliberTotals(db).reduce((sum, c) => sum + c.on_hand, 0);
+  const itemsDue = collectReminders(db, settings).length;
+
+  const tile = (href: string, icon: IconName, label: string, value: string, tone = "") => (
+    <Link key={label} href={href} className="card flex items-center gap-3 hover:border-brand-amber">
+      <Icon name={icon} size={22} className="text-brand-amber" />
+      <span className="min-w-0">
+        <span className="block text-[11px] tracking-[0.12em] text-neutral-500">{label.toUpperCase()}</span>
+        <span className={`block text-xl ${tone}`}>{value}</span>
+      </span>
+    </Link>
+  );
 
   const sections: Record<HomeSectionKey, React.ReactNode> = {
+    tiles: (
+      <section aria-label="At a glance" data-tiles className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        {tile("/inventory", "armory", "Firearms", firearmCount.n.toLocaleString())}
+        {tile("/stats", "stats", `Rounds ${year}`, roundsThisYear.toLocaleString())}
+        {tile("/ammo", "ammo", "Ammo on hand", ammoTotal.toLocaleString())}
+        {tile("/range-log", "range", "Sessions this month", sessionsThisMonth.toLocaleString())}
+        {tile("/#maintenance", "warning", "Items due", itemsDue.toLocaleString(), itemsDue ? "text-amber-300" : "")}
+      </section>
+    ),
     quick_actions: (
       <section data-tour="quick-actions" className="flex flex-wrap gap-2">
         <Link href="/range-log/new" className="btn btn-primary">
