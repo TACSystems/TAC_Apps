@@ -1,0 +1,41 @@
+/* TAC-QUAL BLUE token overrides.
+
+   Not wired to an app yet — BLUE has no app folder. This ships with the
+   0.3.0 rebrand so the palette is settled and versioned alongside the
+   family, and BLUE starts as the one-file job the brand sheet intends.
+
+   The brand sheet names roles (--tl-accent, --tl-structural); the code
+   names slots (--tl-olive, --tl-tile). These are the same decisions in
+   the vocabulary the apps actually read. BLUE inherits TAC-QUAL's
+   surfaces unchanged and overrides only text, accent and tile.
+
+   One thing tokens cannot carry: deep blue reads 1.4:1 on the shell, so
+   TAC-QUAL's 3px scarlet header rule would disappear. BLUE needs a
+   filled deep-blue header band with white nav instead — chrome, not a
+   token, and due when the app is built. */
+
+:root {
+  color-scheme: dark;
+  --background: #17191b;
+  --foreground: #b4bcc3;
+  --tl-n950: #17191b;
+  --tl-n900: #1f2225;
+  --tl-n800: #282c30;
+  --tl-n700: #33383c;
+  --tl-n600: #4a5054;
+  --tl-n500: #7d868d;
+  --tl-n400: #949ca3;
+  --tl-n300: #a4acb3;
+  --tl-n200: #b4bcc3;
+  --tl-n100: #b4bcc3;
+  /* White does the interactive work, as gold does in TAC-QUAL. Body text
+     steps down to #b4bcc3 so white separates from it by 1.92:1 — against
+     bone it would separate by 1.25:1 and a link would not read as one. */
+  --tl-olive: #ffffff;
+  --tl-olive-light: #ffffff;
+  --tl-on-primary: #17191b;
+  --tl-amber: #ffffff;
+  --tl-amber-light: #ffffff;
+  --tl-tile: #10306e;
+  --tq-blue: #10306e;
+}

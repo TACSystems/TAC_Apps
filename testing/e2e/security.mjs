@@ -42,7 +42,7 @@ await p.waitForTimeout(1500);
 ok((await body()).includes("maintenance"), "unlocked with PIN");
 ok(fs.readdirSync(`${DIR}/pre-upgrade`).some(f => f.includes("before-" + process.env.TL_VERSION)), "pre-upgrade copy made");
 ok((await body()).includes("see what's new"), "what's new banner");
-ok((await body()).includes("powered by precision systems"), "footer tagline");
+ok((await body()).includes("powered by tac systems"), "footer tagline");
 await p.getByText("Skip setup and tour", { exact: false }).click({ timeout: 2000 }).catch(() => {}); await p.waitForTimeout(600);
 await p.getByRole("link", { name: "See what's new" }).click(); await p.waitForTimeout(800);
 ok((await body()).includes("0.4.1") , "changelog page renders");
@@ -66,8 +66,15 @@ await p.goto(base + "/range-log");
 const rl = await body();
 ok(/\d{2}\/\d{2}\/\d{4}/.test(rl), "US date format in range log");
 
-await p.goto(base + "/settings"); await p.getByRole("button", { name: "Expand All" }).click().catch(() => {});
+await p.goto(base + "/settings", { waitUntil: "networkidle" });
+// The panel is client state, so the click only counts once React has
+// hydrated. Bundled web fonts made the page heavy enough for an immediate
+// click to land on dead markup.
+await p.waitForTimeout(1200);
+await p.getByRole("button", { name: "Expand All" }).click().catch(() => {});
+await p.waitForTimeout(400);
 await p.getByRole("button", { name: "Turn on encryption" }).click();
+await p.waitForTimeout(600);
 const encPanel = p.locator("div:has(> div > h3:has-text('Database Encryption'))");
 const pw = encPanel.locator("input[type=password]");
 await pw.nth(0).fill("1234"); await pw.nth(1).fill("correct horse"); await pw.nth(2).fill("correct horse");
@@ -94,7 +101,8 @@ await p.getByRole("button", { name: "Unlock" }).click(); await p.waitForTimeout(
 { const bb = await body(); if (!bb.includes("maintenance")) console.log("DEBUG url", p.url(), bb.slice(0, 600)); ok(bb.includes("maintenance") || (!bb.includes("enter password") && !bb.includes("attempt")), "unlocked with password"); }
 
 restart();
-await p.goto(base + "/");
+await p.goto(base + "/", { waitUntil: "networkidle" });
+await p.waitForTimeout(1200);
 await p.getByRole("button", { name: /recovery key/ }).click();
 await p.locator("input[placeholder^=XXXX]").fill(rk.toLowerCase());
 const rp = p.locator("input[type=password]");
@@ -102,7 +110,9 @@ await rp.nth(0).fill("new password 2"); await rp.nth(1).fill("new password 2");
 await p.getByRole("button", { name: "Reset password and unlock" }).click(); await p.waitForTimeout(2500);
 ok((await body()).includes("maintenance"), "recovery key reset password after restart");
 
-await p.goto(base + "/settings"); await p.getByRole("button", { name: "Expand All" }).click().catch(() => {});
+await p.goto(base + "/settings", { waitUntil: "networkidle" });
+await p.waitForTimeout(1200);
+await p.getByRole("button", { name: "Expand All" }).click().catch(() => {});
 const dl0 = p.waitForEvent("download").catch(() => null);
 const r0 = await p.request.get(base + "/api/export");
 ok(r0.status() === 400, "plain backup refused while encrypted (no backup password)");

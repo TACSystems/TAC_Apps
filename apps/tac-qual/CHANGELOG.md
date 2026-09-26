@@ -1,5 +1,23 @@
 # TAC-QUAL Changelog
 
+## 0.3.0
+A new look, shared with TAC-LOG 0.10.0. No feature changes — programs,
+certificates and the admin suite are next.
+
+**New type.** Chakra Petch carries the interface; IBM Plex Mono carries the
+figures. Scores, counts, percentages and every right-aligned column now sit on
+tabular digits, so a column of numbers lines up instead of wandering under an
+eye scanning for outliers. Both faces ship inside the app, so nothing is
+fetched and nothing changes offline.
+
+**Printed pages are unchanged.** Scorecards, rosters and results sheets stay in
+Courier New. The paper you hand a student looks exactly as it did.
+
+**Recut icons.** The app mark is now drawn from the typeface rather than by
+hand, with the two letters on a fixed grid so the T sits identically across the
+family. TAC Systems gains a company mark of its own — the brackets with a
+centred dot.
+
 ## 0.2.0
 Builders, and the pages an instructor works from between classes.
 

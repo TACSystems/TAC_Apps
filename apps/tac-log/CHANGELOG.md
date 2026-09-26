@@ -2,6 +2,19 @@
 
 All notable changes to TAC-LOG, newest first.
 
+## [0.10.0] — 2026-09-26
+
+A new look, shared with TAC-QUAL 0.3.0. No feature changes.
+
+### Changed
+- **New type throughout the app.** Chakra Petch carries the interface; IBM Plex Mono carries the figures. Round counts, costs, scores and every right-aligned column now sit on tabular digits, so a column of numbers lines up instead of wandering under an eye scanning it. Both faces ship inside TAC-LOG, so nothing is fetched and nothing changes offline.
+- **Printed pages are unchanged.** Course sheets, scorecards and the inventory report stay in Courier New. The paper you hand someone looks exactly as it did.
+- **Recut icon.** TL was built from rectangles; it is drawn from the typeface now, with the two letters on a fixed grid so the T sits identically across the TAC Systems family.
+- **Retired the Precision Systems name** from the page footer, the settings footer and printed sheets. The family is TAC Systems.
+
+### Added
+- **A TAC Systems company mark** — the corner brackets with a centred dot, no letters — alongside the app icons.
+
 ## [0.9.0] — 2026-09-25
 
 ### Added
