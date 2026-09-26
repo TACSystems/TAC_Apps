@@ -11,6 +11,7 @@ import {
   autoAssignRelays,
   createClass,
   deleteClass,
+  duplicateClass,
   enroll,
   removeCourse,
   removeInstructor,
@@ -42,6 +43,35 @@ export async function saveClass(formData: FormData) {
     return;
   }
   await flash("Class created.");
+  revalidatePath("/classes");
+  redirect(`/classes/${newId}`);
+}
+
+export async function copyClass(formData: FormData) {
+  const db = getDb();
+  const sourceId = String(formData.get("id") ?? "");
+  const source = db.prepare(`select title, date, location, notes from classes where id = ?`).get(sourceId) as
+    | { title: string; date: string; location: string | null; notes: string | null }
+    | undefined;
+  if (!source) {
+    await flash("That class no longer exists.", "error");
+    revalidatePath("/classes");
+    return;
+  }
+  const date = String(formData.get("date") ?? "") || source.date;
+  const title = String(formData.get("title") ?? "").trim() || source.title;
+  const newId = duplicateClass(
+    db,
+    sourceId,
+    { title, date, location: source.location ?? "", notes: source.notes ?? "", status: "planned" },
+    instructor()
+  );
+  if (!newId) {
+    await flash("That class could not be copied.", "error");
+    revalidatePath("/classes");
+    return;
+  }
+  await flash("Class copied. The courses and instructors came across; the roster is empty.");
   revalidatePath("/classes");
   redirect(`/classes/${newId}`);
 }

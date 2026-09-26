@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import SubmitButton from "@core/components/SubmitButton";
 import { saveScores } from "@/app/classes/actions";
 
@@ -43,6 +43,49 @@ export default function ScoringGrid({
     for (const s of students) init[s.student_id] = { ...s.counts };
     return init;
   });
+
+  const cells = useRef<(HTMLInputElement | null)[][]>([]);
+  const saveRef = useRef<HTMLDivElement>(null);
+
+  const focusCell = useCallback((row: number, col: number) => {
+    const el = cells.current[row]?.[col];
+    if (el) {
+      el.focus();
+      el.select();
+      return true;
+    }
+    return false;
+  }, []);
+
+  const step = useCallback(
+    (row: number, col: number, dir: 1 | -1) => {
+      const width = zones.length;
+      let r = row;
+      let c = col + dir;
+      if (c >= width) {
+        r += 1;
+        c = 0;
+      } else if (c < 0) {
+        r -= 1;
+        c = width - 1;
+      }
+      if (r < 0) return;
+      if (!focusCell(r, c)) saveRef.current?.querySelector("button")?.focus();
+    },
+    [zones.length, focusCell]
+  );
+
+  function onCellKey(e: React.KeyboardEvent<HTMLInputElement>, row: number, col: number) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      step(row, col, e.shiftKey ? -1 : 1);
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      // A number input treats the arrows as a spinner, which would change a
+      // score by a silent click of the keyboard. Move between shooters instead.
+      e.preventDefault();
+      focusCell(row + (e.key === "ArrowDown" ? 1 : -1), col);
+    }
+  }
 
   function set(studentId: string, zone: string, raw: string) {
     const n = raw === "" ? 0 : Math.max(0, Math.round(Number(raw)));
@@ -104,7 +147,7 @@ export default function ScoringGrid({
             </tr>
           </thead>
           <tbody>
-            {students.map((s) => {
+            {students.map((s, rowIndex) => {
               const t = totals[s.student_id];
               const over = totalRounds > 0 && t.rounds > totalRounds;
               const passed = passing != null && t.percent != null && t.percent >= passing;
@@ -116,9 +159,12 @@ export default function ScoringGrid({
                     <input type="hidden" name="row_student" value={s.student_id} />
                     <input type="hidden" name={`firearm:${s.student_id}`} value={s.firearm ?? ""} />
                   </td>
-                  {zones.map((z) => (
+                  {zones.map((z, colIndex) => (
                     <td key={z.zone_label} className="text-right">
                       <input
+                        ref={(el) => {
+                          (cells.current[rowIndex] ??= [])[colIndex] = el;
+                        }}
                         className="input w-16 text-right"
                         type="number"
                         min={0}
@@ -127,6 +173,9 @@ export default function ScoringGrid({
                         name={`count:${s.student_id}:${z.zone_label}`}
                         value={counts[s.student_id]?.[z.zone_label] || ""}
                         onChange={(e) => set(s.student_id, z.zone_label, e.target.value)}
+                        onFocus={(e) => e.currentTarget.select()}
+                        onWheel={(e) => e.currentTarget.blur()}
+                        onKeyDown={(e) => onCellKey(e, rowIndex, colIndex)}
                         aria-label={`${z.zone_label} hits for ${s.name}`}
                       />
                     </td>
@@ -153,7 +202,12 @@ export default function ScoringGrid({
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <p className="text-xs text-neutral-500">
+        Enter moves to the next zone and on to the next shooter; Shift+Enter goes back. Up and down arrows move between
+        shooters in the same zone. Typing replaces what is in the box, and the scroll wheel cannot change a score.
+      </p>
+
+      <div ref={saveRef} className="flex flex-wrap items-center gap-3">
         <SubmitButton className="btn btn-primary" pendingLabel="Saving…">
           Save Relay
         </SubmitButton>

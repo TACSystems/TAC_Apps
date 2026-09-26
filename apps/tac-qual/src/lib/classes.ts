@@ -133,6 +133,31 @@ export function createClass(db: Database.Database, src: Src, createdBy: string |
   return id;
 }
 
+/**
+ * A new class carrying the same courses of fire and credited instructors.
+ * The roster, relays and scores are deliberately left behind — those belong
+ * to the class that was actually run.
+ */
+export function duplicateClass(
+  db: Database.Database,
+  sourceId: string,
+  src: Src,
+  createdBy: string | null
+): string | null {
+  const source = getClass(db, sourceId);
+  if (!source) return null;
+  const courses = classCourses(db, sourceId);
+  const instructors = classInstructors(db, sourceId);
+  let newId: string | null = null;
+  db.transaction(() => {
+    newId = createClass(db, src, createdBy);
+    if (!newId) return;
+    for (const c of courses) addCourse(db, newId, c.cof_id);
+    for (const i of instructors) addInstructor(db, newId, i.name, i.role);
+  })();
+  return newId;
+}
+
 export function updateClass(db: Database.Database, id: string, src: Src) {
   const v = readClass(src);
   if (!v) return false;

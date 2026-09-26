@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import PageHeader from "@core/components/PageHeader";
 import Collapsible from "@core/components/Collapsible";
 import SubmitButton from "@core/components/SubmitButton";
+import { todayISO } from "@/lib/settings-shared";
 import ConfirmSubmitButton from "@core/components/ConfirmSubmitButton";
 import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
@@ -21,6 +22,7 @@ import {
   addClassInstructor,
   autoRelays,
   enrollStudents,
+  copyClass,
   removeClass,
   removeClassCourse,
   removeClassInstructor,
@@ -374,6 +376,24 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           </div>
         </Collapsible>
       )}
+
+      <form action={copyClass} className="flex flex-wrap items-end gap-3 border-t border-neutral-800 pt-4">
+        <input type="hidden" name="id" value={id} />
+        <label className="flex flex-col gap-1 text-sm">
+          New class title
+          <input className="input" name="title" defaultValue={`${klass.title}`} maxLength={140} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Date
+          <input className="input" name="date" type="date" defaultValue={todayISO()} />
+        </label>
+        <SubmitButton className="btn btn-secondary" pendingLabel="Copying…">
+          Duplicate Class
+        </SubmitButton>
+        <span className="text-xs text-neutral-500">
+          Copies the courses of fire and credited instructors. The roster, relays and scores stay with this class.
+        </span>
+      </form>
 
       <form action={removeClass} className="pt-4">
         <input type="hidden" name="id" value={id} />

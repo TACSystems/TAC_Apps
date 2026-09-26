@@ -4,7 +4,18 @@ import Database from "better-sqlite3-multiple-ciphers";
 import { SCHEMA_SQL, VIEWS_SQL } from "@/lib/db/schema";
 import { runMigrations } from "@core/lib/migrations";
 import { scoreFromCounts, saveRelayScores, courseMeta, latestAttempt, classResults } from "@/lib/scoring";
-import { autoAssignRelays, createClass, enroll, addCourse, relays } from "@/lib/classes";
+import {
+  addCourse,
+  addInstructor,
+  autoAssignRelays,
+  classCourses,
+  classInstructors,
+  createClass,
+  duplicateClass,
+  enroll,
+  enrollment,
+  relays,
+} from "@/lib/classes";
 import { createStudent, importStudents, listStudents } from "@/lib/students";
 import { studentHistory } from "@/lib/records";
 
@@ -243,4 +254,64 @@ test("deleting a class removes its runs but leaves the students", () => {
   assert.equal((db.prepare(`select count(*) as n from score_runs`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`select count(*) as n from score_zone_counts`).get() as { n: number }).n, 0);
   assert.equal(listStudents(db, "all").length, 1, "the student stays on the roster");
+});
+
+test("duplicating a class copies its courses and instructors, not its roster or scores", () => {
+  const db = fresh();
+  seedCourse(db);
+  const classId = createClass(db, { title: "Defensive Handgun L1", date: "2026-09-25", location: "Blackwater" }, "Brad")!;
+  addCourse(db, classId, "c1");
+  addInstructor(db, classId, "M. Reyes", "lead");
+  addInstructor(db, classId, "A. Okafor", "assistant");
+  const student = createStudent(db, { last_name: "Lindqvist", first_name: "A" }, null)!;
+  enroll(db, classId, student);
+  saveRelayScores(db, {
+    classId,
+    cofId: "c1",
+    date: "2026-09-25",
+    attempt: 1,
+    kind: "qual",
+    scoredBy: null,
+    entries: [{ studentId: student, counts: { A: 45, B: 5 } }],
+  });
+
+  const copyId = duplicateClass(db, classId, { title: "Defensive Handgun L1", date: "2026-10-09" }, "Brad")!;
+  assert.ok(copyId);
+  assert.notEqual(copyId, classId);
+
+  assert.deepEqual(
+    classCourses(db, copyId).map((c) => c.cof_id),
+    ["c1"],
+    "the course of fire comes across"
+  );
+  assert.deepEqual(
+    classInstructors(db, copyId).map((i) => [i.name, i.role]),
+    [["M. Reyes", "lead"], ["A. Okafor", "assistant"]],
+    "credited instructors come across with their roles"
+  );
+  assert.equal(enrollment(db, copyId).length, 0, "the roster stays with the class that was run");
+  assert.equal(
+    (db.prepare(`select count(*) as n from score_runs where class_id = ?`).get(copyId) as { n: number }).n,
+    0,
+    "no scores are copied"
+  );
+
+  // The copy is a class in its own right: its own number, its own date.
+  const rows = db.prepare(`select number, date from classes order by number`).all() as { number: number; date: string }[];
+  assert.deepEqual(rows, [
+    { number: 1, date: "2026-09-25" },
+    { number: 2, date: "2026-10-09" },
+  ]);
+
+  // The original is untouched.
+  assert.equal(enrollment(db, classId).length, 1);
+  assert.equal(classResults(db, classId, "c1").length, 1);
+});
+
+test("duplicating refuses a class that does not exist, and a copy with no date", () => {
+  const db = fresh();
+  const classId = createClass(db, { title: "Class", date: "2026-09-25" }, null)!;
+  assert.equal(duplicateClass(db, "nope", { title: "X", date: "2026-10-01" }, null), null);
+  assert.equal(duplicateClass(db, classId, { title: "X", date: "" }, null), null);
+  assert.equal((db.prepare(`select count(*) as n from classes`).get() as { n: number }).n, 1, "nothing half-created");
 });
