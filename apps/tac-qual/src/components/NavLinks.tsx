@@ -20,7 +20,19 @@ const NAV: NavEntry[] = [
       { href: "/checklist", label: "Instructor Bag Checklist", icon: "checklist" },
     ],
   },
-  { kind: "link", href: "/records", label: "Records", tour: "nav-records", icon: "stats" },
+  {
+    kind: "menu",
+    id: "records",
+    label: "Records",
+    tour: "nav-records",
+    icon: "stats",
+    match: ["/records"],
+    items: [
+      { href: "/records", label: "Qualification Records", icon: "stats" },
+      { href: "/records/currency", label: "Currency", icon: "clock" },
+      { href: "/records/classes", label: "Class Archive", icon: "documents" },
+    ],
+  },
 ];
 
 const GEAR: NavItem[] = [

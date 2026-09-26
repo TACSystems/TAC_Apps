@@ -22,6 +22,7 @@ export async function saveSettingsForm(formData: FormData) {
   const patch: Record<string, unknown> = {};
   for (const k of ["instructorName", "defaultClassLocation", "dateFormat", "textSize"]) if (has(k)) patch[k] = get(k);
   if (has("defaultRelaySize")) patch.defaultRelaySize = Number(get("defaultRelaySize"));
+  if (has("qualCurrencyMonths")) patch.qualCurrencyMonths = Number(get("qualCurrencyMonths"));
   if (has("theme")) patch.theme = get("theme") === "light" ? "light" : "dark";
   updateSettings(getDb(), patch as Partial<AppSettings>);
   revalidatePath("/", "layout");

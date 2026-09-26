@@ -23,7 +23,7 @@ export function ClassDefaultsForm({ s, saved, returnTo }: { s: AppSettings; save
       <p className="mb-3 text-sm text-neutral-400">
         Pre-filled when you create a class or assign relays. You can still change them each time.
       </p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
         <label className="flex flex-col gap-1 text-sm">
           Instructor Name
           <input name="instructorName" defaultValue={s.instructorName} className={input} />
@@ -36,7 +36,21 @@ export function ClassDefaultsForm({ s, saved, returnTo }: { s: AppSettings; save
           Relay Size
           <input type="number" min={1} max={40} name="defaultRelaySize" defaultValue={s.defaultRelaySize} className={input} />
         </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Qualification valid for (months)
+          <input
+            type="number"
+            min={1}
+            max={120}
+            name="qualCurrencyMonths"
+            defaultValue={s.qualCurrencyMonths}
+            className={input}
+          />
+        </label>
       </div>
+      <p className="mt-3 text-xs text-neutral-500">
+        Currency drives the Records → Currency page: a student is current until this many months after their last pass.
+      </p>
       <Save saved={saved} />
     </form>
   );

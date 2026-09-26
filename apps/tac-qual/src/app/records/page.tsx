@@ -41,10 +41,23 @@ export default async function RecordsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Qualification Records"
-        subtitle={`${rows.length} student-course record${rows.length === 1 ? "" : "s"}`}
-      />
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <PageHeader
+          title="Qualification Records"
+          subtitle={`${rows.length} student-course record${rows.length === 1 ? "" : "s"}`}
+        />
+        <div className="no-print flex flex-wrap gap-2">
+          {[
+            ["qualifications", "Qualifications"],
+            ["scored-runs", "Scored Runs"],
+            ["students", "Students"],
+          ].map(([type, label]) => (
+            <a key={type} href={`/api/csv?type=${type}`} className="btn btn-secondary">
+              {label} (.csv)
+            </a>
+          ))}
+        </div>
+      </div>
 
       {rows.length === 0 ? (
         <EmptyState title="Nothing scored yet">

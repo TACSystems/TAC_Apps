@@ -17,6 +17,7 @@ export function normalizeSettings(raw: Partial<AppSettings> & Record<string, unk
     instructorName: str(raw.instructorName, d.instructorName),
     defaultClassLocation: str(raw.defaultClassLocation, d.defaultClassLocation),
     defaultRelaySize: clampNum(raw.defaultRelaySize, 1, 40, d.defaultRelaySize),
+    qualCurrencyMonths: clampNum(raw.qualCurrencyMonths, 1, 120, d.qualCurrencyMonths),
     theme: raw.theme === "light" ? "light" : "dark",
     textSize: ["normal", "large", "xlarge"].includes(String(raw.textSize))
       ? (raw.textSize as AppSettings["textSize"])

@@ -17,7 +17,7 @@ import {
   relays,
 } from "@/lib/classes";
 import { createStudent, importStudents, listStudents } from "@/lib/students";
-import { studentHistory } from "@/lib/records";
+import { classArchive, qualificationCurrency, studentHistory } from "@/lib/records";
 
 function fresh() {
   const db = new Database(":memory:");
@@ -314,4 +314,84 @@ test("duplicating refuses a class that does not exist, and a copy with no date",
   assert.equal(duplicateClass(db, "nope", { title: "X", date: "2026-10-01" }, null), null);
   assert.equal(duplicateClass(db, classId, { title: "X", date: "" }, null), null);
   assert.equal((db.prepare(`select count(*) as n from classes`).get() as { n: number }).n, 1, "nothing half-created");
+});
+
+test("currency: current, due soon, expired and never passed", () => {
+  const db = fresh();
+  seedCourse(db);
+  const classId = createClass(db, { title: "Class", date: "2026-01-10" }, null)!;
+  const fresh_ = createStudent(db, { last_name: "Current", first_name: "C" }, null)!;
+  const soon = createStudent(db, { last_name: "Soon", first_name: "S" }, null)!;
+  const gone = createStudent(db, { last_name: "Expired", first_name: "E" }, null)!;
+  const failed = createStudent(db, { last_name: "Failed", first_name: "F" }, null)!;
+  const inactive = createStudent(db, { last_name: "Inactive", first_name: "I" }, null)!;
+  for (const s of [fresh_, soon, gone, failed, inactive]) enroll(db, classId, s);
+  db.prepare(`update students set status = 'inactive' where id = ?`).run(inactive);
+
+  const pass = { A: 45, B: 5 };
+  const fail = { A: 20, B: 10, C: 10 };
+  const save = (studentId: string, date: string, counts: Record<string, number>) =>
+    saveRelayScores(db, { classId, cofId: "c1", date, attempt: 1, kind: "qual", scoredBy: null, entries: [{ studentId, counts }] });
+
+  const today = "2026-09-26";
+  save(fresh_, "2026-06-01", pass);   // 12 months from June -> well clear
+  save(soon, "2025-10-10", pass);     // expires 2026-10-10, 14 days out
+  save(gone, "2025-01-05", pass);     // expired long ago
+  save(failed, "2026-06-01", fail);   // scored but never passed
+  save(inactive, "2026-06-01", pass); // active students only
+
+  const rows = qualificationCurrency(db, 12, today);
+  const by = (id: string) => rows.find((r) => r.student_id === id);
+
+  assert.equal(rows.length, 4, "inactive students are left out");
+  assert.equal(by(fresh_)!.status, "current");
+  assert.equal(by(fresh_)!.expires_on, "2027-06-01");
+  assert.equal(by(soon)!.status, "due_soon");
+  assert.equal(by(soon)!.days_left, 14);
+  assert.equal(by(gone)!.status, "expired");
+  assert.ok(by(gone)!.days_left! < 0);
+  assert.equal(by(failed)!.status, "never", "scored but never passed has no currency to lose");
+  assert.equal(by(failed)!.expires_on, null);
+
+  // Worst first, so the list opens on who needs attention.
+  assert.deepEqual(rows.map((r) => r.status), ["expired", "due_soon", "never", "current"]);
+});
+
+test("currency: a month add lands on the last day of a shorter month", () => {
+  const db = fresh();
+  seedCourse(db);
+  const classId = createClass(db, { title: "Class", date: "2026-01-31" }, null)!;
+  const student = createStudent(db, { last_name: "Edge", first_name: "E" }, null)!;
+  enroll(db, classId, student);
+  saveRelayScores(db, {
+    classId, cofId: "c1", date: "2026-01-31", attempt: 1, kind: "qual", scoredBy: null,
+    entries: [{ studentId: student, counts: { A: 45, B: 5 } }],
+  });
+  assert.equal(qualificationCurrency(db, 1, "2026-02-01")[0].expires_on, "2026-02-28");
+  assert.equal(qualificationCurrency(db, 6, "2026-02-01")[0].expires_on, "2026-07-31");
+});
+
+test("class archive counts enrolment, who was scored and the pass rate", () => {
+  const db = fresh();
+  seedCourse(db);
+  const classId = createClass(db, { title: "Defensive Handgun", date: "2026-09-25", location: "Blackwater" }, null)!;
+  addCourse(db, classId, "c1");
+  const a = createStudent(db, { last_name: "A", first_name: "A" }, null)!;
+  const b = createStudent(db, { last_name: "B", first_name: "B" }, null)!;
+  const c = createStudent(db, { last_name: "C", first_name: "C" }, null)!;
+  for (const s of [a, b, c]) enroll(db, classId, s);
+  saveRelayScores(db, {
+    classId, cofId: "c1", date: "2026-09-25", attempt: 1, kind: "qual", scoredBy: null,
+    entries: [
+      { studentId: a, counts: { A: 45, B: 5 } },
+      { studentId: b, counts: { A: 20, B: 10, C: 10 } },
+      { studentId: c, counts: {} },
+    ],
+  });
+
+  const [row] = classArchive(db);
+  assert.equal(row.enrolled, 3);
+  assert.equal(row.scored, 2, "the unshot lane is not counted as scored");
+  assert.equal(row.runs, 2);
+  assert.equal(row.passes, 1);
 });
