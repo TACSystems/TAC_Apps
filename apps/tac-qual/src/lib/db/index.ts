@@ -30,6 +30,20 @@ const MIGRATIONS: Migration[] = [
     name: "checklist-0.2.0",
     up: () => {},
   },
+  {
+    // The five seeded courses shipped in 0.1.0 with a B-27 target but no
+    // pass mark, so PASS/FAIL could not be decided on any of them. Only the
+    // seeded codes are touched, and only where the user has not set one.
+    id: 3,
+    name: "seed-pass-marks-0.2.0",
+    up: (db) => {
+      db.prepare(
+        `update courses_of_fire set passing_score_percent = 80
+          where passing_score_percent is null
+            and code in ('ENDUR-50', 'BH-50', 'MCO-50', 'US-50', 'CAQ-50 V 2.0')`
+      ).run();
+    },
+  },
 ];
 
 function closeLocalDb() {

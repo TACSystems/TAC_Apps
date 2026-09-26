@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LockButton from "@/components/LockButton";
 import NavLinks from "@/components/NavLinks";
+import GlobalSearch from "@/components/GlobalSearch";
 
 export default function NavBar({ showLock = false }: { showLock?: boolean }) {
   return (
@@ -14,6 +15,10 @@ export default function NavBar({ showLock = false }: { showLock?: boolean }) {
           <span className="absolute right-0 bottom-0 h-2.5 w-2.5 border-b-2 border-r-2 border-brand-amber" />
           <span className="text-lg font-bold tracking-widest">TAC-QUAL</span>
         </Link>
+
+        <div className="order-3 w-full min-w-0 md:order-none md:mx-6 md:flex md:flex-1 md:justify-center">
+          <GlobalSearch />
+        </div>
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-neutral-400">
           <NavLinks />

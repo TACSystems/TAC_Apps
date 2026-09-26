@@ -26,17 +26,34 @@ export function studentHistory(db: Database.Database, studentId: string) {
     .all(studentId) as QualRow[];
 }
 
+/**
+ * Every student-course standing, with the class the latest run was scored
+ * in. A qualification belongs to the student, not to one class — a student
+ * can requalify in a later class — so the class is carried alongside for
+ * sorting and searching rather than being what the record is keyed on.
+ */
 export function allQualifications(db: Database.Database) {
   return db
     .prepare(
       `select q.*, c.code as course_code, c.name as course_name,
-              s.last_name, s.first_name
+              s.last_name, s.first_name,
+              (select cl.number from score_runs r join classes cl on cl.id = r.class_id
+                where r.student_id = q.student_id and r.cof_id = q.cof_id
+                order by r.date desc, r.attempt desc, r.created_at desc limit 1) as class_number,
+              (select cl.title from score_runs r join classes cl on cl.id = r.class_id
+                where r.student_id = q.student_id and r.cof_id = q.cof_id
+                order by r.date desc, r.attempt desc, r.created_at desc limit 1) as class_title
          from student_qualifications q
          join courses_of_fire c on c.id = q.cof_id
          join students s on s.id = q.student_id
         order by s.last_name, s.first_name, c.name`
     )
-    .all() as (QualRow & { last_name: string; first_name: string })[];
+    .all() as (QualRow & {
+    last_name: string;
+    first_name: string;
+    class_number: number | null;
+    class_title: string | null;
+  })[];
 }
 
 export function studentRuns(db: Database.Database, studentId: string) {

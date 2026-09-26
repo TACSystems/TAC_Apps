@@ -3,6 +3,7 @@ import DataTable, { type TableRow } from "@core/components/DataTable";
 import EmptyState from "@core/components/EmptyState";
 import { getDb } from "@/lib/db";
 import { allQualifications } from "@/lib/records";
+import { classNumberLabel } from "@/lib/classes";
 import { fd } from "@/lib/display";
 import ResultBadge from "@/components/ResultBadge";
 
@@ -15,9 +16,13 @@ export default async function RecordsPage() {
   const table: TableRow[] = rows.map((q) => ({
     key: `${q.student_id}:${q.cof_id}`,
     href: `/students/${q.student_id}`,
-    text: `${q.last_name}, ${q.first_name} ${q.course_name} ${q.course_code}`,
+    text: `${q.last_name}, ${q.first_name} ${q.course_name} ${q.course_code} ${
+      q.class_number != null ? `${classNumberLabel(q.class_number)} ${q.class_title ?? ""}` : ""
+    }`,
     sort: {
       student: `${q.last_name}, ${q.first_name}`,
+      // Sorting by class gives class first, then student within it.
+      class: `${String(q.class_number ?? 0).padStart(6, "0")}|${q.last_name}, ${q.first_name}`,
       course: q.course_name,
       best: q.best_percent ?? -1,
       latest: q.latest_percent ?? -1,
@@ -25,6 +30,15 @@ export default async function RecordsPage() {
     },
     cells: {
       student: <span className="font-bold">{`${q.last_name}, ${q.first_name}`}</span>,
+      class:
+        q.class_number != null ? (
+          <span>
+            {classNumberLabel(q.class_number)}
+            <span className="block text-xs text-neutral-400">{q.class_title}</span>
+          </span>
+        ) : (
+          <span className="text-neutral-500">—</span>
+        ),
       course: (
         <span>
           {q.course_name}
@@ -44,7 +58,9 @@ export default async function RecordsPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <PageHeader
           title="Qualification Records"
-          subtitle={`${rows.length} student-course record${rows.length === 1 ? "" : "s"}`}
+          subtitle={`${rows.length} student-course record${
+          rows.length === 1 ? "" : "s"
+        }. Sort by Latest class to group a class together.`}
         />
         <div className="no-print flex flex-wrap gap-2">
           {[
@@ -67,6 +83,7 @@ export default async function RecordsPage() {
         <DataTable
           columns={[
             { key: "student", label: "Student", sortable: true },
+            { key: "class", label: "Latest class", sortable: true },
             { key: "course", label: "Course", sortable: true },
             { key: "runs", label: "Passed / Runs", align: "right" },
             { key: "best", label: "Best", align: "right", sortable: true },
@@ -76,7 +93,7 @@ export default async function RecordsPage() {
           ]}
           rows={table}
           initialSort={{ key: "student", dir: "asc" }}
-          filterPlaceholder="Filter by student or course…"
+          filterPlaceholder="Filter these records by student, class or course…"
         />
       )}
     </div>
