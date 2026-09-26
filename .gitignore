@@ -29,3 +29,4 @@ apps/*/data/security.json
 *.db-shm
 *.db-journal
 node_modules
+core/brand/__pycache__/
