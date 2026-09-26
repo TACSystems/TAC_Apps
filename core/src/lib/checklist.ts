@@ -22,12 +22,36 @@ export function checklistItems(db: Database.Database, list: string) {
     .all(list) as ChecklistItem[];
 }
 
+export const DEFAULT_INSTRUCTOR_BAG: [string, string[]][] = [
+  ["Safety", ["Eye protection (spares for students)", "Ear protection (spares for students)", "First aid / trauma kit (tourniquet)", "Emergency action plan and range contact numbers", "Fire extinguisher"]],
+  ["Instruction", ["Course of fire packets", "Blank scorecards", "Class roster and sign-in sheet", "Pens, markers, clipboard", "Whiteboard or easel pad", "Shot timer"]],
+  ["Range", ["Targets", "Target stands and backers", "Staples, stapler, tape", "Pasters", "Spray paint", "Range flags and cones"]],
+  ["Demo and Loaner Gear", ["Demo firearm (unloaded, cased)", "Dummy rounds / snap caps", "Loaner eye and ear protection", "Spare magazines"]],
+  ["Tools", ["Multitool / armorer's tool", "Cleaning kit", "Lubricant", "Spare optic batteries"]],
+  ["Admin", ["Instructor certifications", "Insurance and liability waivers", "Student paperwork", "Phone charger / power bank"]],
+  ["Personal", ["Water and cooler", "Snacks", "Sunscreen / bug spray", "Rain gear"]],
+];
+
+export function seedChecklist(db: Database.Database, list: string, sections: [string, string[]][]) {
+  const has = db.prepare(`select 1 from checklist_items where list_name = ? limit 1`).get(list);
+  if (has) return;
+  const ins = db.prepare(
+    `insert into checklist_items (id, list_name, section, text, sort_order) values (?, ?, ?, ?, ?)`
+  );
+  let i = 0;
+  db.transaction(() => {
+    for (const [section, items] of sections) for (const t of items) ins.run(randomUUID(), list, section, t, i++);
+  })();
+}
+
 export function seedRangeBag(db: Database.Database) {
   const has = db.prepare(`select 1 from checklist_items limit 1`).get();
   if (has) return;
-  const ins = db.prepare(`insert into checklist_items (id, list_name, section, text, sort_order) values (?, 'Range Bag', ?, ?, ?)`);
-  let i = 0;
-  db.transaction(() => {
-    for (const [section, items] of DEFAULT_RANGE_BAG) for (const t of items) ins.run(randomUUID(), section, t, i++);
-  })();
+  seedChecklist(db, "Range Bag", DEFAULT_RANGE_BAG);
+}
+
+export function seedInstructorBag(db: Database.Database) {
+  const has = db.prepare(`select 1 from checklist_items limit 1`).get();
+  if (has) return;
+  seedChecklist(db, "Instructor Bag", DEFAULT_INSTRUCTOR_BAG);
 }

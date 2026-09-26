@@ -10,6 +10,8 @@ const PATHS = {
   search: "M10 3a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM21 21l-6-6",
   lock: "M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4",
   plus: "M12 5v14M5 12h14",
+  users: "M9 11a4 4 0 1 0 0-8a4 4 0 0 0 0 8zM2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2M17 3.5a4 4 0 0 1 0 7.7M18 14.2a5 5 0 0 1 4 4.8v2",
+  badge: "M4 4h16v16H4zM8 9a2.5 2.5 0 1 0 0 5a2.5 2.5 0 0 0 0-5zM4.5 19a4 4 0 0 1 7 0M14 9h4M14 13h4",
   edit: "M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
   trash: "M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14",
   print: "M6 9V3h12v6M6 17H3v-8h18v8h-3M6 14h12v7H6z",

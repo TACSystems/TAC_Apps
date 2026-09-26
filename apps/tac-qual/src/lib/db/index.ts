@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { applyCofPatch, type CofPatch } from "@core/lib/cof";
 import { seedDropdownOptions } from "./dropdown-options";
+import { seedInstructorBag } from "@core/lib/checklist";
 import { SCHEMA_SQL, VIEWS_SQL } from "./schema";
 import { LockedError, dataKey, isEncrypted, isUnlocked } from "@core/lib/security-state";
 import { applyKey, dataDir, dbPath, openRaw, registerDbProvider, rekeyFile } from "@core/lib/db-core";
@@ -22,6 +23,11 @@ const MIGRATIONS: Migration[] = [
   {
     id: 1,
     name: "baseline-0.1.0",
+    up: () => {},
+  },
+  {
+    id: 2,
+    name: "checklist-0.2.0",
     up: () => {},
   },
 ];
@@ -66,6 +72,7 @@ function initDb(): Database.Database {
   }
 
   seedDropdownOptions(db);
+  seedInstructorBag(db);
 
   db.prepare(`insert or ignore into instructor_profile (id, name) values ('me', '')`).run();
 

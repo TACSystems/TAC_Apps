@@ -28,6 +28,16 @@ create table if not exists dropdown_options (
   unique (category, value)
 );
 
+create table if not exists checklist_items (
+  id text primary key,
+  list_name text not null default 'Instructor Bag',
+  section text,
+  text text not null,
+  checked integer not null default 0,
+  sort_order integer not null default 0,
+  created_at text not null default (datetime('now'))
+);
+
 create table if not exists target_types (
   id text primary key,
   name text not null unique,
