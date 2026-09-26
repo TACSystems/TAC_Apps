@@ -228,10 +228,10 @@ export function PrintHeader({ course }: { course: LoadedCourse }) {
   );
 }
 
-export function PrintFooter() {
+export function PrintFooter({ productName = "TAC-LOG" }: { productName?: string }) {
   return (
     <p className="mt-8 text-center text-[10px] tracking-widest text-neutral-500">
-      [ TAC-LOG — PRECISION SYSTEMS ]
+      [ {productName} — TAC SYSTEMS ]
     </p>
   );
 }

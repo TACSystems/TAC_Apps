@@ -9,8 +9,8 @@ export default function BackupSettings(props: Props) {
   return (
     <CoreBackupSettings
       {...props}
-      productName="TAC-LOG"
-      backupExt="tlbak"
+      productName="TAC-QUAL"
+      backupExt="tqbak"
       actions={{ setBackupPassword, clearBackupPassword, saveAutoBackupSettings, backupNow }}
     />
   );

@@ -68,7 +68,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </DialogProvider>
         </main>
         <footer className="border-t border-neutral-800 py-3 text-center text-[11px] tracking-[0.25em] text-neutral-500 print:hidden">
-          POWERED BY PRECISION SYSTEMS
+          POWERED BY TAC SYSTEMS
           <div className="mt-0.5 text-[10px] tracking-[0.2em] text-neutral-500">v{process.env.TAC_LOG_VERSION ?? "dev"}</div>
         </footer>
       </body>

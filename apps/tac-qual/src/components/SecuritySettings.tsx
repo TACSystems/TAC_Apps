@@ -22,7 +22,7 @@ export default function SecuritySettings({
     <CoreSecuritySettings
       mode={mode}
       autoLockMinutes={autoLockMinutes}
-      productName="TAC-LOG"
+      productName="TAC-QUAL"
       actions={{ savePin, removePin, enableEncryption, changePassword, newRecoveryKey, disableEncryption, saveAutoLock }}
     />
   );

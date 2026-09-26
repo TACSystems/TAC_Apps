@@ -1,0 +1,113 @@
+"use client";
+
+import PasswordInput from "@core/components/PasswordInput";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useDialogs } from "@core/components/Dialogs";
+import FileDrop from "@core/components/FileDrop";
+import Spinner from "@core/components/Spinner";
+
+export default function RestoreForm({ productName, backupExt }: { productName: string; backupExt: string }) {
+  const router = useRouter();
+  const { confirm } = useDialogs();
+  const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [needsPassword, setNeedsPassword] = useState(false);
+  const [password, setPassword] = useState("");
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const input = e.currentTarget.elements.namedItem("file") as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      setStatus({ ok: false, message: "Choose a backup file first." });
+      return;
+    }
+    if (
+      !(await confirm({
+        title: "Restore backup",
+        message: `Restore from "${file.name}"? This replaces everything currently in ${productName} with the backup's contents. Your current data is set aside in a "pre-restore" folder first, so it isn't lost.`,
+        confirmLabel: "Restore",
+        danger: true,
+      }))
+    ) {
+      return;
+    }
+    setBusy(true);
+    setStatus(null);
+    const body = new FormData();
+    body.append("file", file);
+    if (password) body.append("password", password);
+    try {
+      const res = await fetch("/api/restore", { method: "POST", body });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.needsPassword) setNeedsPassword(true);
+        let message = data.error ?? "Restore failed.";
+        if (data.waitUntil) {
+          const secs = Math.ceil((data.waitUntil - Date.now()) / 1000);
+          message += ` Try again in ${secs < 60 ? `${secs} seconds` : `${Math.ceil(secs / 60)} minutes`}.`;
+        } else if (data.attemptsLeft > 0) {
+          message += ` ${data.attemptsLeft} ${data.attemptsLeft === 1 ? "attempt" : "attempts"} left before a wait.`;
+        }
+        setStatus({ ok: false, message });
+        setPassword("");
+      } else {
+        setStatus({
+          ok: true,
+          message:
+            data.receiptCount == null
+              ? "Database restored. (That was a database-only backup, so receipt images were left as they were.)"
+              : `Restored, including ${data.receiptCount} receipt file${data.receiptCount === 1 ? "" : "s"}.`,
+        });
+        setTimeout(() => {
+          router.push("/");
+          router.refresh();
+        }, 1500);
+      }
+    } catch {
+      setStatus({ ok: false, message: "Restore failed. Couldn't reach the app." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="w-full">
+          <FileDrop
+            accept={`.zip,.${backupExt},.db,application/zip`}
+            label="Select Backup"
+            prompt={`Drag a backup file (.${backupExt}, .zip, or .db) here, or`}
+            onFiles={() => {
+              setStatus(null);
+              setNeedsPassword(false);
+            }}
+          />
+        </div>
+        {needsPassword && (
+          <PasswordInput placeholder="Backup password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm"
+          />
+        )}
+        <button
+          type="submit"
+          disabled={busy}
+          className="btn btn-danger"
+        >
+          {busy ? (
+            <>
+              <Spinner /> Restoring…
+            </>
+          ) : (
+            "Restore Backup"
+          )}
+        </button>
+      </div>
+      {status && <p className={`text-sm ${status.ok ? "text-green-400" : "text-red-400"}`}>{status.message}</p>}
+    </form>
+  );
+}

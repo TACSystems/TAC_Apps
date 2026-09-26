@@ -177,7 +177,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <dt className="text-neutral-500">Encryption</dt>
           <dd>{isEncrypted() ? "On (SQLCipher, AES-256)" : "Off"}</dd>
         </dl>
-        <p className="mt-4 text-center text-[11px] tracking-[0.25em] text-neutral-500">POWERED BY PRECISION SYSTEMS</p>
+        <p className="mt-4 text-center text-[11px] tracking-[0.25em] text-neutral-500">POWERED BY TAC SYSTEMS</p>
       </Collapsible>
     </div>
   );

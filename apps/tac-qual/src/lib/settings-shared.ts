@@ -22,6 +22,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoLockMinutes: 0,
 };
 
+export const TEXT_SIZES = { normal: "Normal", large: "Large", xlarge: "Extra Large" } as const;
+
+export const DATE_FORMATS: Record<DateFormat, string> = {
+  us: "MM/DD/YYYY",
+  iso: "YYYY-MM-DD",
+  eu: "DD/MM/YYYY",
+};
+
 export const TEXT_SCALE: Record<AppSettings["textSize"], string> = {
   normal: "100%",
   large: "112.5%",

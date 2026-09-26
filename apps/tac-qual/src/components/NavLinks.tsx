@@ -23,7 +23,10 @@ const NAV: NavEntry[] = [
   { kind: "link", href: "/records", label: "Records", tour: "nav-records", icon: "stats" },
 ];
 
-const GEAR: NavItem[] = [{ href: "/instructor", label: "Instructor Profile", icon: "badge" }];
+const GEAR: NavItem[] = [
+  { href: "/instructor", label: "Instructor Profile", icon: "badge" },
+  { href: "/settings", label: "Settings", icon: "settings" },
+];
 
 export default function NavLinks() {
   return <CoreNavLinks nav={NAV} gear={GEAR} />;
