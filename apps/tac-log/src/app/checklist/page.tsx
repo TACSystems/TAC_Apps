@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import { checklistItems, checklistNames, seedRangeBag } from "@/lib/checklist";
+import { checklistItems, checklistNames, seedRangeBag } from "@core/lib/checklist";
 import Checklist from "@/components/Checklist";
 
 export const dynamic = "force-dynamic";
