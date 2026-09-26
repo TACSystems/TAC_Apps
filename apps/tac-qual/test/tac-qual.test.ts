@@ -69,6 +69,24 @@ test("course meta reads zones, maximum and pass mark", () => {
   );
 });
 
+test("a course built in the app scores from its strings when total_rounds is null", () => {
+  const db = fresh();
+  seedCourse(db);
+  // The builder leaves total_rounds null when the phases add up on their own.
+  db.prepare(`update courses_of_fire set total_rounds = null where id = 'c1'`).run();
+  db.prepare(`insert into cof_phases (id, cof_id, phase_number, title) values ('p1', 'c1', 1, 'Phase 1')`).run();
+  const ins = db.prepare(
+    `insert into cof_strings (id, phase_id, sort_order, row_type, string_number, rounds) values (?, 'p1', ?, 'string', ?, ?)`
+  );
+  ins.run("s1", 0, 1, "20");
+  ins.run("s2", 1, 2, "20");
+  ins.run("s3", 2, 3, "10");
+
+  const meta = courseMeta(db, "c1");
+  assert.equal(meta!.totalRounds, 50, "rounds come from the strings");
+  assert.equal(meta!.maxPoints, 250, "and the maximum is not zero");
+});
+
 test("saving a relay: blank rows are skipped, not stored as zeros", () => {
   const db = fresh();
   seedCourse(db);

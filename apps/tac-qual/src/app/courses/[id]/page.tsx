@@ -4,7 +4,7 @@ import PageHeader from "@core/components/PageHeader";
 import PrintButton from "@core/components/PrintButton";
 import { getDb } from "@/lib/db";
 import { loadCourse } from "@core/lib/cof";
-import { maxPointsFor } from "@core/lib/cof-shared";
+import { computeCourseRounds, maxPointsFor } from "@core/lib/cof-shared";
 import { listTargetTypes } from "@core/lib/cof";
 import SubmitButton from "@core/components/SubmitButton";
 import Collapsible from "@core/components/Collapsible";
@@ -20,7 +20,8 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
 
   const zones = course.target?.zones ?? [];
   const targets = listTargetTypes(db);
-  const maxPoints = maxPointsFor(course.total_rounds ?? 0, zones);
+  const courseRounds = course.total_rounds ?? computeCourseRounds(course.phases);
+  const maxPoints = maxPointsFor(courseRounds, zones);
 
   return (
     <div className="space-y-6">
@@ -30,9 +31,15 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
         back={{ href: "/courses", label: "Courses of Fire" }}
         actions={
           <div className="flex gap-2">
-            <a className="btn" href={`/timer?course=${course.id}`}>
+            <Link className="btn" href={`/timer?course=${course.id}`}>
               Run Par Timer
-            </a>
+            </Link>
+            <Link className="btn" href={`/courses/new?from=${course.id}`}>
+              Duplicate
+            </Link>
+            <Link className="btn btn-primary" href={`/courses/${course.id}/edit`}>
+              Edit
+            </Link>
             <PrintButton />
           </div>
         }
@@ -42,7 +49,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <dt className="text-xs tracking-widest text-neutral-400">Rounds</dt>
-            <dd className="text-2xl font-bold">{course.total_rounds ?? "—"}</dd>
+            <dd className="text-2xl font-bold">{courseRounds || "—"}</dd>
           </div>
           <div>
             <dt className="text-xs tracking-widest text-neutral-400">Max points</dt>

@@ -53,6 +53,9 @@ export default async function CoursesPage() {
             <Link className="btn" href="/courses/import">
               Import
             </Link>
+            <Link className="btn btn-primary" href="/courses/new">
+              + New Course
+            </Link>
             <a className="btn" href="/api/courses/export">
               Export All
             </a>

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { flash } from "@core/lib/flash";
 import { getDb } from "@/lib/db";
-import { saveTargetType } from "@core/lib/cof";
+import { saveTargetType, type ZoneDef } from "@core/lib/cof";
 import { text, number as num } from "@core/lib/forms";
 
 /** Zones arrive as parallel label/value rows from the form. */
@@ -78,4 +78,26 @@ export async function saveCourseScoring(formData: FormData) {
   await flash("Scoring saved.");
   revalidatePath(`/courses/${cofId}`);
   revalidatePath("/courses");
+}
+
+/** Used by the shared TargetTypeEditor, which posts a whole target at once. */
+export async function saveTargetTypeAction(payload: {
+  id?: string | null;
+  name: string;
+  description: string | null;
+  zones: ZoneDef[];
+}): Promise<{ error: string } | { id: string }> {
+  try {
+    const id = saveTargetType(getDb(), {
+      id: payload.id || null,
+      name: String(payload.name ?? ""),
+      description: payload.description ? String(payload.description).trim() || null : null,
+      zones: Array.isArray(payload.zones) ? payload.zones : [],
+    });
+    revalidatePath("/targets");
+    revalidatePath("/courses");
+    return { id };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Couldn't save the target type." };
+  }
 }

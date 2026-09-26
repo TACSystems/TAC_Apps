@@ -1,7 +1,7 @@
 import type Database from "better-sqlite3-multiple-ciphers";
 import { randomUUID } from "crypto";
 import { loadCourse } from "@core/lib/cof";
-import { maxPointsFor, type ZoneDef } from "@core/lib/cof-shared";
+import { computeCourseRounds, maxPointsFor, type ZoneDef } from "@core/lib/cof-shared";
 
 export type ScoreRun = {
   id: string;
@@ -46,7 +46,9 @@ export function courseMeta(db: Database.Database, cofId: string) {
   const course = loadCourse(db, cofId);
   if (!course) return null;
   const zones = course.target?.zones ?? [];
-  const totalRounds = course.total_rounds ?? 0;
+  // A course built in the app leaves total_rounds null when the phases add up
+  // on their own, so fall back to the strings rather than scoring out of zero.
+  const totalRounds = course.total_rounds ?? computeCourseRounds(course.phases);
   return {
     id: course.id,
     code: course.code,

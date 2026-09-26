@@ -6,6 +6,7 @@ export const OPTION_CATEGORIES = {
   course_category: "Course Categories",
   caliber: "Calibers",
   instructor_cert: "Certification Types",
+  position: "Shooting Positions",
 } as const;
 
 export type OptionCategory = keyof typeof OPTION_CATEGORIES;
@@ -15,6 +16,7 @@ const SEEDS: Record<OptionCategory, string[]> = {
   course_category: ["Handgun", "Rifle", "Shotgun"],
   caliber: ["9mm", ".40 S&W", ".45 ACP", ".38 Special", "5.56 NATO", ".223 Rem", "7.62x39", "12 Gauge", ".22 LR"],
   instructor_cert: ["NRA Instructor", "State Instructor", "Range Safety Officer", "First Aid / CPR"],
+  position: ["Standing", "Kneeling", "Prone", "Sitting", "Barricade", "Low Ready", "Holster", "Strong Hand", "Support Hand"],
 };
 
 export function seedDropdownOptions(db: Database.Database) {
