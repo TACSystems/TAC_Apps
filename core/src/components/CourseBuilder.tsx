@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ZoneDef } from "@core/lib/cof-shared";
 import {
+  computeCourseRounds,
   computePhaseRounds,
   maxPointsFor,
   type CourseColumn,
   type CourseDef,
+  type LoadedCourse,
   type ScorecardConfig,
   type TargetTypeDef,
 } from "@core/lib/cof-shared";
@@ -95,6 +97,39 @@ export default function CourseBuilder({
           },
         ]
   );
+
+  const previewCourse = useMemo<LoadedCourse>(() => {
+    const draftPhases = phases.map((p) => ({
+      title: p.title,
+      notes: p.notes || null,
+      phase_total_rounds: toNum(p.total),
+      strings: p.strings.map((st) => ({
+        row_type: st.row_type,
+        string_number: st.string_number,
+        option_label: st.option_label,
+        values: st.values,
+      })),
+    }));
+    const computed = computeCourseRounds(draftPhases);
+    const override = toNum(totalOverride);
+    const target = targets.find((t) => t.id === targetId) ?? null;
+    return {
+      id: initial?.id ?? "draft",
+      code,
+      name,
+      notes: notes || null,
+      total_rounds: override,
+      target_type_id: targetId || null,
+      passing_score_percent: toNum(passing),
+      columns,
+      scorecard,
+      categories,
+      phases: draftPhases,
+      target,
+      computed_total_rounds: computed,
+      effective_total_rounds: override ?? computed,
+    };
+  }, [phases, totalOverride, targets, targetId, initial?.id, code, name, notes, passing, columns, scorecard, categories]);
 
   const snapshot = useMemo(
     () =>
@@ -288,7 +323,7 @@ export default function CourseBuilder({
 
       <PhasesEditor phases={phases} setPhases={setPhases} columns={columns} positionOptions={positionOptions} />
 
-      <ScorecardEditor scorecard={scorecard} setScorecard={setScorecard} />
+      <ScorecardEditor scorecard={scorecard} setScorecard={setScorecard} previewCourse={previewCourse} />
 
       <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-neutral-700 bg-neutral-950 py-3">
         <button
