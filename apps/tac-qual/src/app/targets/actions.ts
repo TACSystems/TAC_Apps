@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { flash } from "@core/lib/flash";
 import { getDb } from "@/lib/db";
-import { saveTargetType, type ZoneDef } from "@core/lib/cof";
+import { loadTargetType, saveTargetType, type ZoneDef } from "@core/lib/cof";
 import { text, number as num } from "@core/lib/forms";
 
 /** Zones arrive as parallel label/value rows from the form. */
@@ -100,4 +100,32 @@ export async function saveTargetTypeAction(payload: {
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Couldn't save the target type." };
   }
+}
+
+export async function duplicateTarget(formData: FormData) {
+  const db = getDb();
+  const id = String(formData.get("id") ?? "");
+  const source = loadTargetType(db, id);
+  if (!source) {
+    await flash("That target type no longer exists.", "error");
+    revalidatePath("/targets");
+    return;
+  }
+  const taken = new Set(
+    (db.prepare(`select name from target_types`).all() as { name: string }[]).map((r) => r.name.toLowerCase())
+  );
+  let name = `${source.name} (copy)`;
+  let n = 2;
+  while (taken.has(name.toLowerCase())) {
+    name = `${source.name} (copy ${n})`;
+    n += 1;
+  }
+  try {
+    saveTargetType(db, { id: null, name, description: source.description, zones: source.zones });
+    await flash(`Copied to "${name}".`);
+  } catch (e) {
+    await flash(e instanceof Error ? e.message : "That target type could not be copied.", "error");
+  }
+  revalidatePath("/targets");
+  revalidatePath("/courses");
 }
