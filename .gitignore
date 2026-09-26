@@ -28,3 +28,4 @@ apps/*/data/security.json
 *.db-wal
 *.db-shm
 *.db-journal
+node_modules
