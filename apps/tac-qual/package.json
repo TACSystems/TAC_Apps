@@ -1,7 +1,7 @@
 {
   "name": "tac-qual",
   "productName": "TAC-QUAL",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Class rosters, multi-shooter qualification scoring, and printable results for firearms instructors \u2014 by TAC Systems",
   "author": "TAC Systems",
   "private": true,
