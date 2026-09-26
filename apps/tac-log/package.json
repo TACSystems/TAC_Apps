@@ -64,7 +64,7 @@
     ],
     "mac": {
       "category": "public.app-category.utilities",
-      "icon": "electron/icons/icon.icns",
+      "icon": "electron/icons/icon.png",
       "target": [
         "dmg"
       ]
@@ -81,7 +81,7 @@
       "allowToChangeInstallationDirectory": true
     },
     "linux": {
-      "icon": "electron/icons/icon.icns",
+      "icon": "electron/icons/icon.png",
       "target": [
         "AppImage"
       ],
