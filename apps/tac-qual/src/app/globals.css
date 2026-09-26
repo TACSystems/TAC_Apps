@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../../../../core/src/styles/fonts.css";
 @import "./brand-tokens.css";
 @import "../../../../core/src/styles/tokens.css";
 @import "../../../../core/src/styles/ui.css";
@@ -8,7 +9,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-tactical-mono);
+  font-family: var(--tl-font-display);
 }
 
 h1, h2, h3,

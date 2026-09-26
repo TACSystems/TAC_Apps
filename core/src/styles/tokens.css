@@ -4,9 +4,10 @@
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-tactical-mono);
-  --font-mono: var(--font-tactical-mono);
-  --font-tactical-mono: "Courier New", Courier, monospace;
+  --font-sans: var(--tl-font-display);
+  --font-mono: var(--tl-font-mono);
+  /* Kept as an alias: app stylesheets and older rules still name it. */
+  --font-tactical-mono: var(--tl-font-display);
 
   --color-neutral-950: var(--tl-n950);
   --color-neutral-900: var(--tl-n900);

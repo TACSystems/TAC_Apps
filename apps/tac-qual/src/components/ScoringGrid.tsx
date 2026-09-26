@@ -153,7 +153,7 @@ export default function ScoringGrid({
               const passed = passing != null && t.percent != null && t.percent >= passing;
               return (
                 <tr key={s.student_id}>
-                  <td className="text-neutral-400">{s.lane ?? "—"}</td>
+                  <td className="num text-neutral-400">{s.lane ?? "—"}</td>
                   <td className="font-bold">
                     {s.name}
                     <input type="hidden" name="row_student" value={s.student_id} />
@@ -180,12 +180,12 @@ export default function ScoringGrid({
                       />
                     </td>
                   ))}
-                  <td className={`text-right ${over ? "text-red-400" : "text-neutral-400"}`}>
+                  <td className={`num text-right ${over ? "text-red-400" : "text-neutral-400"}`}>
                     {t.rounds}
                     {totalRounds > 0 ? `/${totalRounds}` : ""}
                   </td>
-                  <td className="text-right font-bold">{t.entered ? t.points : "—"}</td>
-                  <td className="text-right">{t.entered && t.percent != null ? t.percent.toFixed(1) : "—"}</td>
+                  <td className="num text-right font-bold">{t.entered ? t.points : "—"}</td>
+                  <td className="num text-right">{t.entered && t.percent != null ? t.percent.toFixed(1) : "—"}</td>
                   <td>
                     {t.entered && passing != null ? (
                       <span className={`result-badge ${passed ? "result-pass" : "result-fail"}`}>

@@ -58,7 +58,9 @@ export default function DataTable({
     return list;
   }, [rows, q, sort]);
 
-  const align = (c: Column) => (c.align === "right" ? "text-right" : c.align === "center" ? "text-center" : "");
+  // A right-aligned column is a numeric one in both apps, so it carries the
+  // tabular face; that is what keeps a column of scores from jittering.
+  const align = (c: Column) => (c.align === "right" ? "num text-right" : c.align === "center" ? "text-center" : "");
 
   return (
     <div className="flex flex-col gap-3">

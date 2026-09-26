@@ -59,7 +59,7 @@ export default async function HomePage() {
         {tiles.map((t) => (
           <a key={t.label} href={t.href} className="card p-4 transition-colors hover:border-brand-amber">
             <div className="text-xs tracking-widest text-neutral-400">{t.label}</div>
-            <div className="mt-1 text-3xl font-bold">{t.value}</div>
+            <div className="count mt-1 text-3xl font-bold">{t.value}</div>
           </a>
         ))}
       </section>
