@@ -44,6 +44,18 @@ const MIGRATIONS: Migration[] = [
       ).run();
     },
   },
+  {
+    // A class carries a type, which is what the Classes page groups by. An
+    // existing class has none and reads as Uncategorized until it is set.
+    id: 4,
+    name: "class-type-0.4.0",
+    up: (db) => {
+      const cols = db.prepare(`pragma table_info(classes)`).all() as { name: string }[];
+      if (!cols.some((c) => c.name === "class_type")) {
+        db.prepare(`alter table classes add column class_type text`).run();
+      }
+    },
+  },
 ];
 
 function closeLocalDb() {

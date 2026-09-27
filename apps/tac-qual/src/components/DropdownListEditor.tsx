@@ -1,7 +1,12 @@
 import CoreDropdownListEditor from "@core/components/DropdownListEditor";
 import { getDb } from "@/lib/db";
-import { getDropdownOptionRows } from "@/lib/db/dropdown-options";
-import { DEFAULT_OPTIONS, DROPDOWN_CATEGORIES, DROPDOWN_USED_IN, type DropdownCategory } from "@/lib/options";
+import {
+  DEFAULT_OPTIONS,
+  OPTION_CATEGORIES,
+  OPTION_USED_IN,
+  getDropdownOptionRows,
+  type OptionCategory,
+} from "@/lib/db/dropdown-options";
 import {
   addDropdownOption,
   deleteDropdownOption,
@@ -11,13 +16,13 @@ import {
   sortDropdownAlpha,
 } from "@/app/controls/actions";
 
-export default function DropdownListEditor({ category, open }: { category: DropdownCategory; open?: boolean }) {
+export default function DropdownListEditor({ category, open }: { category: OptionCategory; open?: boolean }) {
   const rows = getDropdownOptionRows(getDb(), category);
   return (
     <CoreDropdownListEditor
       category={category}
-      label={DROPDOWN_CATEGORIES[category]}
-      usedIn={DROPDOWN_USED_IN[category]}
+      label={OPTION_CATEGORIES[category]}
+      usedIn={OPTION_USED_IN[category]}
       rows={rows}
       missingDefaults={DEFAULT_OPTIONS[category].filter((d) => !rows.some((r) => r.value === d)).length}
       actions={{

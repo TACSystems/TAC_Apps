@@ -7,6 +7,7 @@ export const OPTION_CATEGORIES = {
   caliber: "Calibers",
   instructor_cert: "Certification Types",
   position: "Shooting Positions",
+  class_type: "Class Types",
 } as const;
 
 export type OptionCategory = keyof typeof OPTION_CATEGORIES;
@@ -17,6 +18,7 @@ const SEEDS: Record<OptionCategory, string[]> = {
   caliber: ["9mm", ".40 S&W", ".45 ACP", ".38 Special", "5.56 NATO", ".223 Rem", "7.62x39", "12 Gauge", ".22 LR"],
   instructor_cert: ["NRA Instructor", "State Instructor", "Range Safety Officer", "First Aid / CPR"],
   position: ["Standing", "Kneeling", "Prone", "Sitting", "Barricade", "Low Ready", "Holster", "Strong Hand", "Support Hand"],
+  class_type: ["Basic Pistol", "Defensive Handgun", "Concealed Carry", "Rifle", "Shotgun", "Qualification Only", "Private Lesson"],
 };
 
 export function seedDropdownOptions(db: Database.Database) {
@@ -52,4 +54,21 @@ export function addOption(db: Database.Database, category: OptionCategory, value
     value,
     next.n
   );
+}
+
+export const OPTION_USED_IN: Record<OptionCategory, string> = {
+  class_location: "class details",
+  course_category: "courses of fire",
+  caliber: "student firearms",
+  instructor_cert: "instructor profile",
+  position: "course of fire builder",
+  class_type: "class details, and how the Classes page is grouped",
+};
+
+export const DEFAULT_OPTIONS = SEEDS;
+
+export function getDropdownOptionRows(db: Database.Database, category: OptionCategory) {
+  return db
+    .prepare(`select id, value from dropdown_options where category = ? order by sort_order, value`)
+    .all(category) as { id: string; value: string }[];
 }

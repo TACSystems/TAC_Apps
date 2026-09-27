@@ -135,6 +135,7 @@ create table if not exists classes (
   title text not null,
   date text not null,
   location text,
+  class_type text,
   status text not null default 'planned' check (status in ('planned','in_progress','complete')),
   notes text,
   created_at text not null default (datetime('now')),

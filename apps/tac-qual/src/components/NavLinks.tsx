@@ -37,6 +37,7 @@ const NAV: NavEntry[] = [
 
 const GEAR: NavItem[] = [
   { href: "/instructor", label: "Instructor Profile", icon: "badge" },
+  { href: "/controls", label: "Controls", icon: "controls" },
   { href: "/settings", label: "Settings", icon: "settings" },
 ];
 
