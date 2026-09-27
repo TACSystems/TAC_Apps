@@ -16,6 +16,7 @@
     "dist": "npm run electron:prepare && electron-builder",
     "dist:mac": "npm run electron:prepare && electron-builder --mac",
     "dist:win": "npm run electron:prepare && electron-builder --win",
+    "dist:mac:linux": "bash ../../scripts/package-mac.sh apps/tac-qual arm64",
     "test": "node --import ../../core/test/register.mjs --experimental-strip-types --no-warnings --test test/*.test.ts"
   },
   "dependencies": {
