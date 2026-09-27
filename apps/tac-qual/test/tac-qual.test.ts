@@ -6,15 +6,14 @@ import { runMigrations } from "@core/lib/migrations";
 import { scoreFromCounts, saveRelayScores, courseMeta, latestAttempt, classResults } from "@/lib/scoring";
 import {
   addCourse,
-  addInstructor,
   autoAssignRelays,
-  classCourses,
-  classInstructors,
+  classDateSummary,
+  classDays,
   createClass,
-  duplicateClass,
   enroll,
   enrollment,
   relays,
+  saveClassDays,
 } from "@/lib/classes";
 import { createStudent, importStudents, listStudents } from "@/lib/students";
 import { classArchive, qualificationCurrency, studentHistory } from "@/lib/records";
@@ -256,66 +255,6 @@ test("deleting a class removes its runs but leaves the students", () => {
   assert.equal(listStudents(db, "all").length, 1, "the student stays on the roster");
 });
 
-test("duplicating a class copies its courses and instructors, not its roster or scores", () => {
-  const db = fresh();
-  seedCourse(db);
-  const classId = createClass(db, { title: "Defensive Handgun L1", date: "2026-09-25", location: "Blackwater" }, "Brad")!;
-  addCourse(db, classId, "c1");
-  addInstructor(db, classId, "M. Reyes", "lead");
-  addInstructor(db, classId, "A. Okafor", "assistant");
-  const student = createStudent(db, { last_name: "Lindqvist", first_name: "A" }, null)!;
-  enroll(db, classId, student);
-  saveRelayScores(db, {
-    classId,
-    cofId: "c1",
-    date: "2026-09-25",
-    attempt: 1,
-    kind: "qual",
-    scoredBy: null,
-    entries: [{ studentId: student, counts: { A: 45, B: 5 } }],
-  });
-
-  const copyId = duplicateClass(db, classId, { title: "Defensive Handgun L1", date: "2026-10-09" }, "Brad")!;
-  assert.ok(copyId);
-  assert.notEqual(copyId, classId);
-
-  assert.deepEqual(
-    classCourses(db, copyId).map((c) => c.cof_id),
-    ["c1"],
-    "the course of fire comes across"
-  );
-  assert.deepEqual(
-    classInstructors(db, copyId).map((i) => [i.name, i.role]),
-    [["M. Reyes", "lead"], ["A. Okafor", "assistant"]],
-    "credited instructors come across with their roles"
-  );
-  assert.equal(enrollment(db, copyId).length, 0, "the roster stays with the class that was run");
-  assert.equal(
-    (db.prepare(`select count(*) as n from score_runs where class_id = ?`).get(copyId) as { n: number }).n,
-    0,
-    "no scores are copied"
-  );
-
-  // The copy is a class in its own right: its own number, its own date.
-  const rows = db.prepare(`select number, date from classes order by number`).all() as { number: number; date: string }[];
-  assert.deepEqual(rows, [
-    { number: 1, date: "2026-09-25" },
-    { number: 2, date: "2026-10-09" },
-  ]);
-
-  // The original is untouched.
-  assert.equal(enrollment(db, classId).length, 1);
-  assert.equal(classResults(db, classId, "c1").length, 1);
-});
-
-test("duplicating refuses a class that does not exist, and a copy with no date", () => {
-  const db = fresh();
-  const classId = createClass(db, { title: "Class", date: "2026-09-25" }, null)!;
-  assert.equal(duplicateClass(db, "nope", { title: "X", date: "2026-10-01" }, null), null);
-  assert.equal(duplicateClass(db, classId, { title: "X", date: "" }, null), null);
-  assert.equal((db.prepare(`select count(*) as n from classes`).get() as { n: number }).n, 1, "nothing half-created");
-});
-
 test("currency: current, due soon, expired and never passed", () => {
   const db = fresh();
   seedCourse(db);
@@ -394,4 +333,62 @@ test("class archive counts enrolment, who was scored and the pass rate", () => {
   assert.equal(row.scored, 2, "the unshot lane is not counted as scored");
   assert.equal(row.runs, 2);
   assert.equal(row.passes, 1);
+});
+
+test("class days: renumbered by date, and classes.date follows day one", () => {
+  const db = fresh();
+  const classId = createClass(db, { title: "Carbine L1", date: "2026-10-11" }, null)!;
+
+  // Entered out of order, with a junk row and a bad time.
+  saveClassDays(db, classId, [
+    { date: "2026-10-11", start_time: "13:00", end_time: "17:00" },
+    { date: "2026-10-09", start_time: "08:00", end_time: "17:00" },
+    { date: "", start_time: "09:00" },
+    { date: "2026-10-10", start_time: "25:00", end_time: "17:00" },
+  ]);
+
+  const days = classDays(db, classId);
+  assert.deepEqual(days.map((d) => [d.day_number, d.date]), [
+    [1, "2026-10-09"],
+    [2, "2026-10-10"],
+    [3, "2026-10-11"],
+  ], "sorted by date and renumbered; the dateless row is dropped");
+  assert.equal(days[0].start_time, "08:00");
+  assert.equal(days[1].start_time, null, "an impossible time is stored as none, not as text");
+  assert.equal(days[2].end_time, "17:00");
+
+  const row = db.prepare(`select date from classes where id = ?`).get(classId) as { date: string };
+  assert.equal(row.date, "2026-10-09", "classes.date tracks the first day");
+
+  // Saving again replaces rather than appends.
+  saveClassDays(db, classId, [{ date: "2026-11-02", start_time: "09:00", end_time: "16:00" }]);
+  assert.equal(classDays(db, classId).length, 1);
+  assert.equal((db.prepare(`select date from classes where id = ?`).get(classId) as { date: string }).date, "2026-11-02");
+
+  // A save with nothing usable leaves the class alone rather than clearing it.
+  assert.equal(saveClassDays(db, classId, [{ date: "" }]), false);
+  assert.equal(classDays(db, classId).length, 1);
+});
+
+test("class days: the summary reads as one day or a range", () => {
+  const db = fresh();
+  const one = createClass(db, { title: "One", date: "2026-10-09" }, null)!;
+  saveClassDays(db, one, [{ date: "2026-10-09" }]);
+  assert.equal(classDateSummary(classDays(db, one)).label, "2026-10-09");
+
+  const many = createClass(db, { title: "Many", date: "2026-10-09" }, null)!;
+  saveClassDays(db, many, [{ date: "2026-10-09" }, { date: "2026-10-10" }, { date: "2026-10-11" }]);
+  const s = classDateSummary(classDays(db, many));
+  assert.equal(s.label, "2026-10-09 → 2026-10-11");
+  assert.equal(s.dayCount, 3);
+
+  assert.equal(classDateSummary([]).label, "No dates set");
+});
+
+test("deleting a class takes its days with it", () => {
+  const db = fresh();
+  const classId = createClass(db, { title: "Gone", date: "2026-10-09" }, null)!;
+  saveClassDays(db, classId, [{ date: "2026-10-09" }, { date: "2026-10-10" }]);
+  db.prepare(`delete from classes where id = ?`).run(classId);
+  assert.equal((db.prepare(`select count(*) as n from class_days`).get() as { n: number }).n, 0);
 });

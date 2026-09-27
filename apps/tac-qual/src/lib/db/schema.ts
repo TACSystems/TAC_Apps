@@ -144,6 +144,21 @@ create table if not exists classes (
 
 create index if not exists classes_date on classes(date);
 
+-- A class runs over one or more days, each with its own start and end time.
+-- classes.date stays the first day, so records, the archive, printing and
+-- sorting keep working off one column.
+create table if not exists class_days (
+  id text primary key,
+  class_id text not null references classes(id) on delete cascade,
+  day_number integer not null,
+  date text not null,
+  start_time text,
+  end_time text,
+  unique (class_id, day_number)
+);
+
+create index if not exists class_days_class on class_days(class_id);
+
 -- Instructors credited on a class. In 0.2.0 these gain real accounts; the
 -- name stays as the printed credit either way.
 create table if not exists class_instructors (

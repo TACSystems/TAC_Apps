@@ -1,4 +1,5 @@
 import Database from "better-sqlite3-multiple-ciphers";
+import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
 import { applyCofPatch, type CofPatch } from "@core/lib/cof";
@@ -54,6 +55,22 @@ const MIGRATIONS: Migration[] = [
       if (!cols.some((c) => c.name === "class_type")) {
         db.prepare(`alter table classes add column class_type text`).run();
       }
+    },
+  },
+  {
+    // Multi-day classes. Every existing class becomes a single day carrying
+    // its own date, so nothing that reads classes.date changes behaviour.
+    id: 5,
+    name: "class-days-0.4.0",
+    up: (db) => {
+      const rows = db.prepare(`select id, date from classes`).all() as { id: string; date: string }[];
+      const has = db.prepare(`select 1 from class_days where class_id = ? limit 1`);
+      const ins = db.prepare(
+        `insert into class_days (id, class_id, day_number, date) values (?, ?, 1, ?)`
+      );
+      db.transaction(() => {
+        for (const r of rows) if (!has.get(r.id)) ins.run(randomUUID(), r.id, r.date);
+      })();
     },
   },
 ];

@@ -133,31 +133,6 @@ export function createClass(db: Database.Database, src: Src, createdBy: string |
   return id;
 }
 
-/**
- * A new class carrying the same courses of fire and credited instructors.
- * The roster, relays and scores are deliberately left behind — those belong
- * to the class that was actually run.
- */
-export function duplicateClass(
-  db: Database.Database,
-  sourceId: string,
-  src: Src,
-  createdBy: string | null
-): string | null {
-  const source = getClass(db, sourceId);
-  if (!source) return null;
-  const courses = classCourses(db, sourceId);
-  const instructors = classInstructors(db, sourceId);
-  let newId: string | null = null;
-  db.transaction(() => {
-    newId = createClass(db, src, createdBy);
-    if (!newId) return;
-    for (const c of courses) addCourse(db, newId, c.cof_id);
-    for (const i of instructors) addInstructor(db, newId, i.name, i.role);
-  })();
-  return newId;
-}
-
 export function updateClass(db: Database.Database, id: string, src: Src) {
   const v = readClass(src);
   if (!v) return false;
@@ -235,4 +210,69 @@ export function autoAssignRelays(db: Database.Database, classId: string, size: n
     });
   })();
   return rows.length;
+}
+
+export type ClassDay = {
+  id: string;
+  class_id: string;
+  day_number: number;
+  date: string;
+  start_time: string | null;
+  end_time: string | null;
+};
+
+export function classDays(db: Database.Database, classId: string) {
+  return db
+    .prepare(`select * from class_days where class_id = ? order by day_number`)
+    .all(classId) as ClassDay[];
+}
+
+const time = (v: unknown) => {
+  const s = String(v ?? "").trim();
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(s) ? s : null;
+};
+
+/**
+ * Replaces a class's days wholesale. Days are renumbered by date so day 1 is
+ * always the earliest, and `classes.date` is kept on the first day — every
+ * other page still reads that one column.
+ */
+export function saveClassDays(
+  db: Database.Database,
+  classId: string,
+  days: { date: string; start_time?: unknown; end_time?: unknown }[]
+) {
+  const clean = days
+    .map((d) => ({
+      date: String(d.date ?? "").trim(),
+      start_time: time(d.start_time),
+      end_time: time(d.end_time),
+    }))
+    .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d.date))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  if (!clean.length) return false;
+
+  const ins = db.prepare(
+    `insert into class_days (id, class_id, day_number, date, start_time, end_time)
+     values (?, ?, ?, ?, ?, ?)`
+  );
+  db.transaction(() => {
+    db.prepare(`delete from class_days where class_id = ?`).run(classId);
+    clean.forEach((d, i) => ins.run(randomUUID(), classId, i + 1, d.date, d.start_time, d.end_time));
+    db.prepare(`update classes set date = ? where id = ?`).run(clean[0].date, classId);
+  })();
+  return true;
+}
+
+/** "09 Oct 2026" or "09–11 Oct 2026" — what a class card shows. */
+export function classDateSummary(days: ClassDay[]) {
+  if (!days.length) return { label: "No dates set", dayCount: 0 };
+  const first = days[0].date;
+  const last = days[days.length - 1].date;
+  return {
+    label: first === last ? first : `${first} → ${last}`,
+    dayCount: days.length,
+    first,
+    last,
+  };
 }
