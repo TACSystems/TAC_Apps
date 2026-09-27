@@ -16,7 +16,7 @@ import {
   saveClassDays,
 } from "@/lib/classes";
 import { createStudent, importStudents, listStudents } from "@/lib/students";
-import { classArchive, qualificationCurrency, studentHistory } from "@/lib/records";
+import { classArchive, expiringCourseCount, qualificationCurrency, studentHistory } from "@/lib/records";
 
 function fresh() {
   const db = new Database(":memory:");
@@ -279,7 +279,8 @@ test("currency: current, due soon, expired and never passed", () => {
   save(failed, "2026-06-01", fail);   // scored but never passed
   save(inactive, "2026-06-01", pass); // active students only
 
-  const rows = qualificationCurrency(db, 12, today);
+  db.prepare(`update courses_of_fire set expires_months = 12 where id = 'c1'`).run();
+  const rows = qualificationCurrency(db, today);
   const by = (id: string) => rows.find((r) => r.student_id === id);
 
   assert.equal(rows.length, 4, "inactive students are left out");
@@ -306,8 +307,10 @@ test("currency: a month add lands on the last day of a shorter month", () => {
     classId, cofId: "c1", date: "2026-01-31", attempt: 1, kind: "qual", scoredBy: null,
     entries: [{ studentId: student, counts: { A: 45, B: 5 } }],
   });
-  assert.equal(qualificationCurrency(db, 1, "2026-02-01")[0].expires_on, "2026-02-28");
-  assert.equal(qualificationCurrency(db, 6, "2026-02-01")[0].expires_on, "2026-07-31");
+  db.prepare(`update courses_of_fire set expires_months = 1 where id = 'c1'`).run();
+  assert.equal(qualificationCurrency(db, "2026-02-01")[0].expires_on, "2026-02-28");
+  db.prepare(`update courses_of_fire set expires_months = 6 where id = 'c1'`).run();
+  assert.equal(qualificationCurrency(db, "2026-02-01")[0].expires_on, "2026-07-31");
 });
 
 test("class archive counts enrolment, who was scored and the pass rate", () => {
@@ -391,4 +394,28 @@ test("deleting a class takes its days with it", () => {
   saveClassDays(db, classId, [{ date: "2026-10-09" }, { date: "2026-10-10" }]);
   db.prepare(`delete from classes where id = ?`).run(classId);
   assert.equal((db.prepare(`select count(*) as n from class_days`).get() as { n: number }).n, 0);
+});
+
+test("currency: a course with no expiry is left out entirely", () => {
+  const db = fresh();
+  seedCourse(db);
+  const classId = createClass(db, { title: "Class", date: "2026-01-10" }, null)!;
+  const student = createStudent(db, { last_name: "Never", first_name: "N" }, null)!;
+  enroll(db, classId, student);
+  saveRelayScores(db, {
+    classId, cofId: "c1", date: "2026-06-01", attempt: 1, kind: "qual", scoredBy: null,
+    entries: [{ studentId: student, counts: { A: 45, B: 5 } }],
+  });
+
+  // Blank by default: most civilian qualifications do not lapse.
+  assert.equal(expiringCourseCount(db), 0);
+  assert.deepEqual(qualificationCurrency(db, "2026-09-26"), [], "a pass on a course that never expires is not a currency row");
+
+  db.prepare(`update courses_of_fire set expires_months = 12 where id = 'c1'`).run();
+  assert.equal(expiringCourseCount(db), 1);
+  const rows = qualificationCurrency(db, "2026-09-26");
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].status, "current");
+  assert.equal(rows[0].expires_months, 12);
+  assert.equal(rows[0].expires_on, "2027-06-01");
 });

@@ -92,6 +92,7 @@ export type CurrencyRow = {
   cof_id: string;
   course_code: string;
   course_name: string;
+  expires_months: number;
   last_passed_date: string | null;
   expires_on: string | null;
   days_left: number | null;
@@ -116,25 +117,25 @@ function daysBetween(fromISO: string, toISO: string) {
 }
 
 /**
- * Who is still current on each course they have ever been scored on, and who
- * is not. A student who has been scored but never passed is "never" rather
- * than expired — they have no currency to lose.
+ * Currency for the courses that actually lapse.
+ *
+ * Expiry is a property of the course, not a global window (Brad, 2026-09-26):
+ * most civilian certificates never expire, so a course with no
+ * `expires_months` is left out entirely rather than being reported as
+ * permanently current or never passed. A student who has been scored on an
+ * expiring course but has never passed it reads as "never" — they have no
+ * currency to lose.
  */
-export function qualificationCurrency(
-  db: Database.Database,
-  months: number,
-  todayISO: string,
-  dueSoonDays = 30
-): CurrencyRow[] {
+export function qualificationCurrency(db: Database.Database, todayISO: string, dueSoonDays = 30): CurrencyRow[] {
   const rows = db
     .prepare(
       `select q.student_id, q.cof_id, q.last_passed_date,
-              c.code as course_code, c.name as course_name,
+              c.code as course_code, c.name as course_name, c.expires_months,
               s.last_name, s.first_name
          from student_qualifications q
          join courses_of_fire c on c.id = q.cof_id
          join students s on s.id = q.student_id
-        where s.status = 'active'`
+        where s.status = 'active' and c.expires_months is not null`
     )
     .all() as {
     student_id: string;
@@ -142,6 +143,7 @@ export function qualificationCurrency(
     last_passed_date: string | null;
     course_code: string;
     course_name: string;
+    expires_months: number;
     last_name: string;
     first_name: string;
   }[];
@@ -150,7 +152,7 @@ export function qualificationCurrency(
     if (!r.last_passed_date) {
       return { ...r, expires_on: null, days_left: null, status: "never" as CurrencyStatus };
     }
-    const expires_on = addMonths(r.last_passed_date, months);
+    const expires_on = addMonths(r.last_passed_date, r.expires_months);
     const days_left = daysBetween(todayISO, expires_on);
     const status: CurrencyStatus = days_left < 0 ? "expired" : days_left <= dueSoonDays ? "due_soon" : "current";
     return { ...r, expires_on, days_left, status };
@@ -163,6 +165,13 @@ export function qualificationCurrency(
       (a.days_left ?? 1e9) - (b.days_left ?? 1e9) ||
       a.last_name.localeCompare(b.last_name)
   );
+}
+
+/** How many courses lapse at all — the Currency page says so when none do. */
+export function expiringCourseCount(db: Database.Database) {
+  return (
+    db.prepare(`select count(*) as n from courses_of_fire where expires_months is not null`).get() as { n: number }
+  ).n;
 }
 
 export function classArchive(db: Database.Database) {

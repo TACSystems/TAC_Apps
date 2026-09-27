@@ -73,6 +73,18 @@ const MIGRATIONS: Migration[] = [
       })();
     },
   },
+  {
+    // Expiry belongs to the course, not to a global window: most civilian
+    // certificates do not lapse at all. Blank means never.
+    id: 6,
+    name: "course-expiry-0.4.0",
+    up: (db) => {
+      const cols = db.prepare(`pragma table_info(courses_of_fire)`).all() as { name: string }[];
+      if (!cols.some((c) => c.name === "expires_months")) {
+        db.prepare(`alter table courses_of_fire add column expires_months integer`).run();
+      }
+    },
+  },
 ];
 
 function closeLocalDb() {

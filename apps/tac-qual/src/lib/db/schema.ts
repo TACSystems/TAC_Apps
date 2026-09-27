@@ -61,6 +61,8 @@ create table if not exists courses_of_fire (
   target_type text,
   target_type_id text references target_types(id) on delete set null,
   passing_score_percent real,
+  -- Blank means the qualification does not lapse, which is the civilian norm.
+  expires_months integer,
   columns_json text,
   scorecard_json text,
   categories_json text,

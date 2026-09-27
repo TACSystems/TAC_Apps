@@ -6,7 +6,6 @@ export type AppSettings = {
   instructorName: string;
   defaultClassLocation: string;
   defaultRelaySize: number;
-  qualCurrencyMonths: number;
   theme: "dark" | "light";
   textSize: "normal" | "large" | "xlarge";
   dateFormat: DateFormat;
@@ -17,7 +16,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   instructorName: "",
   defaultClassLocation: "",
   defaultRelaySize: 6,
-  qualCurrencyMonths: 12,
   theme: "dark",
   textSize: "normal",
   dateFormat: "us",

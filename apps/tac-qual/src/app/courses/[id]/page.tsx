@@ -21,6 +21,11 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
   const zones = course.target?.zones ?? [];
   const targets = listTargetTypes(db);
   const courseRounds = course.total_rounds ?? computeCourseRounds(course.phases);
+  // expires_months is TAC-QUAL's own column; core's LoadedCourse does not
+  // carry it, and a cast would only have hidden that.
+  const expiry = db
+    .prepare(`select expires_months from courses_of_fire where id = ?`)
+    .get(id) as { expires_months: number | null } | undefined;
   const maxPoints = maxPointsFor(courseRounds, zones);
 
   return (
@@ -117,6 +122,21 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                 step="0.1"
                 defaultValue={course.passing_score_percent ?? ""}
               />
+            </label>
+            <label className="field">
+              <span>Qualification expires after</span>
+              <input
+                className="input"
+                type="number"
+                name="expires_months"
+                min={1}
+                max={120}
+                placeholder="Never"
+                defaultValue={expiry?.expires_months ?? ""}
+              />
+              <span className="text-xs normal-case text-neutral-500">
+                Months from a pass. Leave blank if this qualification does not lapse.
+              </span>
             </label>
           </div>
           <SubmitButton className="btn btn-primary" pendingLabel="Saving…">

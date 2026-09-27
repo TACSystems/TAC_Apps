@@ -3,8 +3,7 @@ import PageHeader from "@core/components/PageHeader";
 import DataTable, { type TableRow } from "@core/components/DataTable";
 import EmptyState from "@core/components/EmptyState";
 import { getDb } from "@/lib/db";
-import { getSettings } from "@/lib/settings";
-import { qualificationCurrency, type CurrencyStatus } from "@/lib/records";
+import { expiringCourseCount, qualificationCurrency, type CurrencyStatus } from "@/lib/records";
 import { todayISO } from "@/lib/settings-shared";
 import { fd } from "@/lib/display";
 
@@ -26,9 +25,9 @@ const TONE: Record<CurrencyStatus, string> = {
 
 export default async function CurrencyPage() {
   const db = getDb();
-  const months = getSettings(db).qualCurrencyMonths;
   const today = todayISO();
-  const rows = qualificationCurrency(db, months, today);
+  const rows = qualificationCurrency(db, today);
+  const expiringCourses = expiringCourseCount(db);
   const count = (s: CurrencyStatus) => rows.filter((r) => r.status === s).length;
 
   const table: TableRow[] = rows.map((r) => ({
@@ -69,7 +68,11 @@ export default async function CurrencyPage() {
     <div className="space-y-6">
       <PageHeader
         title="Currency"
-        subtitle={`A qualification stays current for ${months} month${months === 1 ? "" : "s"} after the last pass. Change that under Settings → Class Defaults.`}
+        subtitle={
+          expiringCourses === 0
+            ? "No course expires yet. Set one on a course under Scoring Setup and its students appear here."
+            : `${expiringCourses} course${expiringCourses === 1 ? "" : "s"} expire. A course with no expiry is left out — most civilian qualifications do not lapse.`
+        }
       />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -82,8 +85,10 @@ export default async function CurrencyPage() {
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState title="No qualifications yet">
-          Currency is worked out from scored runs. Score a relay in a class and it shows up here.
+        <EmptyState title={expiringCourses === 0 ? "No course expires" : "Nothing scored yet"}>
+          {expiringCourses === 0
+            ? "Open a course, and under Scoring Setup set how many months a pass stays good for. Leave it blank on the courses that never lapse."
+            : "Currency is worked out from scored runs. Score a relay in a class and it shows up here."}
         </EmptyState>
       ) : (
         <DataTable
@@ -101,7 +106,7 @@ export default async function CurrencyPage() {
       )}
 
       <p className="text-xs text-neutral-500">
-        Inactive and archived students are left out. <Link href="/records" className="text-brand-amber">Qualification Records</Link> shows
+        Courses with no expiry set are left out entirely, as are inactive and archived students. <Link href="/records" className="text-brand-amber">Qualification Records</Link> shows
         every run, current or not.
       </p>
     </div>

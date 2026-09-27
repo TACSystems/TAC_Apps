@@ -64,6 +64,7 @@ export async function saveCourseScoring(formData: FormData) {
   const targetId = text(formData, "target_type_id", 40);
   const passing = num(formData, "passing_score_percent", { min: 0, max: 100 });
   const rounds = num(formData, "total_rounds", { min: 0, max: 100000 });
+  const expires = num(formData, "expires_months", { min: 1, max: 120 });
 
   const targetName = targetId
     ? ((db.prepare(`select name from target_types where id = ?`).get(targetId) as { name: string } | undefined)?.name ??
@@ -71,9 +72,9 @@ export async function saveCourseScoring(formData: FormData) {
     : null;
 
   db.prepare(
-    `update courses_of_fire set target_type_id = ?, target_type = ?, passing_score_percent = ?, total_rounds = ?
-      where id = ?`
-  ).run(targetId, targetName, passing, rounds, cofId);
+    `update courses_of_fire set target_type_id = ?, target_type = ?, passing_score_percent = ?, total_rounds = ?,
+       expires_months = ? where id = ?`
+  ).run(targetId, targetName, passing, rounds, expires, cofId);
 
   await flash("Scoring saved.");
   revalidatePath(`/courses/${cofId}`);
