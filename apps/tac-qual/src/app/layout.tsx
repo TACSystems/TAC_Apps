@@ -10,10 +10,12 @@ import NavHeight from "@core/components/NavHeight";
 import NavProgress from "@core/components/NavProgress";
 import UpdateBanner from "@core/components/UpdateBanner";
 import LockScreen from "@/components/LockScreen";
+import WhatsNewNotice from "@/components/WhatsNewNotice";
 import IdleLock from "@/components/IdleLock";
 import { getDb } from "@/lib/db";
 import { isUnlocked, lockoutSeconds, securityMode } from "@/lib/security-state";
 import { getSettings } from "@/lib/settings";
+import { whatsNewPending } from "@/lib/changelog";
 import { TEXT_SCALE } from "@/lib/settings-shared";
 
 export const metadata: Metadata = {
@@ -38,6 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const db = getDb();
   const settings = getSettings(db);
+  const whatsNew = whatsNewPending(db);
 
   return (
     <html lang="en" data-theme={settings.theme} style={{ fontSize: TEXT_SCALE[settings.textSize] }}>
@@ -50,6 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </a>
         <NavBar showLock={mode !== "none"} />
         <UpdateBanner productName="TAC-QUAL" />
+        {whatsNew && <WhatsNewNotice version={whatsNew} />}
         {mode !== "none" && <IdleLock minutes={settings.autoLockMinutes} />}
         <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 outline-none sm:px-6">
           <DialogProvider>

@@ -1,5 +1,46 @@
 # TAC-QUAL Changelog
 
+## 0.4.0
+Admin and controls. The app now bends to how you run classes instead of the
+other way round.
+
+**Controls.** Every dropdown you pick from — class types, locations, course
+categories, shooting positions, calibers, instructor certifications — is now a
+list you own. Add, rename, reorder, sort or remove an option, and a rename
+follows the records that chose it: a class keeps its group and a course keeps
+its filter chip.
+
+**Classes as cards.** The Classes page is now cards grouped by class type, the
+way Courses of Fire already looked, with a class's details, days and roster on
+its own page. A class with no type shows as Uncategorized until you set one.
+
+**Multi-day classes.** A class holds one row per day, each with its own date and
+start and end time, so a three-day course is one class rather than three. The
+class date follows the first day and the page shows the span.
+
+**Sign-in sheet.** A printed sheet with a column per day and three signature
+columns for each. Past three days it prints a second sheet rather than cramming
+the columns.
+
+**Per-course expiry.** A course of fire can say how many months a pass stays
+good for. Currency is worked out from it — current, due soon, expired or never
+passed — and a course left blank never lapses, which is most civilian
+qualifications.
+
+**Dashboard.** A calendar card showing a rolling window of class days with the
+course type, dates and times, and a qualification currency card. Every card on
+the dashboard can be shown, hidden or reordered under Controls, along with how
+many weeks the calendar covers, how many recent classes are listed, and the
+due-soon window.
+
+**Help and What's New.** Short guides for every part of the app, offline, under
+Help in the gear menu. Release notes live under Settings, and the app says so
+once after an update.
+
+**Removed.** Duplicate Class. Copying a class's courses and instructors turned
+out to be the wrong shape for the job; class templates are the better answer and
+belong in a Class Builder.
+
 ## 0.3.0
 A new look, shared with TAC-LOG 0.10.0. No feature changes — programs,
 certificates and the admin suite are next.

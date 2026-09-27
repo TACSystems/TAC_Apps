@@ -163,6 +163,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </dd>
           <dt className="text-neutral-500">Encryption</dt>
           <dd>{isEncrypted() ? "On (SQLCipher, AES-256)" : "Off"}</dd>
+          <dt className="text-neutral-500">Release notes</dt>
+          <dd>
+            <Link href="/settings/whats-new" className="text-brand-amber hover:text-brand-amber-light">
+              What&apos;s New
+            </Link>
+          </dd>
         </dl>
         <p className="mt-4 text-center text-[11px] tracking-[0.25em] text-neutral-500">POWERED BY TAC SYSTEMS</p>
       </Collapsible>

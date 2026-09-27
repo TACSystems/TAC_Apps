@@ -12,6 +12,7 @@ import {
   type AutoBackupFrequency,
 } from "@/lib/auto-backup";
 import { isEncrypted } from "@/lib/security-state";
+import { markWhatsNewSeen } from "@/lib/changelog";
 import type { ActionResult } from "@core/lib/forms";
 
 type Result = ActionResult;
@@ -67,4 +68,9 @@ export async function backupNow(): Promise<Result> {
   const res = runAutoBackupNow(getDb());
   revalidatePath("/settings");
   return res.ok ? { ok: true, message: `Backup written: ${res.file}` } : { ok: false, error: res.error };
+}
+
+export async function dismissWhatsNew() {
+  markWhatsNewSeen(getDb());
+  revalidatePath("/", "layout");
 }
