@@ -62,17 +62,6 @@ export default async function RecordsPage() {
           rows.length === 1 ? "" : "s"
         }. Sort by Latest class to group a class together.`}
         />
-        <div className="no-print flex flex-wrap gap-2">
-          {[
-            ["qualifications", "Qualifications"],
-            ["scored-runs", "Scored Runs"],
-            ["students", "Students"],
-          ].map(([type, label]) => (
-            <a key={type} href={`/api/csv?type=${type}`} className="btn btn-secondary">
-              {label} (.csv)
-            </a>
-          ))}
-        </div>
       </div>
 
       {rows.length === 0 ? (

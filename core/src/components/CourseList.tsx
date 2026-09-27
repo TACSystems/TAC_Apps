@@ -4,16 +4,35 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import CategoryTags from "@core/components/CategoryTags";
 
+export type CardLink = { label: string; href: string };
+
 export type CourseCard = {
   id: string;
   name: string;
   code: string;
   meta: string;
-  runs: number;
+  /** The card's own link. A function prop cannot cross a server/client
+   *  boundary, so every href is data. */
+  href: string;
+  /** "3 runs logged" in TAC-LOG, "0 runs logged" in TAC-QUAL — the apps count
+   *  different things, so each supplies its own line. */
+  footer: string;
   categories: string[];
+  /** Built by the app: the two score its courses from different places. */
+  links: CardLink[];
 };
 
-export default function CourseList({ courses, categories }: { courses: CourseCard[]; categories: string[] }) {
+export default function CourseList({
+  courses,
+  categories,
+  searchPlaceholder = "Search courses by name, code, or category…",
+  emptyText = "No courses of fire yet.",
+}: {
+  courses: CourseCard[];
+  categories: string[];
+  searchPlaceholder?: string;
+  emptyText?: string;
+}) {
   const [filter, setFilter] = useState<string>("all");
   const [q, setQ] = useState("");
   const extra = useMemo(() => {
@@ -55,39 +74,30 @@ export default function CourseList({ courses, categories }: { courses: CourseCar
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Search courses by name, code, or category…"
+        placeholder={searchPlaceholder}
         className="input"
       />
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {shown.map((c) => (
           <div key={c.id} className="flex flex-col border border-neutral-800 bg-neutral-900 hover:border-neutral-600">
-            <Link href={`/courses/${c.id}`} className="flex flex-1 flex-col gap-1 p-4">
+            <Link href={c.href} className="flex flex-1 flex-col gap-1 p-4">
               <div className="font-medium">{c.name}</div>
               <div className="text-sm text-neutral-400">{c.meta}</div>
               <CategoryTags categories={c.categories} />
-              <div className="text-xs text-neutral-500">
-                {c.runs} run{c.runs === 1 ? "" : "s"} logged
-              </div>
+              <div className="text-xs text-neutral-500">{c.footer}</div>
             </Link>
-            <div className="flex gap-4 border-t border-neutral-800 px-4 py-2 text-xs">
-              <Link href={`/courses/${c.id}/log`} className="text-brand-amber hover:text-brand-amber-light">
-                Score This Course
-              </Link>
-              <Link href={`/courses/${c.id}/print`} className="text-brand-amber hover:text-brand-amber-light">
-                Print
-              </Link>
-              <Link href={`/courses/${c.id}/edit`} className="text-brand-amber hover:text-brand-amber-light">
-                Edit
-              </Link>
-              <Link href={`/courses/new?from=${c.id}`} className="text-brand-amber hover:text-brand-amber-light">
-                Duplicate
-              </Link>
+            <div className="flex flex-wrap gap-4 border-t border-neutral-800 px-4 py-2 text-xs">
+              {c.links.map((l) => (
+                <Link key={l.label} href={l.href} className="text-brand-amber hover:text-brand-amber-light">
+                  {l.label}
+                </Link>
+              ))}
             </div>
           </div>
         ))}
         {shown.length === 0 && (
           <p className="text-sm text-neutral-500">
-            {courses.length ? "No courses match this filter." : "No courses of fire yet. Build one, or import course files in Settings."}
+            {courses.length ? "No courses match this filter." : emptyText}
           </p>
         )}
       </div>

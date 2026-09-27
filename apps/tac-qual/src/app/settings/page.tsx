@@ -1,3 +1,4 @@
+import Link from "next/link";
 import fs from "fs";
 import path from "path";
 import PageHeader from "@core/components/PageHeader";
@@ -40,7 +41,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <PageHeader
         title="Settings"
         icon="settings"
-        subtitle="Security, backups, class defaults, display and updates. Click a section to open it."
+        subtitle="Security, backups, import and export, class defaults, display and updates. Click a section to open it."
       />
       <SectionTools scope="settings" search />
 
@@ -81,6 +82,46 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           (.db). Also how you move TAC-QUAL to a new computer.
         </p>
         <RestoreForm />
+      </Collapsible>
+
+      <Collapsible
+        id="settings-import-export"
+        title="Import / Export"
+        keywords="import export course json csv spreadsheet students qualifications runs"
+      >
+        <div className="flex flex-col gap-6">
+          <div>
+            <h3 className="mb-1 text-sm text-brand-amber">Import</h3>
+            <p className="mb-2 text-xs text-neutral-500">
+              Courses of fire exported from TAC-LOG, or from another copy of TAC-QUAL. You review each course before
+              anything is saved, and a course with a matching code is updated rather than duplicated.
+            </p>
+            <Link className="btn btn-secondary" href="/courses/import">
+              Import Courses of Fire (.json)
+            </Link>
+          </div>
+          <div>
+            <h3 className="mb-1 text-sm text-brand-amber">Export</h3>
+            <p className="mb-2 text-xs text-neutral-500">
+              CSV files open in Excel or Google Sheets. The course file can be imported into TAC-LOG or another copy of
+              TAC-QUAL.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <a href="/api/courses/export" className="btn btn-secondary">
+                All Courses of Fire (.json)
+              </a>
+              {[
+                ["qualifications", "Qualifications"],
+                ["scored-runs", "Scored Runs"],
+                ["students", "Students"],
+              ].map(([type, label]) => (
+                <a key={type} href={`/api/csv?type=${type}`} className="btn btn-secondary">
+                  {label} (.csv)
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
       </Collapsible>
 
       <Collapsible

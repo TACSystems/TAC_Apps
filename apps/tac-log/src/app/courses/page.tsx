@@ -2,7 +2,7 @@ import Icon from "@core/components/Icon";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import type { CourseOfFire } from "@/lib/db/types";
-import CourseList from "@/components/CourseList";
+import CourseList from "@core/components/CourseList";
 import CategorizeBanner from "@/components/CategorizeBanner";
 import { normalizeCategories } from "@core/lib/course-categories";
 import { categorizePromptVisible, courseCategoryOptions } from "@/lib/course-category-store";
@@ -39,12 +39,20 @@ export default async function CoursesPage() {
       <CategorizeBanner count={categorizePromptVisible(db)} />
       <CourseList
         categories={courseCategoryOptions(db)}
+        emptyText="No courses of fire yet. Build one, or import course files in Settings."
         courses={courses.map((c) => ({
           id: c.id,
+          href: `/courses/${c.id}`,
           name: c.name,
           code: c.code,
-          runs: c.run_count,
+          footer: `${c.run_count} run${c.run_count === 1 ? "" : "s"} logged`,
           categories: normalizeCategories(c.categories_json),
+          links: [
+            { label: "Score This Course", href: `/courses/${c.id}/log` },
+            { label: "Print", href: `/courses/${c.id}/print` },
+            { label: "Edit", href: `/courses/${c.id}/edit` },
+            { label: "Duplicate", href: `/courses/new?from=${c.id}` },
+          ],
           meta: [
             c.code,
             c.total_rounds != null ? `${c.total_rounds} rounds` : null,
