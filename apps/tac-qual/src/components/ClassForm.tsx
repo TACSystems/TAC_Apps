@@ -1,5 +1,6 @@
 import SubmitButton from "@core/components/SubmitButton";
 import UnsavedGuard from "@core/components/UnsavedGuard";
+import ClassDaysEditor from "@/components/ClassDaysEditor";
 import { saveClass } from "@/app/classes/actions";
 import type { ClassRow } from "@/lib/classes";
 
@@ -7,10 +8,14 @@ export default function ClassForm({
   klass,
   defaultLocation = "",
   today,
+  classTypes,
+  days,
 }: {
   klass?: ClassRow | null;
   defaultLocation?: string;
   today: string;
+  classTypes: string[];
+  days: { date: string; start_time: string | null; end_time: string | null }[];
 }) {
   const c = klass ?? null;
   return (
@@ -33,8 +38,15 @@ export default function ClassForm({
             />
           </label>
           <label className="field">
-            <span className="req">Date</span>
-            <input className="input" type="date" name="date" defaultValue={c?.date ?? today} required />
+            <span>Class type</span>
+            <select className="input" name="class_type" defaultValue={c?.class_type ?? ""}>
+              <option value="">Uncategorized</option>
+              {classTypes.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="field">
             <span>Location</span>
@@ -49,6 +61,8 @@ export default function ClassForm({
             </select>
           </label>
         </div>
+        <ClassDaysEditor initial={days} today={today} />
+
         <label className="field">
           <span>Notes</span>
           <textarea className="input min-h-24" name="notes" defaultValue={c?.notes ?? ""} maxLength={2000} />

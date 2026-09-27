@@ -1,8 +1,11 @@
+import Link from "next/link";
 import PageHeader from "@core/components/PageHeader";
-import DataTable, { type TableRow } from "@core/components/DataTable";
+import CourseList from "@core/components/CourseList";
 import EmptyState from "@core/components/EmptyState";
 import { getDb } from "@/lib/db";
-import { classNumberLabel, listClasses } from "@/lib/classes";
+import { classNumberLabel, currentClasses } from "@/lib/classes";
+import { listOptions } from "@/lib/db/dropdown-options";
+import { todayISO } from "@/lib/settings-shared";
 import { fd } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
@@ -15,61 +18,64 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function ClassesPage() {
   const db = getDb();
-  const classes = listClasses(db);
+  const classes = currentClasses(db, todayISO());
 
-  const rows: TableRow[] = classes.map((c) => ({
-    key: c.id,
-    href: `/classes/${c.id}`,
-    text: `${classNumberLabel(c.number)} ${c.title} ${c.location ?? ""}`,
-    sort: { number: c.number, title: c.title, date: c.date, students: c.students, runs: c.runs },
-    cells: {
-      number: classNumberLabel(c.number),
-      title: (
-        <span>
-          <span className="font-bold">{c.title}</span>
-          {c.location ? <span className="block text-xs text-neutral-400">{c.location}</span> : null}
-        </span>
-      ),
-      date: fd(c.date),
-      students: c.students,
-      courses: c.courses,
-      runs: c.runs,
-      status: <span className="text-xs tracking-widest text-neutral-400">{STATUS_LABEL[c.status]}</span>,
-    },
-  }));
+  const dates = (c: { day_count: number; first_day: string | null; last_day: string | null; date: string }) => {
+    if (!c.day_count || !c.first_day) return fd(c.date);
+    if (c.day_count === 1 || c.first_day === c.last_day) return fd(c.first_day);
+    return `${fd(c.first_day)} → ${fd(c.last_day)} · ${c.day_count} days`;
+  };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Classes"
-        subtitle={`${classes.length} class${classes.length === 1 ? "" : "es"}`}
+        icon="course"
+        subtitle={`${classes.length} planned, running or recently finished`}
         actions={
-          <a className="btn btn-primary" href="/classes/new">
-            + New Class
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <Link className="btn btn-primary" href="/classes/new">
+              + New Class
+            </Link>
+            <Link className="btn" href="/records/classes">
+              Class Archive
+            </Link>
+          </div>
         }
       />
 
       {classes.length === 0 ? (
         <EmptyState title="No classes yet" actions={[{ href: "/classes/new", label: "Plan a class", primary: true }]}>
-          A class holds the date, location, courses of fire, enrolled students and their relays.
+          Classes you have finished are in the Class Archive.
         </EmptyState>
       ) : (
-        <DataTable
-          columns={[
-            { key: "number", label: "#", sortable: true },
-            { key: "title", label: "Class", sortable: true },
-            { key: "date", label: "Date", sortable: true },
-            { key: "students", label: "Students", align: "right", sortable: true },
-            { key: "courses", label: "Courses", align: "right" },
-            { key: "runs", label: "Runs", align: "right", sortable: true },
-            { key: "status", label: "Status" },
-          ]}
-          rows={rows}
-          initialSort={{ key: "date", dir: "desc" }}
-          filterPlaceholder="Filter by title, number or location…"
+        <CourseList
+          categories={listOptions(db, "class_type")}
+          searchPlaceholder="Search classes by title, type or location…"
+          emptyText="No classes match this filter."
+          courses={classes.map((c) => ({
+            id: c.id,
+            href: `/classes/${c.id}`,
+            name: c.title,
+            code: classNumberLabel(c.number),
+            categories: c.class_type ? [c.class_type] : [],
+            meta: [classNumberLabel(c.number), dates(c), c.location].filter(Boolean).join(" · "),
+            footer: `${STATUS_LABEL[c.status]} · ${c.students} enrolled · ${c.courses} course${
+              c.courses === 1 ? "" : "s"
+            } · ${c.runs} scored`,
+            links: [
+              { label: "Open", href: `/classes/${c.id}` },
+              { label: "Edit", href: `/classes/${c.id}/edit` },
+              { label: "Roster", href: `/classes/${c.id}/print/roster` },
+            ],
+          }))}
         />
       )}
+
+      <p className="text-xs text-neutral-500">
+        Class types come from Controls. A class with no type shows under Uncategorized. Finished classes older than
+        about six weeks move to the <Link href="/records/classes" className="text-brand-amber">Class Archive</Link>.
+      </p>
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   deleteClass,
   enroll,
   removeCourse,
+  saveClassDays,
   removeInstructor,
   setRelayLane,
   unenroll,
@@ -24,16 +25,30 @@ function instructor() {
   return getSettings(getDb()).instructorName || null;
 }
 
+/** Day rows arrive as three parallel arrays, one entry per row on the form. */
+function readDays(formData: FormData) {
+  const dates = formData.getAll("day_date").map(String);
+  const starts = formData.getAll("day_start").map(String);
+  const ends = formData.getAll("day_end").map(String);
+  return dates.map((date, i) => ({ date, start_time: starts[i], end_time: ends[i] }));
+}
+
 export async function saveClass(formData: FormData) {
   const db = getDb();
   const id = String(formData.get("id") ?? "");
+  const days = readDays(formData);
+  // The first day is the class date, so the form need not carry both.
+  const first = days.map((d) => d.date).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort()[0];
+  if (first) formData.set("date", first);
   if (id) {
     if (!updateClass(db, id, formData)) {
       await flash("A title and date are required.", "error");
       return;
     }
+    saveClassDays(db, id, days);
     await flash("Class saved.");
     revalidatePath(`/classes/${id}`);
+    revalidatePath("/classes");
     redirect(`/classes/${id}`);
   }
   const newId = createClass(db, formData, instructor());
@@ -41,6 +56,7 @@ export async function saveClass(formData: FormData) {
     await flash("A title and date are required.", "error");
     return;
   }
+  saveClassDays(db, newId, days);
   await flash("Class created.");
   revalidatePath("/classes");
   redirect(`/classes/${newId}`);

@@ -7,6 +7,7 @@ export type ClassRow = {
   number: number;
   title: string;
   date: string;
+  class_type: string | null;
   location: string | null;
   status: "planned" | "in_progress" | "complete";
   notes: string | null;
@@ -42,16 +43,40 @@ function nextClassNumber(db: Database.Database) {
   return row.n;
 }
 
+export type ClassListRow = ClassRow & {
+  students: number;
+  courses: number;
+  runs: number;
+  day_count: number;
+  first_day: string | null;
+  last_day: string | null;
+};
+
+const LIST_SQL = `select c.*,
+    (select count(*) from class_enrollment e where e.class_id = c.id) as students,
+    (select count(*) from class_courses cc where cc.class_id = c.id) as courses,
+    (select count(*) from score_runs r where r.class_id = c.id) as runs,
+    (select count(*) from class_days d where d.class_id = c.id) as day_count,
+    (select min(d.date) from class_days d where d.class_id = c.id) as first_day,
+    (select max(d.date) from class_days d where d.class_id = c.id) as last_day
+  from classes c`;
+
 export function listClasses(db: Database.Database) {
+  return db.prepare(`${LIST_SQL} order by c.date desc, c.number desc`).all() as ClassListRow[];
+}
+
+/**
+ * What the Classes page shows: everything not yet finished, plus anything
+ * completed recently. Older classes live in Records -> Class Archive, which is
+ * built for volume — classes accumulate every time you teach, courses do not.
+ */
+export function currentClasses(db: Database.Database, todayISO: string, recentDays = 45) {
+  const cutoff = new Date(`${todayISO}T00:00:00Z`);
+  cutoff.setUTCDate(cutoff.getUTCDate() - recentDays);
+  const since = cutoff.toISOString().slice(0, 10);
   return db
-    .prepare(
-      `select c.*,
-         (select count(*) from class_enrollment e where e.class_id = c.id) as students,
-         (select count(*) from class_courses cc where cc.class_id = c.id) as courses,
-         (select count(*) from score_runs r where r.class_id = c.id) as runs
-       from classes c order by c.date desc, c.number desc`
-    )
-    .all() as (ClassRow & { students: number; courses: number; runs: number })[];
+    .prepare(`${LIST_SQL} where c.status != 'complete' or c.date >= ? order by c.date desc, c.number desc`)
+    .all(since) as ClassListRow[];
 }
 
 export function getClass(db: Database.Database, id: string) {
@@ -114,6 +139,7 @@ function readClass(src: Src) {
   return {
     title,
     date,
+    class_type: text(src, "class_type", 60),
     location: text(src, "location", 160),
     status: (["planned", "in_progress", "complete"] as const).includes(status as never)
       ? (status as ClassRow["status"])
@@ -127,8 +153,8 @@ export function createClass(db: Database.Database, src: Src, createdBy: string |
   if (!v) return null;
   const id = randomUUID();
   db.prepare(
-    `insert into classes (id, number, title, date, location, status, notes, created_by)
-     values (@id, @number, @title, @date, @location, @status, @notes, @created_by)`
+    `insert into classes (id, number, title, date, class_type, location, status, notes, created_by)
+     values (@id, @number, @title, @date, @class_type, @location, @status, @notes, @created_by)`
   ).run({ id, number: nextClassNumber(db), ...v, created_by: createdBy });
   return id;
 }
@@ -139,8 +165,8 @@ export function updateClass(db: Database.Database, id: string, src: Src) {
   return (
     db
       .prepare(
-        `update classes set title = @title, date = @date, location = @location,
-           status = @status, notes = @notes where id = @id`
+        `update classes set title = @title, date = @date, class_type = @class_type,
+           location = @location, status = @status, notes = @notes where id = @id`
       )
       .run({ id, ...v }).changes > 0
   );
