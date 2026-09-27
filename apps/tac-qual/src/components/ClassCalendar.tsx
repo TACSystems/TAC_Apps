@@ -29,17 +29,17 @@ function Entry({ e }: { e: CalendarEntry }) {
   );
 }
 
-export default function ClassCalendar({ today }: { today: string }) {
+export default function ClassCalendar({ today, weeks = 5 }: { today: string; weeks?: number }) {
   const db = getDb();
-  const { start, end, days } = calendarWindow(today);
+  const { start, end, days } = calendarWindow(today, weeks);
   const byDate = groupByDate(calendarEntries(db, start, end));
-  const weeks: string[][] = [];
-  for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
+  const grid: string[][] = [];
+  for (let i = 0; i < days.length; i += 7) grid.push(days.slice(i, i + 7));
 
   return (
     <section className="card p-4" data-section="calendar">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm tracking-widest text-neutral-400">Next five weeks</h2>
+        <h2 className="text-sm tracking-widest text-neutral-400">Next {weeks} weeks</h2>
         <Link href="/classes" className="text-xs text-brand-amber hover:text-brand-amber-light">
           All classes
         </Link>
@@ -51,7 +51,7 @@ export default function ClassCalendar({ today }: { today: string }) {
             {d}
           </div>
         ))}
-        {weeks.flatMap((week) =>
+        {grid.flatMap((week) =>
           week.map((date) => {
             const entries = byDate.get(date) ?? [];
             const isToday = date === today;

@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3-multiple-ciphers";
-import { DEFAULT_SETTINGS, type AppSettings } from "./settings-shared";
+import { DEFAULT_SETTINGS, normalizeHome, type AppSettings } from "./settings-shared";
 import { setDateFormat } from "./display";
 
 export * from "./settings-shared";
@@ -14,6 +14,7 @@ export function normalizeSettings(raw: Partial<AppSettings> & Record<string, unk
   const str = (v: unknown, fallback: string, max = 120) =>
     typeof v === "string" ? v.trim().slice(0, max) : fallback;
   return {
+    home: normalizeHome(raw.home),
     instructorName: str(raw.instructorName, d.instructorName),
     defaultClassLocation: str(raw.defaultClassLocation, d.defaultClassLocation),
     defaultRelaySize: clampNum(raw.defaultRelaySize, 1, 40, d.defaultRelaySize),

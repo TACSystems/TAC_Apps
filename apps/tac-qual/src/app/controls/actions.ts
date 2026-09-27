@@ -4,6 +4,8 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
+import { updateSettings } from "@/lib/settings";
+import { normalizeHome, type HomeLayout } from "@/lib/settings-shared";
 import { DEFAULT_OPTIONS, OPTION_CATEGORIES, type OptionCategory } from "@/lib/db/dropdown-options";
 import { normalizeCategories } from "@core/lib/course-categories";
 
@@ -129,4 +131,11 @@ export async function restoreDropdownDefaults(category: OptionCategory) {
     for (const v of DEFAULT_OPTIONS[category]) if (!have.has(v)) ins.run(randomUUID(), category, v, ++n);
   })();
   done(category);
+}
+
+export async function saveHomeLayout(layout: HomeLayout) {
+  updateSettings(getDb(), { home: normalizeHome(layout) });
+  revalidatePath("/");
+  revalidatePath("/controls");
+  return { ok: true };
 }
