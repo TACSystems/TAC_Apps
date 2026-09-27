@@ -419,3 +419,32 @@ test("currency: a course with no expiry is left out entirely", () => {
   assert.equal(rows[0].expires_months, 12);
   assert.equal(rows[0].expires_on, "2027-06-01");
 });
+
+test("home layout normalizing", async () => {
+  const { normalizeHome, DEFAULT_HOME, HOME_SECTIONS } = await import("../src/lib/settings-shared.ts");
+  const keys = Object.keys(HOME_SECTIONS);
+
+  const fresh = normalizeHome(undefined);
+  assert.deepEqual(fresh, DEFAULT_HOME);
+
+  // A layout stored before a card existed keeps its order and gains the new
+  // card at its default position rather than losing it.
+  const old = normalizeHome({
+    sections: [{ key: "recent_classes", visible: true }, { key: "tiles", visible: false }],
+    calendarWeeks: 99,
+    recentCount: 999,
+    currencyDueSoonDays: 45,
+  });
+  assert.equal(old.sections.length, keys.length);
+  assert.equal(old.sections[0].key, "recent_classes");
+  assert.equal(old.sections.find((s) => s.key === "tiles")?.visible, false);
+  assert.ok(old.sections.some((s) => s.key === "calendar" && s.visible));
+  assert.equal(old.calendarWeeks, DEFAULT_HOME.calendarWeeks);
+  assert.equal(old.recentCount, 25);
+  assert.equal(old.currencyDueSoonDays, DEFAULT_HOME.currencyDueSoonDays);
+
+  // Junk keys are dropped, not rendered.
+  const junk = normalizeHome({ sections: [{ key: "nope", visible: true }, { key: "tiles", visible: true }] });
+  assert.ok(!junk.sections.some((s) => String(s.key) === "nope"));
+  assert.equal(junk.sections.length, keys.length);
+});

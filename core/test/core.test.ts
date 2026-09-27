@@ -8,6 +8,7 @@ import { passFail } from "@core/lib/cof-shared";
 import { addColumnIfMissing, runMigrations } from "@core/lib/migrations";
 import { createZip, readZip } from "@core/lib/zip";
 import { seal, unseal } from "@core/lib/security-state";
+import { parseProseChangelog } from "@core/lib/changelog-prose";
 import { randomBytes } from "node:crypto";
 
 test("form checks", () => {
@@ -69,4 +70,33 @@ test("zip round trip and sealing", () => {
   const sealed = seal(key, Buffer.from("secret"));
   assert.equal(unseal(key, sealed).toString(), "secret");
   assert.throws(() => unseal(randomBytes(32), sealed));
+});
+
+test("prose changelog parsing", () => {
+  const md = [
+    "# App Changelog",
+    "",
+    "## 0.4.0",
+    "Opening line that",
+    "wraps across two lines.",
+    "",
+    "**A lead.** Body of the note.",
+    "",
+    "**Another lead:** second body.",
+    "",
+    "## [0.3.0] — 2026-09-01",
+    "Dated heading, same shape.",
+    "",
+    "## [0.5.0] — planned",
+    "Not shipped.",
+  ].join("\n");
+  const v = parseProseChangelog(md);
+  assert.deepEqual(v.map((x) => x.version), ["0.4.0", "0.3.0"]);
+  assert.equal(v[0].intro, "Opening line that wraps across two lines.");
+  assert.deepEqual(v[0].notes, [
+    { lead: "A lead", body: "Body of the note." },
+    { lead: "Another lead", body: "second body." },
+  ]);
+  assert.equal(v[1].date, "2026-09-01");
+  assert.equal(v[1].intro, "Dated heading, same shape.");
 });
