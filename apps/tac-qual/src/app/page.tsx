@@ -1,5 +1,7 @@
 import PageHeader from "@core/components/PageHeader";
+import ClassCalendar from "@/components/ClassCalendar";
 import { getDb } from "@/lib/db";
+import { todayISO } from "@/lib/settings-shared";
 import { fd } from "@/lib/display";
 
 export const dynamic = "force-dynamic";
@@ -17,12 +19,6 @@ export default async function HomePage() {
   const passes = count(db, `select count(*) as n from score_runs where passed = 1`);
   const passRate = runs ? Math.round((passes / runs) * 1000) / 10 : null;
 
-  const upcoming = db
-    .prepare(
-      `select id, number, title, date, location, status from classes
-        where date >= date('now') order by date limit 5`
-    )
-    .all() as { id: string; number: number; title: string; date: string; location: string | null; status: string }[];
 
   const recent = db
     .prepare(
@@ -64,30 +60,7 @@ export default async function HomePage() {
         ))}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-sm tracking-widest text-neutral-400">Upcoming classes</h2>
-        {upcoming.length === 0 ? (
-          <p className="text-neutral-400">
-            Nothing scheduled. <a href="/classes/new">Plan a class</a>.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {upcoming.map((c) => (
-              <li key={c.id}>
-                <a href={`/classes/${c.id}`} className="brk card flex flex-wrap justify-between gap-3 p-4">
-                  <span className="font-bold">
-                    #{String(c.number).padStart(4, "0")} · {c.title}
-                  </span>
-                  <span className="text-neutral-400">
-                    {fd(c.date)}
-                    {c.location ? ` · ${c.location}` : ""}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <ClassCalendar today={todayISO()} />
 
       <section className="space-y-3">
         <h2 className="text-sm tracking-widest text-neutral-400">Recent classes</h2>
