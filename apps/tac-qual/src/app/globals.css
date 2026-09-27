@@ -140,6 +140,12 @@ h1, h2, h3, th {
     min-width: 12rem;
     display: inline-block;
   }
+  /* Several signature columns on one row cannot each claim 12rem, so inside a
+     table cell the line simply fills its column. */
+  .print-sheet td .sign-line {
+    min-width: 0;
+    width: 100%;
+  }
   .page-break {
     break-after: page;
   }
