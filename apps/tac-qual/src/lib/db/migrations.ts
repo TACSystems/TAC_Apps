@@ -1,4 +1,4 @@
-import type Database from "better-sqlite3-multiple-ciphers";
+
 import { randomUUID } from "crypto";
 import type { Migration } from "@core/lib/migrations";
 

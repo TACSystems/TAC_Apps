@@ -3,6 +3,7 @@ import { DEFAULT_SETTINGS, normalizeHome, type AppSettings } from "./settings-sh
 import { setDateFormat } from "./display";
 
 export * from "./settings-shared";
+import { normalizeCertificate } from "./settings-shared";
 
 function clampNum(v: unknown, min: number, max: number, fallback: number) {
   const n = Number(v);
@@ -14,6 +15,7 @@ export function normalizeSettings(raw: Partial<AppSettings> & Record<string, unk
   const str = (v: unknown, fallback: string, max = 120) =>
     typeof v === "string" ? v.trim().slice(0, max) : fallback;
   return {
+    certificate: normalizeCertificate(raw.certificate),
     home: normalizeHome(raw.home),
     instructorName: str(raw.instructorName, d.instructorName),
     defaultClassLocation: str(raw.defaultClassLocation, d.defaultClassLocation),

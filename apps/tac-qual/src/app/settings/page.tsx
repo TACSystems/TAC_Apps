@@ -14,7 +14,7 @@ import { getAutoBackup, getAutoBackupStatus } from "@/lib/auto-backup";
 import SecuritySettings from "@/components/SecuritySettings";
 import BackupSettings from "@/components/BackupSettings";
 import RestoreForm from "@/components/RestoreForm";
-import { ClassDefaultsForm, DisplayForm } from "@/components/SettingsForms";
+import { CertificateForm, ClassDefaultsForm, DisplayForm } from "@/components/SettingsForms";
 
 export const dynamic = "force-dynamic";
 
@@ -131,6 +131,15 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         defaultOpen={saved === "classes"}
       >
         <ClassDefaultsForm s={s} saved={saved === "classes"} returnTo="/settings" />
+      </Collapsible>
+
+      <Collapsible
+        id="settings-certificates"
+        title="Certificates"
+        keywords="certificate wording title signature expiry print school name"
+        defaultOpen={saved === "certificates"}
+      >
+        <CertificateForm s={s} saved={saved === "certificates"} returnTo="/settings" />
       </Collapsible>
 
       <Collapsible

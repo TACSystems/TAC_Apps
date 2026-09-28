@@ -550,3 +550,104 @@ test("a student holds a certification only once every course is passed", async (
   assert.equal(rows[0].expires_on, "2027-05-10", "only c2 expires, 12 months from its pass");
   assert.equal(rows[0].certificate_number, null);
 });
+
+test("certificate numbers are recorded at issue and survive a reprint", async () => {
+  const { saveCertification } = await import("../src/lib/certifications.ts");
+  const { issueCertificates, classCertificateRows, certificatesForPrint } = await import("../src/lib/certificates.ts");
+  const db = fresh();
+  seedCourse(db);
+
+  const certId = saveCertification(db, {
+    name: "Basic Pistol",
+    code: null,
+    description: null,
+    certificate_title: null,
+    certificate_body: null,
+    cofIds: ["c1"],
+  });
+
+  const form = new FormData();
+  form.set("title", "Class One");
+  form.set("date", "2026-05-01");
+  const classId = createClass(db, form, null)!;
+
+  const done = createStudent(db, { last_name: "Reyes", first_name: "M" }, null)!;
+  const notDone = createStudent(db, { last_name: "Lindqvist", first_name: "A" }, null)!;
+  enroll(db, classId, done);
+  enroll(db, classId, notDone);
+
+  db.prepare(
+    `insert into score_runs (id, class_id, student_id, cof_id, date, attempt, final_score_percent, passed)
+     values ('r1', ?, ?, 'c1', '2026-05-01', 1, 92, 1)`
+  ).run(classId, done);
+
+  let rows = classCertificateRows(db, classId, certId, "2026-05-02");
+  assert.equal(rows.length, 1, "a student with no runs at all is not on the sheet");
+  assert.equal(rows[0].state, "complete_not_issued");
+
+  const first = issueCertificates(db, classId, certId, "2026-05-02", "Stovall, Bradley");
+  assert.equal(first.issued, 1);
+
+  rows = classCertificateRows(db, classId, certId, "2026-05-02");
+  assert.equal(rows[0].state, "complete_issued");
+  const number = rows[0].certificate_number;
+  assert.equal(number, 1);
+
+  const again = issueCertificates(db, classId, certId, "2026-05-03", "Stovall, Bradley");
+  assert.equal(again.issued, 0, "pressing issue again must not mint a second number");
+  rows = classCertificateRows(db, classId, certId, "2026-05-03");
+  assert.equal(rows[0].certificate_number, number, "a reprint carries the same number");
+
+  const printed = certificatesForPrint(db, classId, certId)!;
+  assert.equal(printed.rows.length, 1, "the print sheet reads only issued certificates");
+  assert.equal(printed.rows[0].number, number);
+
+  assert.throws(
+    () =>
+      db
+        .prepare(
+          `insert into certificates (id, number, student_id, certification_id, class_id, issued_on)
+           values ('x', 99, ?, ?, ?, '2026-05-04')`
+        )
+        .run(done, certId, classId),
+    /UNIQUE/i,
+    "one certificate per student per certification, enforced by the database"
+  );
+});
+
+test("a student partway through is never issued a certificate", async () => {
+  const { saveCertification } = await import("../src/lib/certifications.ts");
+  const { issueCertificates } = await import("../src/lib/certificates.ts");
+  const db = fresh();
+  seedCourse(db);
+  db.prepare(
+    `insert into courses_of_fire (id, code, name, target_type_id, total_rounds, passing_score_percent)
+     values ('c2', 'EXTRA', 'Extra Course', 't1', 10, 80)`
+  ).run();
+
+  const certId = saveCertification(db, {
+    name: "Two Course Cert",
+    code: null,
+    description: null,
+    certificate_title: null,
+    certificate_body: null,
+    cofIds: ["c1", "c2"],
+  });
+
+  const form = new FormData();
+  form.set("title", "Class One");
+  form.set("date", "2026-05-01");
+  const classId = createClass(db, form, null)!;
+  const s = createStudent(db, { last_name: "Okafor", first_name: "T" }, null)!;
+  enroll(db, classId, s);
+  db.prepare(
+    `insert into score_runs (id, class_id, student_id, cof_id, date, attempt, final_score_percent, passed)
+     values ('r1', ?, ?, 'c1', '2026-05-01', 1, 92, 1)`
+  ).run(classId, s);
+
+  assert.equal(issueCertificates(db, classId, certId, "2026-05-02", null).issued, 0);
+  assert.equal(
+    (db.prepare(`select count(*) as n from certificates`).get() as { n: number }).n,
+    0
+  );
+});

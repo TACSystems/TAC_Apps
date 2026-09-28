@@ -24,6 +24,17 @@ export async function saveSettingsForm(formData: FormData) {
   for (const k of ["instructorName", "defaultClassLocation", "dateFormat", "textSize"]) if (has(k)) patch[k] = get(k);
   if (has("defaultRelaySize")) patch.defaultRelaySize = Number(get("defaultRelaySize"));
   if (has("theme")) patch.theme = get("theme") === "light" ? "light" : "dark";
+  if (has("__certificate")) {
+    patch.certificate = {
+      schoolName: get("cert_schoolName"),
+      title: get("cert_title"),
+      body: get("cert_body"),
+      signatureLabel: get("cert_signatureLabel"),
+      showExpiry: has("cert_showExpiry"),
+      showCourses: has("cert_showCourses"),
+      scorePage: has("cert_scorePage"),
+    };
+  }
   updateSettings(getDb(), patch as Partial<AppSettings>);
   revalidatePath("/", "layout");
   const back = get("__return");

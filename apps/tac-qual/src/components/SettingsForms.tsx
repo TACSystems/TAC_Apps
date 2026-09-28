@@ -84,3 +84,55 @@ export function DisplayForm({ s, saved, returnTo }: { s: AppSettings; saved?: bo
     </form>
   );
 }
+
+export function CertificateForm({ s, saved, returnTo }: { s: AppSettings; saved?: boolean; returnTo: string }) {
+  const c = s.certificate;
+  return (
+    <form action={saveSettingsForm} className="flex flex-col">
+      <input type="hidden" name="__return" value={returnTo} />
+      <input type="hidden" name="__section" value="certificates" />
+      <input type="hidden" name="__certificate" value="1" />
+      <p className="mb-3 text-sm text-neutral-400">
+        The layout is fixed so it prints reliably. A certification can override the title and wording for itself.
+      </p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm">
+          School or Program Name
+          <input name="cert_schoolName" defaultValue={c.schoolName} className={input} maxLength={120} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Title
+          <input name="cert_title" defaultValue={c.title} className={input} maxLength={120} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm sm:col-span-2">
+          Wording
+          <input name="cert_body" defaultValue={c.body} className={input} maxLength={400} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Signature Line Label
+          <input name="cert_signatureLabel" defaultValue={c.signatureLabel} className={input} maxLength={80} />
+        </label>
+      </div>
+
+      <div className="mt-4 space-y-2 text-sm">
+        <label className="flex items-center gap-2">
+          <input type="checkbox" name="cert_showExpiry" defaultChecked={c.showExpiry} />
+          Print an expiry date
+          <span className="text-neutral-500">
+            — off by default: a date on paper cannot answer a requalification that happened since.
+          </span>
+        </label>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" name="cert_showCourses" defaultChecked={c.showCourses} />
+          List the courses on the certificate itself
+        </label>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" name="cert_scorePage" defaultChecked={c.scorePage} />
+          Print a second page with courses and scores
+        </label>
+      </div>
+
+      <Save saved={saved} />
+    </form>
+  );
+}

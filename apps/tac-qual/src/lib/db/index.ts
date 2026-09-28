@@ -1,5 +1,5 @@
 import Database from "better-sqlite3-multiple-ciphers";
-import { randomUUID } from "crypto";
+
 import fs from "fs";
 import path from "path";
 import { applyCofPatch, type CofPatch } from "@core/lib/cof";

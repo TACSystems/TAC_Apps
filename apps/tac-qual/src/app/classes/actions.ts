@@ -21,6 +21,8 @@ import {
   updateClass,
 } from "@/lib/classes";
 import { deleteRun, saveRelayScores } from "@/lib/scoring";
+import { issueCertificates } from "@/lib/certificates";
+import { todayISO } from "@core/lib/format";
 
 function instructor() {
   return getSettings(getDb()).instructorName || null;
@@ -198,4 +200,23 @@ export async function removeRun(formData: FormData) {
   deleteRun(getDb(), String(formData.get("id") ?? ""));
   await flash("Run deleted.");
   revalidatePath(`/classes/${classId}/score/${cofId}`);
+}
+
+export async function issueClassCertificates(formData: FormData) {
+  const db = getDb();
+  const classId = String(formData.get("class_id") ?? "");
+  const certificationId = String(formData.get("certification_id") ?? "");
+  if (!classId || !certificationId) {
+    await flash("That class is not taught from a certification.", "error");
+    redirect(`/classes/${classId}`);
+  }
+  const { issued } = issueCertificates(db, classId, certificationId, todayISO(), instructor());
+  if (issued === 0) {
+    await flash("Every student who has finished already has a certificate.", "error");
+    redirect(`/classes/${classId}`);
+  }
+  await flash(`${issued} certificate${issued === 1 ? "" : "s"} issued.`);
+  revalidatePath(`/classes/${classId}`);
+  revalidatePath(`/certifications/${certificationId}`);
+  redirect(`/classes/${classId}/certificates`);
 }

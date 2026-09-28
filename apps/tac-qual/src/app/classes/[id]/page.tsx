@@ -24,9 +24,14 @@ import {
   removeClass,
   removeClassCourse,
   removeClassInstructor,
+  issueClassCertificates,
   saveRelayLane,
   unenrollStudent,
 } from "@/app/classes/actions";
+import Link from "next/link";
+import { todayISO } from "@core/lib/format";
+import { getCertification } from "@/lib/certifications";
+import { classCertificateRows } from "@/lib/certificates";
 
 export const dynamic = "force-dynamic";
 
@@ -374,6 +379,80 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           </div>
         </Collapsible>
       )}
+
+      {klass.certification_id
+        ? (() => {
+            const cert = getCertification(db, klass.certification_id);
+            if (!cert) return null;
+            const rows = classCertificateRows(db, id, klass.certification_id, todayISO());
+            const ready = rows.filter((r) => r.state === "complete_not_issued");
+            const issued = rows.filter((r) => r.state === "complete_issued");
+            return (
+              <Collapsible
+                scope={`class:${id}`}
+                id="certificates"
+                title="Certificates"
+                defaultOpen
+                summary={`${issued.length} issued · ${ready.length} ready`}
+              >
+                <div className="space-y-4 p-4">
+                  <p className="text-sm text-neutral-500">
+                    {cert.name} — a student is ready once they have passed every course in it, from any class on any
+                    date.
+                  </p>
+
+                  {rows.length === 0 ? (
+                    <p className="text-neutral-500">Nobody enrolled has been scored on these courses yet.</p>
+                  ) : (
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th>Student</th>
+                          <th>Standing</th>
+                          <th>Certificate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((r) => (
+                          <tr key={r.student_id}>
+                            <td className="font-bold">{`${r.last_name}, ${r.first_name}`}</td>
+                            <td>
+                              {r.state === "incomplete" ? (
+                                <span className="text-neutral-400">needs {r.missing_labels.join(", ")}</span>
+                              ) : r.state === "complete_issued" ? (
+                                <span className="result-badge result-pass">Issued</span>
+                              ) : (
+                                <span className="text-neutral-300">Complete — not issued</span>
+                              )}
+                            </td>
+                            <td>{r.certificate_number !== null ? `#${r.certificate_number}` : "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+
+                  <div className="flex flex-wrap gap-2">
+                    <form action={issueClassCertificates}>
+                      <input type="hidden" name="class_id" value={id} />
+                      <input type="hidden" name="certification_id" value={klass.certification_id} />
+                      <SubmitButton className="btn btn-primary" disabled={ready.length === 0}>
+                        {ready.length === 0
+                          ? "Nothing to issue"
+                          : `Issue ${ready.length} Certificate${ready.length === 1 ? "" : "s"}`}
+                      </SubmitButton>
+                    </form>
+                    {issued.length > 0 ? (
+                      <Link className="btn" href={`/classes/${id}/certificates`}>
+                        Print Issued Certificates
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
+              </Collapsible>
+            );
+          })()
+        : null}
 
       <form action={removeClass} className="pt-4">
         <input type="hidden" name="id" value={id} />

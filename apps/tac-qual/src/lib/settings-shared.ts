@@ -67,7 +67,47 @@ export function normalizeHome(raw: unknown): HomeLayout {
   };
 }
 
+export type CertificateSettings = {
+  schoolName: string;
+  title: string;
+  body: string;
+  signatureLabel: string;
+  showExpiry: boolean;
+  showCourses: boolean;
+  scorePage: boolean;
+};
+
+export const DEFAULT_CERTIFICATE: CertificateSettings = {
+  schoolName: "",
+  title: "Certificate of Completion",
+  body: "has satisfactorily completed the requirements for",
+  signatureLabel: "Instructor",
+  // A date on paper invites a question the paper cannot answer after a
+  // requalification, so expiry is off unless it is asked for.
+  showExpiry: false,
+  showCourses: false,
+  scorePage: true,
+};
+
+export function normalizeCertificate(raw: unknown): CertificateSettings {
+  const d = DEFAULT_CERTIFICATE;
+  const r = (raw ?? {}) as Record<string, unknown>;
+  const str = (v: unknown, fallback: string, max = 200) =>
+    typeof v === "string" ? v.slice(0, max) : fallback;
+  const bool = (v: unknown, fallback: boolean) => (v === undefined ? fallback : Boolean(v));
+  return {
+    schoolName: str(r.schoolName, d.schoolName),
+    title: str(r.title, d.title),
+    body: str(r.body, d.body, 400),
+    signatureLabel: str(r.signatureLabel, d.signatureLabel, 80),
+    showExpiry: bool(r.showExpiry, d.showExpiry),
+    showCourses: bool(r.showCourses, d.showCourses),
+    scorePage: bool(r.scorePage, d.scorePage),
+  };
+}
+
 export type AppSettings = {
+  certificate: CertificateSettings;
   home: HomeLayout;
   instructorName: string;
   defaultClassLocation: string;
@@ -79,6 +119,7 @@ export type AppSettings = {
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  certificate: DEFAULT_CERTIFICATE,
   home: DEFAULT_HOME,
   instructorName: "",
   defaultClassLocation: "",
