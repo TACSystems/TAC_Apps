@@ -42,6 +42,46 @@ export default function HelpPage() {
       />
       <SectionTools scope="help" search />
 
+      <Guide
+        id="certifications"
+        title="Certifications and Certificates"
+        keywords="certification certificate credential program issue number print expiry currency"
+      >
+        <p>
+          A <b>certification</b> is what a student walks away with: a named, ordered set of courses of fire. Build one
+          under <A href="/certifications">Certifications</A>.
+        </p>
+        <p>
+          <b>Nothing is enrolled or marked complete.</b> A student holds a certification the moment they have a passing
+          run on every course in it — from any class, on any date. Someone who finishes the last course a year later in
+          a different class still holds it, with no special handling.
+        </p>
+        <p>
+          Picking a certification on a class brings its courses onto that class. It only ever <b>adds</b>: a course
+          already on the class may carry scored runs, and a course you added by hand stays put even if you change the
+          certification.
+        </p>
+        <p>
+          <b>Certificates are issued from the class page.</b> The Certificates section lists everyone enrolled as
+          needing a course, complete but not issued, or issued. One button issues numbers for everyone ready and opens
+          the print sheet.
+        </p>
+        <p>
+          <b>A certificate number is written when it is issued</b>, not when it is printed. Reprint as often as you
+          like — the number never changes, and pressing Issue again does nothing to a student who already has one.
+        </p>
+        <p>
+          Wording lives in <A href="/settings">Settings → Certificates</A>, and any certification can override the
+          title and body for itself. The signature is a printed line, signed by hand. An expiry date is off by default:
+          a date on paper cannot account for a requalification that happened after it was printed.
+        </p>
+        <p>
+          <A href="/records/currency">Currency</A> shows one row per credential held — the certification where one
+          exists, or a course that expires and belongs to no certification. A student partway through is not there;
+          they have nothing to renew yet, and the certification page shows what they are missing.
+        </p>
+      </Guide>
+
       <Guide id="start" title="Getting Started" keywords="first start begin new setup instructor">
         <ol>
           <li>

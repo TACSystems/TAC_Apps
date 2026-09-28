@@ -100,9 +100,10 @@ export default function GlobalSearch() {
 
   return (
     <div ref={root} className="relative w-full max-w-md">
-      <div className="flex items-center gap-2 border border-neutral-700 bg-neutral-950 px-2 focus-within:border-brand-amber">
+      <div className="flex items-center gap-2 border border-neutral-700 bg-neutral-900 px-2 focus-within:border-brand-amber">
         <Icon name="search" size={14} />
         <input
+          data-inset-focus
           ref={box}
           value={q}
           onChange={(e) => {

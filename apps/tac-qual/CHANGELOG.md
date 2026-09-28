@@ -1,5 +1,42 @@
 # TAC-QUAL Changelog
 
+## 0.5.1
+Certifications and certificates.
+
+**Certifications.** A certification is what a student earns: a named, ordered
+set of courses of fire. Build one, and a class taught from it brings its courses
+with it. Attaching a certification only ever adds courses, so a course already
+carrying scored runs, or one you added by hand, survives a change of
+certification.
+
+**Completion is worked out, never recorded.** A student holds a certification
+the moment they hold a passing run on every course in it, from any class on any
+date. There is no enrolment and no completion tick, so a student who finishes
+the last course a year later, in a different class, simply holds it.
+
+**Certificates.** The class page lists everyone enrolled as needing a course,
+complete but not issued, or issued. One button issues numbers for everyone
+ready and opens the print sheet. A number is written at issue, so a reprint
+carries the same one and pressing Issue again does nothing. The layout is
+fixed and the wording is yours, in Settings → Certificates, with per-
+certification overrides. Expiry is off by default: a date on paper cannot
+account for a requalification that happened after printing. Courses and scores
+print as an optional second page.
+
+**Currency, rebuilt.** One row per credential a student holds, rather than one
+per course — the certification wherever one exists, and a course that expires
+and belongs to no certification on its own. A student partway through is not
+listed: nothing to renew yet, and the certification page shows what is missing.
+The page opens on Needs attention, the counts are the filters, and the filter
+carries into the printable list and the CSV. Contact details are in the row.
+
+**Student record.** A Certifications section: held, with number and expiry, or
+which courses are still needed.
+
+**Smaller things.** The header search drew two amber highlights 4px apart —
+fixed. Controls is grouped by the page each list belongs to. Help gained a
+guide for certifications and certificates.
+
 ## 0.4.0
 Admin and controls. The app now bends to how you run classes instead of the
 other way round.

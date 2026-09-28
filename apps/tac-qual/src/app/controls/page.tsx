@@ -1,6 +1,7 @@
 import PageHeader from "@core/components/PageHeader";
 import SectionTools from "@core/components/SectionTools";
 import Collapsible from "@core/components/Collapsible";
+import ControlsGroup from "@core/components/ControlsGroup";
 import DropdownListEditor from "@/components/DropdownListEditor";
 import HomeLayoutEditor from "@/components/HomeLayoutEditor";
 import { getDb } from "@/lib/db";
@@ -9,13 +10,12 @@ import { type OptionCategory } from "@/lib/db/dropdown-options";
 
 export const dynamic = "force-dynamic";
 
-const ORDER: OptionCategory[] = [
-  "class_type",
-  "class_location",
-  "course_category",
-  "position",
-  "caliber",
-  "instructor_cert",
+/** Grouped by the page each list is picked from, the way TAC-LOG's is. */
+const GROUPS: { id: string; title: string; blurb: string; lists: OptionCategory[] }[] = [
+  { id: "controls-classes", title: "Classes", blurb: "Picked when you create or edit a class", lists: ["class_type", "class_location"] },
+  { id: "controls-range", title: "Courses of Fire", blurb: "Picked when you build or categorize a course", lists: ["course_category", "position"] },
+  { id: "controls-students", title: "Students", blurb: "Picked on a student's firearms", lists: ["caliber"] },
+  { id: "controls-instructor", title: "Instructor", blurb: "Picked on the instructor profile", lists: ["instructor_cert"] },
 ];
 
 export default async function ControlsPage({ searchParams }: { searchParams: Promise<{ open?: string }> }) {
@@ -43,8 +43,12 @@ export default async function ControlsPage({ searchParams }: { searchParams: Pro
         <HomeLayoutEditor initial={s.home} />
       </Collapsible>
 
-      {ORDER.map((c) => (
-        <DropdownListEditor key={c} category={c} open={open === c} />
+      {GROUPS.map((g) => (
+        <ControlsGroup key={g.id} id={g.id} title={g.title} blurb={g.blurb}>
+          {g.lists.map((c) => (
+            <DropdownListEditor key={c} category={c} open={open === c} />
+          ))}
+        </ControlsGroup>
       ))}
 
       <p className="mt-2 text-xs text-neutral-500">

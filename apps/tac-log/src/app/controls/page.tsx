@@ -1,5 +1,5 @@
 import PageHeader from "@core/components/PageHeader";
-import type { ReactNode } from "react";
+import ControlsGroup from "@core/components/ControlsGroup";
 import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
@@ -14,17 +14,7 @@ import { AmmoDefaultsForm, DocumentWarningsForm, MaintenanceDefaultsForm, RangeD
 
 export const dynamic = "force-dynamic";
 
-function Group({ id, title, blurb, children }: { id: string; title: string; blurb: string; children: ReactNode }) {
-  return (
-    <section id={id} className="flex flex-col gap-2">
-      <div className="mt-3 flex items-baseline gap-3 border-b border-neutral-800 pb-1">
-        <h2 className="text-base text-brand-amber">{title}</h2>
-        <span className="text-xs text-neutral-500">{blurb}</span>
-      </div>
-      {children}
-    </section>
-  );
-}
+const Group = ControlsGroup;
 
 export default async function ControlsPage({ searchParams }: { searchParams: Promise<{ open?: string; saved?: string }> }) {
   const { open, saved } = await searchParams;

@@ -313,3 +313,10 @@ details[data-section] { scroll-margin-top: calc(var(--tac-nav-h, 0px) + 8px); }
   .brk { background-image: none; }
   .result-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* An input that sits inside a wrapper which already shows focus — the
+   header search — would otherwise draw the global ring 2px outside the
+   wrapper's own amber border: two highlights, 4px apart. */
+[data-inset-focus]:focus-visible {
+  outline: none;
+}
