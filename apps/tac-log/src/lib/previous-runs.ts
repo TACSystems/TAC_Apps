@@ -30,14 +30,39 @@ function withZones(db: Database.Database, row: PastRun | undefined) {
 }
 
 /**
- * The last run and the best run of this course. Shown on Run Course behind a
- * key, closed by default: seeing your best before a string motivates some
- * people and distracts others, so it is a choice rather than a fixture.
+ * The last run and the best run of this course **with the firearm in hand**,
+ * which is the comparison worth seeing. With no firearm chosen the scope
+ * widens to the whole course, and the panel says so rather than implying a
+ * like-for-like comparison.
+ *
+ * Shown behind a key and closed by default: seeing your best before a string
+ * motivates some people and distracts others, so it is a choice.
  */
-export function previousRuns(db: Database.Database, cofId: string) {
-  const last = db.prepare(`${SELECT} order by r.date desc, r.rowid desc limit 1`).get(cofId) as PastRun | undefined;
+export function previousRuns(db: Database.Database, cofId: string, firearmId: string | null) {
+  const where = firearmId ? `${SELECT} and r.firearm_id = ?` : SELECT;
+  const args = firearmId ? [cofId, firearmId] : [cofId];
+  const last = db.prepare(`${where} order by r.date desc, r.rowid desc limit 1`).get(...args) as PastRun | undefined;
   const best = db
-    .prepare(`${SELECT} and r.final_score_percent is not null order by r.final_score_percent desc limit 1`)
-    .get(cofId) as PastRun | undefined;
-  return { last: withZones(db, last), best: withZones(db, best) };
+    .prepare(`${where} and r.final_score_percent is not null order by r.final_score_percent desc limit 1`)
+    .get(...args) as PastRun | undefined;
+  return {
+    last: withZones(db, last),
+    best: withZones(db, best),
+    scope: firearmId ? ("firearm" as const) : ("course" as const),
+  };
+}
+
+export type ArmoryPick = { id: string; label: string; caliber: string | null; shots_fired: number };
+
+export function armoryForRun(db: Database.Database, cofId: string) {
+  const list = db
+    .prepare(
+      `select id, firearm_label(make_model, nickname) as label, caliber, shots_fired
+         from firearms where status != 'sold' order by label`
+    )
+    .all() as ArmoryPick[];
+  const lastUsed = db
+    .prepare(`select firearm_id from range_log where cof_id = ? and firearm_id is not null order by date desc, rowid desc limit 1`)
+    .get(cofId) as { firearm_id: string } | undefined;
+  return { list, lastUsed: lastUsed?.firearm_id ?? null };
 }

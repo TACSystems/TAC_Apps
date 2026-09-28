@@ -5,7 +5,8 @@ import { parseParSeconds } from "@core/lib/par";
 import type { RunString } from "@core/lib/run-clock";
 import RunCourse from "@core/components/RunCourse";
 import PreviousRun from "@/components/PreviousRun";
-import { previousRuns } from "@/lib/previous-runs";
+import { armoryForRun, previousRuns } from "@/lib/previous-runs";
+import RunSetup from "@/components/RunSetup";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,15 @@ function roundsOf(v: string | undefined) {
   return n > 0 ? Math.round(n) : null;
 }
 
-export default async function RunCoursePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function RunCoursePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ firearm?: string }>;
+}) {
   const { id } = await params;
+  const { firearm } = await searchParams;
   const db = getDb();
   const course = loadCourse(db, id);
   if (!course) notFound();
@@ -55,7 +63,26 @@ export default async function RunCoursePage({ params }: { params: Promise<{ id: 
     if (opts.length > 1) phaseOptions[p.title] = opts;
   }
 
-  const { last, best } = previousRuns(db, id);
+  const rounds = strings.reduce((n, s) => n + (s.rounds ?? 0), 0);
+
+  // No firearm chosen yet: ask before anything starts, because the rounds
+  // this run tallies are posted to that firearm's record.
+  if (!firearm) {
+    const { list, lastUsed } = armoryForRun(db, id);
+    return (
+      <RunSetup courseId={id} courseName={course.name} rounds={rounds} armory={list} lastUsed={lastUsed} />
+    );
+  }
+
+  const firearmId = firearm === "none" ? null : firearm;
+  const chosen = firearmId
+    ? (db
+        .prepare(`select firearm_label(make_model, nickname) as label from firearms where id = ?`)
+        .get(firearmId) as { label: string } | undefined)
+    : undefined;
+  if (firearmId && !chosen) notFound();
+
+  const { last, best, scope } = previousRuns(db, id, firearmId);
 
   return (
     <RunCourse
@@ -65,9 +92,9 @@ export default async function RunCoursePage({ params }: { params: Promise<{ id: 
       strings={strings}
       phaseOptions={phaseOptions}
       exitHref={`/courses/${id}`}
-      contextLabel={`${strings.reduce((n, s) => n + (s.rounds ?? 0), 0)} rounds`}
+      contextLabel={`${chosen?.label ?? "Not in Armory"} · ${rounds} rounds`}
     >
-      <PreviousRun last={last} best={best} />
+      <PreviousRun last={last} best={best} scope={scope} />
     </RunCourse>
   );
 }

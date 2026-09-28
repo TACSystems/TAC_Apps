@@ -18,13 +18,25 @@ function Zones({ run }: { run: PastRun }) {
   );
 }
 
-export default function PreviousRun({ last, best }: { last: PastRun | null; best: PastRun | null }) {
+export default function PreviousRun({
+  last,
+  best,
+  scope,
+}: {
+  last: PastRun | null;
+  best: PastRun | null;
+  scope: "firearm" | "course";
+}) {
   const [open, setOpen] = useState(false);
   const [which, setWhich] = useState<"last" | "best">("last");
   const run = which === "last" ? last : best;
 
   if (!last && !best) {
-    return <p className="text-xs uppercase tracking-widest text-neutral-500">No previous run of this course</p>;
+    return (
+      <p className="text-xs uppercase tracking-widest text-neutral-500">
+        {scope === "firearm" ? "No previous run of this course with this firearm" : "No previous run of this course"}
+      </p>
+    );
   }
 
   if (!open) {
@@ -42,7 +54,9 @@ export default function PreviousRun({ last, best }: { last: PastRun | null; best
   return (
     <div className="space-y-3">
       <div className="flex items-baseline gap-3">
-        <span className="text-xs uppercase tracking-widest text-neutral-400">Previous run</span>
+        <span className="text-xs uppercase tracking-widest text-neutral-400">
+          Previous run{scope === "course" ? " — any firearm" : ""}
+        </span>
         <span className="ml-auto flex border border-neutral-700">
           {(["last", "best"] as const).map((k) => (
             <button
