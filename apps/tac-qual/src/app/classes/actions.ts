@@ -8,6 +8,7 @@ import { getSettings } from "@/lib/settings";
 import {
   addCourse,
   addInstructor,
+  attachCertificationCourses,
   autoAssignRelays,
   createClass,
   deleteClass,
@@ -46,6 +47,8 @@ export async function saveClass(formData: FormData) {
       return;
     }
     saveClassDays(db, id, days);
+    const certId = String(formData.get("certification_id") ?? "");
+    if (certId) attachCertificationCourses(db, id, certId);
     await flash("Class saved.");
     revalidatePath(`/classes/${id}`);
     revalidatePath("/classes");
@@ -57,6 +60,8 @@ export async function saveClass(formData: FormData) {
     return;
   }
   saveClassDays(db, newId, days);
+  const newCertId = String(formData.get("certification_id") ?? "");
+  if (newCertId) attachCertificationCourses(db, newId, newCertId);
   await flash("Class created.");
   revalidatePath("/classes");
   redirect(`/classes/${newId}`);

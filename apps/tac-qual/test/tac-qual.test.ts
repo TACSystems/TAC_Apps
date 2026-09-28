@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 import Database from "better-sqlite3-multiple-ciphers";
 import { SCHEMA_SQL, VIEWS_SQL } from "@/lib/db/schema";
 import { runMigrations } from "@core/lib/migrations";
+import { MIGRATIONS } from "@/lib/db/migrations";
 import { scoreFromCounts, saveRelayScores, courseMeta, latestAttempt, classResults } from "@/lib/scoring";
 import {
   addCourse,
+  attachCertificationCourses,
   autoAssignRelays,
   classDateSummary,
   classDays,
@@ -21,7 +23,7 @@ import { classArchive, expiringCourseCount, qualificationCurrency, studentHistor
 function fresh() {
   const db = new Database(":memory:");
   db.exec(SCHEMA_SQL);
-  runMigrations(db, [{ id: 1, name: "baseline-0.1.0", up: () => {} }]);
+  runMigrations(db, MIGRATIONS);
   db.exec(VIEWS_SQL);
   return db;
 }
@@ -447,4 +449,104 @@ test("home layout normalizing", async () => {
   const junk = normalizeHome({ sections: [{ key: "nope", visible: true }, { key: "tiles", visible: true }] });
   assert.ok(!junk.sections.some((s) => String(s.key) === "nope"));
   assert.equal(junk.sections.length, keys.length);
+});
+
+test("a certification attaches its courses to a class and only ever adds", async () => {
+  const { saveCertification } = await import("../src/lib/certifications.ts");
+  const db = fresh();
+  seedCourse(db);
+  db.prepare(
+    `insert into courses_of_fire (id, code, name, target_type_id, total_rounds, passing_score_percent)
+     values ('c2', 'EXTRA', 'Extra Course', 't1', 10, 80)`
+  ).run();
+  db.prepare(
+    `insert into courses_of_fire (id, code, name, target_type_id, total_rounds, passing_score_percent)
+     values ('c3', 'HAND', 'Hand Added', 't1', 10, 80)`
+  ).run();
+
+  const certId = saveCertification(db, {
+    name: "Basic Pistol",
+    code: null,
+    description: null,
+    certificate_title: null,
+    certificate_body: null,
+    cofIds: ["c1", "c2"],
+  });
+
+  const form = new FormData();
+  form.set("title", "Class One");
+  form.set("date", "2026-05-01");
+  const classId = createClass(db, form, null)!;
+
+  addCourse(db, classId, "c3");
+  attachCertificationCourses(db, classId, certId);
+
+  const after = db
+    .prepare(`select cof_id from class_courses where class_id = ? order by sort_order`)
+    .all(classId) as { cof_id: string }[];
+  assert.deepEqual(after.map((r) => r.cof_id), ["c3", "c1", "c2"]);
+
+  attachCertificationCourses(db, classId, certId);
+  const again = db.prepare(`select count(*) as n from class_courses where class_id = ?`).get(classId) as { n: number };
+  assert.equal(again.n, 3, "re-saving must not attach anything twice");
+
+  const other = saveCertification(db, {
+    name: "Concealed Carry",
+    code: null,
+    description: null,
+    certificate_title: null,
+    certificate_body: null,
+    cofIds: ["c2"],
+  });
+  attachCertificationCourses(db, classId, other);
+  const swapped = db
+    .prepare(`select cof_id from class_courses where class_id = ?`)
+    .all(classId) as { cof_id: string }[];
+  assert.equal(swapped.length, 3, "changing certification must not remove a course that may carry scored runs");
+});
+
+test("a student holds a certification only once every course is passed", async () => {
+  const { saveCertification, holdings } = await import("../src/lib/certifications.ts");
+  const db = fresh();
+  seedCourse(db);
+  db.prepare(
+    `insert into courses_of_fire (id, code, name, target_type_id, total_rounds, passing_score_percent, expires_months)
+     values ('c2', 'EXTRA', 'Extra Course', 't1', 10, 80, 12)`
+  ).run();
+
+  const certId = saveCertification(db, {
+    name: "Basic Pistol",
+    code: null,
+    description: null,
+    certificate_title: null,
+    certificate_body: null,
+    cofIds: ["c1", "c2"],
+  });
+
+  const s1 = createStudent(db, { last_name: "Alvarez", first_name: "M" }, null)!;
+  const classForm = new FormData();
+  classForm.set("title", "Class One");
+  classForm.set("date", "2026-05-01");
+  const classId = createClass(db, classForm, null)!;
+
+  const pass = (cof: string, date: string) =>
+    db
+      .prepare(
+        `insert into score_runs (id, class_id, student_id, cof_id, date, attempt, final_score_percent, passed)
+         values (?, ?, ?, ?, ?, 1, 95, 1)`
+      )
+      .run(`r-${cof}-${date}`, classId, s1, cof, date);
+
+  pass("c1", "2026-05-01");
+  let rows = holdings(db, certId, "2026-06-01");
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].complete, false);
+  assert.deepEqual(rows[0].missing, ["c2"]);
+
+  pass("c2", "2026-05-10");
+  rows = holdings(db, certId, "2026-06-01");
+  assert.equal(rows[0].complete, true);
+  assert.equal(rows[0].earned_on, "2026-05-10", "earned on the date the last course was passed");
+  assert.equal(rows[0].expires_on, "2027-05-10", "only c2 expires, 12 months from its pass");
+  assert.equal(rows[0].certificate_number, null);
 });

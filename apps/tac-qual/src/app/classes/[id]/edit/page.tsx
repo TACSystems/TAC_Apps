@@ -3,6 +3,7 @@ import PageHeader from "@core/components/PageHeader";
 import { listOptions } from "@/lib/db/dropdown-options";
 import ClassForm from "@/components/ClassForm";
 import { getDb } from "@/lib/db";
+import { listCertifications } from "@/lib/certifications";
 import { classDays, getClass } from "@/lib/classes";
 import { todayISO } from "@core/lib/format";
 
@@ -20,6 +21,7 @@ export default async function EditClassPage({ params }: { params: Promise<{ id: 
         klass={klass}
         today={todayISO()}
         classTypes={listOptions(db, "class_type")}
+        certifications={listCertifications(db).map((c) => ({ id: c.id, name: c.name }))}
         days={classDays(db, klass.id)}
       />
     </div>

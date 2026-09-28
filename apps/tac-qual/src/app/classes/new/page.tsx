@@ -2,6 +2,7 @@ import PageHeader from "@core/components/PageHeader";
 import { listOptions } from "@/lib/db/dropdown-options";
 import ClassForm from "@/components/ClassForm";
 import { getDb } from "@/lib/db";
+import { listCertifications } from "@/lib/certifications";
 import { getSettings } from "@/lib/settings";
 import { todayISO } from "@core/lib/format";
 
@@ -17,6 +18,7 @@ export default async function NewClassPage() {
         defaultLocation={settings.defaultClassLocation}
         today={todayISO()}
         classTypes={listOptions(db, "class_type")}
+        certifications={listCertifications(db).map((c) => ({ id: c.id, name: c.name }))}
         days={[]}
       />
     </div>

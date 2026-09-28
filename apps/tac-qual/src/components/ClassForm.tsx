@@ -9,12 +9,14 @@ export default function ClassForm({
   defaultLocation = "",
   today,
   classTypes,
+  certifications,
   days,
 }: {
   klass?: ClassRow | null;
   defaultLocation?: string;
   today: string;
   classTypes: string[];
+  certifications: { id: string; name: string }[];
   days: { date: string; start_time: string | null; end_time: string | null }[];
 }) {
   const c = klass ?? null;
@@ -47,6 +49,20 @@ export default function ClassForm({
                 </option>
               ))}
             </select>
+          </label>
+          <label className="field">
+            <span>Taught from</span>
+            <select className="input" name="certification_id" defaultValue={c?.certification_id ?? ""}>
+              <option value="">No certification</option>
+              {certifications.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-neutral-500">
+              Its courses are added to this class. Courses already here are kept.
+            </span>
           </label>
           <label className="field">
             <span>Location</span>

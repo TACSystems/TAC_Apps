@@ -8,6 +8,7 @@ export type ClassRow = {
   title: string;
   date: string;
   class_type: string | null;
+  certification_id: string | null;
   location: string | null;
   status: "planned" | "in_progress" | "complete";
   notes: string | null;
@@ -140,6 +141,7 @@ function readClass(src: Src) {
     title,
     date,
     class_type: text(src, "class_type", 60),
+    certification_id: text(src, "certification_id", 64),
     location: text(src, "location", 160),
     status: (["planned", "in_progress", "complete"] as const).includes(status as never)
       ? (status as ClassRow["status"])
@@ -153,8 +155,8 @@ export function createClass(db: Database.Database, src: Src, createdBy: string |
   if (!v) return null;
   const id = randomUUID();
   db.prepare(
-    `insert into classes (id, number, title, date, class_type, location, status, notes, created_by)
-     values (@id, @number, @title, @date, @class_type, @location, @status, @notes, @created_by)`
+    `insert into classes (id, number, title, date, class_type, certification_id, location, status, notes, created_by)
+     values (@id, @number, @title, @date, @class_type, @certification_id, @location, @status, @notes, @created_by)`
   ).run({ id, number: nextClassNumber(db), ...v, created_by: createdBy });
   return id;
 }
@@ -166,7 +168,8 @@ export function updateClass(db: Database.Database, id: string, src: Src) {
     db
       .prepare(
         `update classes set title = @title, date = @date, class_type = @class_type,
-           location = @location, status = @status, notes = @notes where id = @id`
+           certification_id = @certification_id, location = @location, status = @status,
+           notes = @notes where id = @id`
       )
       .run({ id, ...v }).changes > 0
   );
@@ -200,6 +203,22 @@ export function addCourse(db: Database.Database, classId: string, cofId: string)
   db.prepare(
     `insert or ignore into class_courses (id, class_id, cof_id, sort_order) values (?, ?, ?, ?)`
   ).run(randomUUID(), classId, cofId, next.n);
+}
+
+/**
+ * Attaching a certification to a class brings its courses with it, and only
+ * ever adds. A course already on the class may carry scored runs, and a
+ * course added by hand has to survive a change of certification, so nothing
+ * is removed here. Re-saving attaches nothing twice.
+ */
+export function attachCertificationCourses(db: Database.Database, classId: string, certificationId: string) {
+  const courses = db
+    .prepare(`select cof_id from certification_courses where certification_id = ? order by sort_order`)
+    .all(certificationId) as { cof_id: string }[];
+  db.transaction(() => {
+    for (const c of courses) addCourse(db, classId, c.cof_id);
+  })();
+  return courses.length;
 }
 
 export function removeCourse(db: Database.Database, id: string) {
