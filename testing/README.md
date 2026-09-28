@@ -10,7 +10,16 @@ testing/lib/setup-tools.sh
 
 Installs xvfb, zip, wine (for the Windows installer), rcodesign (Mac ad-hoc signing) and Playwright. Chromium is expected at `/opt/pw-browsers/chromium`; override with `CHROMIUM_PATH`.
 
-## Every release
+## Every release — TAC-QUAL
+
+From `apps/tac-qual`:
+
+1. `npm run electron:prepare`
+2. `../../testing/run-tq-regression.sh` (browser suites, each on a freshly seeded database; exits non-zero on any failure)
+
+Scratch output goes to `TQ_WORK` (default `/tmp/tq-test`), the server runs on port 3200, and `lib/seed-tq.cjs` builds the fixture: three courses (one never expiring, one 12-month, one 6-month standalone), four students and a class with all four enrolled. It also backdates `whats_new_seen`, so the suites see an upgrade rather than a fresh install.
+
+## Every release — TAC-LOG
 
 From `apps/tac-log`:
 
@@ -32,7 +41,8 @@ Scratch output goes to `TL_WORK` (default `/tmp/tl-test`). The version under tes
 | `fixtures/v80` | 0.8.0 database for upgrade checks |
 | `updater/` | Mock GitHub releases server and the two updater checks |
 | `package/` | Packaging, release kit and packaged smoke test |
-| `lib/` | Server starter, PIN helper, table totals (`tot.cjs`), schema doc generator, fixture anonymizer |
+| `run-tq-regression.sh` | TAC-QUAL suites (0.4 dashboard and help, 0.5.1 certifications, class-certification, certificates, currency) |
+| `lib/` | Server starters for both apps, the TAC-QUAL seed, PIN helper, table totals (`tot.cjs`), schema doc generator, fixture anonymizer |
 
 ## Adding to it
 

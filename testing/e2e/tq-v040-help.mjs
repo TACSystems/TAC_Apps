@@ -7,7 +7,8 @@ const fails = [];
 const ok = (c, m) => { console.log(c ? "PASS" : "FAIL", m); if (!c) fails.push(m); };
 
 await p.goto(base + "/", { waitUntil: "networkidle" });
-ok((await p.locator("body").innerText()).includes("0.4.0"), "update notice names 0.4.0");
+const VER = process.env.TQ_VERSION || "0.4.0";
+ok((await p.locator("body").innerText()).includes(VER), `update notice names ${VER}`);
 await p.getByRole("button", { name: "Dismiss" }).click();
 await p.waitForTimeout(1500);
 ok(!(await p.locator("body").innerText()).toLowerCase().includes("was updated to"), "notice gone after dismiss");
@@ -27,7 +28,7 @@ if (await search.count()) {
 
 await p.goto(base + "/settings/whats-new", { waitUntil: "networkidle" });
 const t = await p.locator("body").innerText();
-ok(t.includes("0.4.0") && t.includes("0.3.0") && t.includes("0.1.0"), "every release listed");
+ok(t.includes(VER) && t.includes("0.4.0") && t.includes("0.3.0") && t.includes("0.1.0"), "every release listed, current one included");
 ok(t.toLowerCase().includes("installed"), "installed badge shown");
 ok(!t.includes("**"), "bold markers consumed by the parser");
 
