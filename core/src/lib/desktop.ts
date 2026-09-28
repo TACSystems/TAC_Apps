@@ -17,6 +17,7 @@ export type UpdatePrefs = { autoCheck: boolean; skip: string | null };
 
 export type DesktopBridge = {
   chooseFolder: () => Promise<string | null>;
+  keepAwake?: (on: boolean) => Promise<boolean>;
   updateState?: () => Promise<UpdateState | null>;
   updateAction?: (action: "check" | "open" | "skip" | "dismiss" | "install") => Promise<UpdateState | null>;
   updatePrefs?: (patch?: Partial<UpdatePrefs>) => Promise<UpdatePrefs | null>;

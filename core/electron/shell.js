@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell, dialog, ipcMain, powerMonitor, screen, session, utilityProcess } = require("electron");
+const { app, BrowserWindow, Menu, shell, dialog, ipcMain, powerMonitor, powerSaveBlocker, screen, session, utilityProcess } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const net = require("net");
@@ -332,6 +332,24 @@ module.exports = function startShell(config) {
       properties: ["openDirectory", "createDirectory"],
     });
     return result.canceled || !result.filePaths.length ? null : result.filePaths[0];
+  });
+
+  // Running a course of fire means the screen is watched, not touched, for
+  // minutes at a time. The blocker is released the moment the page leaves.
+  let awakeId = null;
+  ipcMain.handle("taclog:keep-awake", (event, on) => {
+    if (!fromApp(event)) return false;
+    try {
+      if (on && awakeId === null) {
+        awakeId = powerSaveBlocker.start("prevent-display-sleep");
+      } else if (!on && awakeId !== null) {
+        powerSaveBlocker.stop(awakeId);
+        awakeId = null;
+      }
+    } catch {
+      return false;
+    }
+    return awakeId !== null;
   });
 
   ipcMain.handle("taclog:update-state", (event) => (fromApp(event) && updater ? updater.state() : null));
