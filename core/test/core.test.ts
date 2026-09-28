@@ -193,3 +193,15 @@ test("run clock: the stand-by delay stays inside its range", () => {
   assert.equal(standbyDelay(1, 4, () => 0.5), 2.5);
   assert.equal(standbyDelay(3, 1, () => 0.5), 3, "a backwards range collapses rather than going negative");
 });
+
+test("run clock: rounds add up across a split string", () => {
+  // "2 / 2" is a string fired in two parts — four rounds, not twenty-two.
+  const parse = (v: string) => {
+    const parts = v.match(/\d+(?:\.\d+)?/g);
+    return parts ? parts.reduce((s, p) => s + Number(p), 0) : null;
+  };
+  assert.equal(parse("8 rounds"), 8);
+  assert.equal(parse("2 / 2"), 4);
+  assert.equal(parse("4 / 2 rounds"), 6);
+  assert.equal(parse("as needed"), null);
+});

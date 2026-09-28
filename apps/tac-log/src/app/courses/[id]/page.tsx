@@ -70,8 +70,8 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           <Link href={`/courses/${id}/log`} className="btn btn-primary">
             Score This Course
           </Link>
-          <Link href={`/timer?course=${id}`} className={btn}>
-            Run with Par Timer
+          <Link href={`/run/${id}`} className={btn}>
+            Run Course
           </Link>
           <Link href={`/courses/${id}/print`} className={btn}>
             Print
