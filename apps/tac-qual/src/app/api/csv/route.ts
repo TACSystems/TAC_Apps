@@ -3,6 +3,8 @@ import { lockedResponse } from "@/lib/api-guard";
 import { getDb } from "@/lib/db";
 import { toCsv } from "@core/lib/xlsx";
 import { todayISO } from "@/lib/settings-shared";
+import { credentialCurrency, type CredentialStatus } from "@/lib/records";
+import { getSettings } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +41,55 @@ export async function GET(req: NextRequest) {
   const locked = await lockedResponse();
   if (locked) return locked;
   const type = req.nextUrl.searchParams.get("type") ?? "";
+
+  // Currency is computed from passing runs, not stored, so it cannot be a
+  // SQL export like the rest.
+  if (type === "currency") {
+    const db = getDb();
+    const f = req.nextUrl.searchParams.get("f") ?? "attention";
+    const rows = credentialCurrency(db, todayISO(), getSettings(db).home.currencyDueSoonDays).filter((r) =>
+      f === "everyone"
+        ? true
+        : f === "attention"
+          ? r.status === "expired" || r.status === "due_soon"
+          : r.status === (f as CredentialStatus)
+    );
+    const headers = [
+      "LAST NAME",
+      "FIRST NAME",
+      "CREDENTIAL",
+      "CODE",
+      "KIND",
+      "EARNED",
+      "EXPIRES",
+      "DAYS LEFT",
+      "STATUS",
+      "CERTIFICATE #",
+      "EMAIL",
+      "PHONE",
+    ];
+    const body = rows.map((r) => [
+      r.last_name,
+      r.first_name,
+      r.credential_name,
+      r.credential_code,
+      r.kind === "certification" ? "Certification" : "Course",
+      r.earned_on,
+      r.expires_on,
+      r.days_left,
+      r.status === "due_soon" ? "DUE SOON" : r.status.toUpperCase(),
+      r.certificate_number,
+      r.email,
+      r.phone,
+    ]);
+    return new NextResponse(toCsv(headers, body), {
+      headers: {
+        "content-type": "text/csv; charset=utf-8",
+        "content-disposition": `attachment; filename="currency-${todayISO()}.csv"`,
+      },
+    });
+  }
+
   const spec = EXPORTS[type];
   if (!spec) return NextResponse.json({ error: "Unknown export" }, { status: 404 });
   const rows = getDb().prepare(spec.sql).raw().all() as (string | number | null)[][];

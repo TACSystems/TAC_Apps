@@ -1,4 +1,6 @@
 import type Database from "better-sqlite3-multiple-ciphers";
+import { addMonths, daysBetween } from "@core/lib/expiry";
+import { holdings, listCertifications } from "@/lib/certifications";
 
 export type QualRow = {
   student_id: string;
@@ -99,23 +101,6 @@ export type CurrencyRow = {
   status: CurrencyStatus;
 };
 
-function addMonths(iso: string, months: number) {
-  const [y, m, d] = iso.split("-").map(Number);
-  const base = new Date(Date.UTC(y, m - 1, d));
-  const day = base.getUTCDate();
-  base.setUTCDate(1);
-  base.setUTCMonth(base.getUTCMonth() + months);
-  const lastOfMonth = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, 0)).getUTCDate();
-  base.setUTCDate(Math.min(day, lastOfMonth));
-  return base.toISOString().slice(0, 10);
-}
-
-function daysBetween(fromISO: string, toISO: string) {
-  const a = Date.parse(`${fromISO}T00:00:00Z`);
-  const b = Date.parse(`${toISO}T00:00:00Z`);
-  return Math.round((b - a) / 86400000);
-}
-
 /**
  * Currency for the courses that actually lapse.
  *
@@ -197,4 +182,140 @@ export function classArchive(db: Database.Database) {
     runs: number;
     passes: number;
   }[];
+}
+
+export type CredentialStatus = "expired" | "due_soon" | "current";
+
+export type CredentialRow = {
+  key: string;
+  kind: "certification" | "course";
+  credential_id: string;
+  credential_name: string;
+  credential_code: string | null;
+  student_id: string;
+  last_name: string;
+  first_name: string;
+  email: string | null;
+  phone: string | null;
+  earned_on: string | null;
+  expires_on: string;
+  days_left: number;
+  status: CredentialStatus;
+  certificate_number: number | null;
+};
+
+/**
+ * One row per credential a student actually holds.
+ *
+ * A certification wherever one exists, and a course that expires and belongs
+ * to no certification on its own. A student partway through a certification
+ * is not here: they have nothing to renew yet, and the certification page
+ * already shows what they are missing. A credential that never lapses is
+ * left out entirely, because there is nothing to report about it.
+ */
+export function credentialCurrency(
+  db: Database.Database,
+  todayISO: string,
+  dueSoonDays = 30
+): CredentialRow[] {
+  const contact = new Map(
+    (db.prepare(`select id, email, phone from students`).all() as {
+      id: string;
+      email: string | null;
+      phone: string | null;
+    }[]).map((r) => [r.id, r])
+  );
+
+  const rank = (expires_on: string): { days_left: number; status: CredentialStatus } => {
+    const days_left = daysBetween(todayISO, expires_on);
+    return {
+      days_left,
+      status: days_left < 0 ? "expired" : days_left <= dueSoonDays ? "due_soon" : "current",
+    };
+  };
+
+  const out: CredentialRow[] = [];
+
+  const inACertification = new Set(
+    (db.prepare(`select distinct cof_id from certification_courses`).all() as { cof_id: string }[]).map(
+      (r) => r.cof_id
+    )
+  );
+
+  for (const cert of listCertifications(db)) {
+    for (const h of holdings(db, cert.id, todayISO)) {
+      if (!h.complete || !h.expires_on) continue;
+      const c = contact.get(h.student_id);
+      out.push({
+        key: `cert:${cert.id}:${h.student_id}`,
+        kind: "certification",
+        credential_id: cert.id,
+        credential_name: cert.name,
+        credential_code: cert.code,
+        student_id: h.student_id,
+        last_name: h.last_name,
+        first_name: h.first_name,
+        email: c?.email ?? null,
+        phone: c?.phone ?? null,
+        earned_on: h.earned_on,
+        expires_on: h.expires_on,
+        certificate_number: h.certificate_number,
+        ...rank(h.expires_on),
+      });
+    }
+  }
+
+  const loose = db
+    .prepare(
+      `select q.student_id, q.cof_id, q.last_passed_date,
+              c.code as course_code, c.name as course_name, c.expires_months,
+              s.last_name, s.first_name
+         from student_qualifications q
+         join courses_of_fire c on c.id = q.cof_id
+         join students s on s.id = q.student_id
+        where s.status = 'active'
+          and c.expires_months is not null
+          and q.last_passed_date is not null`
+    )
+    .all() as {
+    student_id: string;
+    cof_id: string;
+    last_passed_date: string;
+    course_code: string | null;
+    course_name: string;
+    expires_months: number;
+    last_name: string;
+    first_name: string;
+  }[];
+
+  for (const r of loose) {
+    if (inACertification.has(r.cof_id)) continue;
+    const expires_on = addMonths(r.last_passed_date, r.expires_months);
+    const c = contact.get(r.student_id);
+    out.push({
+      key: `course:${r.cof_id}:${r.student_id}`,
+      kind: "course",
+      credential_id: r.cof_id,
+      credential_name: r.course_name,
+      credential_code: r.course_code,
+      student_id: r.student_id,
+      last_name: r.last_name,
+      first_name: r.first_name,
+      email: c?.email ?? null,
+      phone: c?.phone ?? null,
+      earned_on: r.last_passed_date,
+      expires_on,
+      certificate_number: null,
+      ...rank(expires_on),
+    });
+  }
+
+  const order: Record<CredentialStatus, number> = { expired: 0, due_soon: 1, current: 2 };
+  return out.sort(
+    (a, b) =>
+      order[a.status] - order[b.status] ||
+      a.days_left - b.days_left ||
+      a.last_name.localeCompare(b.last_name) ||
+      a.credential_name.localeCompare(b.credential_name)
+  );
 }

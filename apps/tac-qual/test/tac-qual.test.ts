@@ -651,3 +651,75 @@ test("a student partway through is never issued a certificate", async () => {
     0
   );
 });
+
+test("currency is one row per credential held, never one per course inside it", async () => {
+  const { saveCertification } = await import("../src/lib/certifications.ts");
+  const { credentialCurrency } = await import("../src/lib/records.ts");
+  const db = fresh();
+  seedCourse(db);
+  db.prepare(`update courses_of_fire set expires_months = 12 where id = 'c1'`).run();
+  db.prepare(
+    `insert into courses_of_fire (id, code, name, target_type_id, total_rounds, passing_score_percent, expires_months)
+     values ('c2', 'EXTRA', 'Extra Course', 't1', 10, 80, 24)`
+  ).run();
+  db.prepare(
+    `insert into courses_of_fire (id, code, name, target_type_id, total_rounds, passing_score_percent, expires_months)
+     values ('c3', 'LOOSE', 'Standalone Course', 't1', 10, 80, 6)`
+  ).run();
+  db.prepare(
+    `insert into courses_of_fire (id, code, name, target_type_id, total_rounds, passing_score_percent)
+     values ('c4', 'FOREVER', 'Never Expires', 't1', 10, 80)`
+  ).run();
+
+  const certId = saveCertification(db, {
+    name: "Two Course Cert",
+    code: "TCC",
+    description: null,
+    certificate_title: null,
+    certificate_body: null,
+    cofIds: ["c1", "c2"],
+  });
+
+  const form = new FormData();
+  form.set("title", "Class One");
+  form.set("date", "2026-01-01");
+  const classId = createClass(db, form, null)!;
+
+  const whole = createStudent(db, { last_name: "Whole", first_name: "W" }, null)!;
+  const part = createStudent(db, { last_name: "Part", first_name: "P" }, null)!;
+
+  const pass = (id: string, student: string, cof: string, date: string) =>
+    db
+      .prepare(
+        `insert into score_runs (id, class_id, student_id, cof_id, date, attempt, final_score_percent, passed)
+         values (?, ?, ?, ?, ?, 1, 95, 1)`
+      )
+      .run(id, classId, student, cof, date);
+
+  pass("r1", whole, "c1", "2026-01-01");
+  pass("r2", whole, "c2", "2026-03-01");
+  pass("r3", whole, "c3", "2026-01-01");
+  pass("r4", whole, "c4", "2026-01-01");
+  pass("r5", part, "c1", "2026-01-01");
+
+  const rows = credentialCurrency(db, "2026-06-01", 30);
+  const keys = rows.map((r) => `${r.kind}:${r.credential_name}:${r.last_name}`).sort();
+
+  assert.deepEqual(
+    keys,
+    ["certification:Two Course Cert:Whole", "course:Standalone Course:Whole"],
+    "the certification is one row, its member courses are not rows, a course with no expiry is out, and a student partway through is not listed"
+  );
+
+  const cert = rows.find((r) => r.kind === "certification")!;
+  assert.equal(cert.expires_on, "2027-01-01", "the oldest pass in the certification sets the expiry");
+  assert.equal(cert.credential_code, "TCC");
+
+  const loose = rows.find((r) => r.kind === "course")!;
+  assert.equal(loose.expires_on, "2026-07-01");
+  assert.equal(loose.status, "due_soon", "30 days out on 2026-06-01");
+
+  db.prepare(`update students set status = 'inactive' where id = ?`).run(whole);
+  assert.deepEqual(credentialCurrency(db, "2026-06-01", 30), [], "inactive students are left out entirely");
+  assert.equal(certId.length > 0, true);
+});

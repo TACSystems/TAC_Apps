@@ -6,6 +6,9 @@ import SubmitButton from "@core/components/SubmitButton";
 import { getDb } from "@/lib/db";
 import { getStudent, studentFirearms, studentName } from "@/lib/students";
 import { studentHistory } from "@/lib/records";
+import { todayISO } from "@core/lib/format";
+import { certificationCourses, listCertifications, holdings } from "@/lib/certifications";
+import Link from "next/link";
 import { addFirearm, removeFirearm, removeStudent } from "@/app/students/actions";
 import { fd } from "@/lib/display";
 import ResultBadge from "@/components/ResultBadge";
@@ -65,6 +68,62 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
           </div>
         </dl>
       </section>
+
+      {(() => {
+        const today = todayISO();
+        const rows = listCertifications(db)
+          .map((c) => ({ cert: c, h: holdings(db, c.id, today).find((x) => x.student_id === id) }))
+          .filter((r) => r.h !== undefined);
+        if (rows.length === 0) return null;
+        const held = rows.filter((r) => r.h!.complete).length;
+        return (
+          <Collapsible
+            scope={`student:${id}`}
+            id="certifications"
+            title="Certifications"
+            defaultOpen
+            summary={`${held} held`}
+          >
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Certification</th>
+                  <th>Standing</th>
+                  <th>Certificate</th>
+                  <th>Expires</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(({ cert, h }) => {
+                  const label = new Map(
+                    certificationCourses(db, cert.id).map((c) => [c.cof_id, c.code || c.name])
+                  );
+                  return (
+                    <tr key={cert.id}>
+                      <td>
+                        <Link className="underline" href={`/certifications/${cert.id}`}>
+                          {cert.name}
+                        </Link>
+                      </td>
+                      <td>
+                        {h!.complete ? (
+                          <span className="result-badge result-pass">Holds it</span>
+                        ) : (
+                          <span className="text-neutral-400">
+                            needs {h!.missing.map((m) => label.get(m) ?? m).join(", ")}
+                          </span>
+                        )}
+                      </td>
+                      <td>{h!.certificate_number !== null ? `#${h!.certificate_number}` : "—"}</td>
+                      <td>{h!.expires_on ? fd(h!.expires_on) : h!.complete ? "never" : "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </Collapsible>
+        );
+      })()}
 
       <Collapsible scope={`student:${id}`} id="firearms" title="Firearms" defaultOpen summary={`${firearms.length} on file`}>
         <div className="space-y-4 p-4">
