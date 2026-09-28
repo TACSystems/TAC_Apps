@@ -10,6 +10,20 @@ import { createZip, readZip } from "@core/lib/zip";
 import { seal, unseal } from "@core/lib/security-state";
 import { parseProseChangelog } from "@core/lib/changelog-prose";
 import { randomBytes } from "node:crypto";
+import {
+  START_TONE,
+  END_TONE,
+  courseElapsed,
+  elapsedAt,
+  isComplete,
+  limitFor,
+  overBy,
+  phaseAt,
+  remainingAt,
+  schedule,
+  standbyDelay,
+  totalRounds,
+} from "../src/lib/run-clock.ts";
 
 test("form checks", () => {
   const fd = new FormData();
@@ -99,4 +113,83 @@ test("prose changelog parsing", () => {
   ]);
   assert.equal(v[1].date, "2026-09-01");
   assert.equal(v[1].intro, "Dated heading, same shape.");
+});
+
+test("run clock: both tones are booked up front, so the end cannot drift", () => {
+  const tones: { at: number; freq: number }[] = [];
+  let t = 100;
+  const clock = { now: () => t, tone: (at: number, freq: number) => tones.push({ at, freq }) };
+
+  const s = schedule(clock, 2, 6);
+  assert.equal(s.startAt, 102);
+  assert.equal(s.endAt, 108);
+  assert.deepEqual(tones, [
+    { at: 102, freq: START_TONE },
+    { at: 108, freq: END_TONE },
+  ]);
+  assert.notEqual(START_TONE, END_TONE, "start and end must be distinguishable by ear");
+});
+
+test("run clock: a string with no par gets a start tone and no end", () => {
+  const tones: number[] = [];
+  const clock = { now: () => 0, tone: (_at: number, freq: number) => tones.push(freq) };
+  const s = schedule(clock, 1, null);
+  assert.equal(s.endAt, null);
+  assert.deepEqual(tones, [START_TONE]);
+  assert.equal(remainingAt(50, s), null);
+  assert.equal(overBy(50, s), null, "you cannot be over a limit that does not exist");
+});
+
+test("run clock: phases follow the booked times", () => {
+  const clock = { now: () => 0, tone: () => {} };
+  const s = schedule(clock, 2, 6);
+  assert.equal(phaseAt(1, s, false), "standby");
+  assert.equal(phaseAt(2, s, false), "live");
+  assert.equal(phaseAt(7.9, s, false), "live");
+  assert.equal(phaseAt(8, s, false), "over");
+  assert.equal(phaseAt(3, s, true), "paused", "pause wins over everything");
+  assert.equal(elapsedAt(1, s), 0, "the clock does not run before the beep");
+  assert.equal(elapsedAt(5, s), 3);
+  assert.equal(overBy(9.5, s)?.toFixed(1), "1.5");
+});
+
+test("run clock: limits by mode", () => {
+  const str = { id: "a", label: "", phase: "", par: 6, rounds: 5, details: [] };
+  const slow = { ...str, par: null };
+  assert.equal(limitFor("par", str, 30), 6, "par mode uses the course's own limit");
+  assert.equal(limitFor("par", slow, 30), null, "slow fire has no limit");
+  assert.equal(limitFor("countdown", str, 30), 30, "countdown uses the instructor's limit");
+  assert.equal(limitFor("countdown", str, 0), null);
+  assert.equal(limitFor("stopwatch", str, 30), null, "a stopwatch never expires");
+});
+
+test("run clock: the course clock spans first beep to last, less time paused", () => {
+  assert.equal(courseElapsed(null, null, 500, 0), 0, "nothing until the first beep");
+  assert.equal(courseElapsed(100, null, 160, 0), 60, "still running: counts to now");
+  assert.equal(courseElapsed(100, 200, 900, 0), 100, "finished: counts to the last beep, not to now");
+  assert.equal(courseElapsed(100, 200, 900, 25), 75, "a cease fire is not shooting time");
+});
+
+test("run clock: a skipped string contributes no rounds", () => {
+  const strings = [
+    { id: "a", label: "", phase: "", par: 2, rounds: 6, details: [] },
+    { id: "b", label: "", phase: "", par: 4, rounds: 5, details: [] },
+    { id: "c", label: "", phase: "", par: null, rounds: 3, details: [] },
+  ];
+  const outcomes = {
+    a: { id: "a", elapsed: 1.8, skipped: false, reruns: 0 },
+    b: { id: "b", elapsed: null, skipped: true, reruns: 0 },
+  };
+  assert.equal(totalRounds(strings, outcomes), 6, "only strings actually fired count");
+  assert.equal(isComplete(strings, outcomes), false, "one string has no outcome yet");
+  const done = { ...outcomes, c: { id: "c", elapsed: 9, skipped: false, reruns: 2 } };
+  assert.equal(isComplete(strings, done), true, "a skipped string still counts as resolved");
+  assert.equal(totalRounds(strings, done), 9);
+});
+
+test("run clock: the stand-by delay stays inside its range", () => {
+  assert.equal(standbyDelay(1, 4, () => 0), 1);
+  assert.equal(standbyDelay(1, 4, () => 1), 4);
+  assert.equal(standbyDelay(1, 4, () => 0.5), 2.5);
+  assert.equal(standbyDelay(3, 1, () => 0.5), 3, "a backwards range collapses rather than going negative");
 });
