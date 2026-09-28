@@ -4,6 +4,15 @@ import Database from "better-sqlite3-multiple-ciphers";
 import { dateOr, isValidISODate, isoDate, number, text } from "@core/lib/forms";
 import { formatDate, formatDay, money } from "@core/lib/format";
 import { parseParSeconds } from "@core/lib/par";
+import {
+  isCombinedArms,
+  matchWeaponOption,
+  joinRoundsParts,
+  roundsPartsFor,
+  splitWeaponCell,
+  weaponOptions,
+  weaponTypeOf,
+} from "@core/lib/course-categories";
 import { passFail } from "@core/lib/cof-shared";
 import { addColumnIfMissing, runMigrations } from "@core/lib/migrations";
 import { createZip, readZip } from "@core/lib/zip";
@@ -204,4 +213,71 @@ test("run clock: rounds add up across a split string", () => {
   assert.equal(parse("2 / 2"), 4);
   assert.equal(parse("4 / 2 rounds"), 6);
   assert.equal(parse("as needed"), null);
+});
+
+test("weapon type of a category", () => {
+  assert.equal(weaponTypeOf("Handgun"), "handgun");
+  assert.equal(weaponTypeOf("Duty Pistol"), "handgun");
+  assert.equal(weaponTypeOf("Patrol Rifle"), "rifle");
+  assert.equal(weaponTypeOf("PCC"), "rifle");
+  assert.equal(weaponTypeOf("12 Gauge"), "shotgun");
+  assert.equal(weaponTypeOf("Precision"), "precision");
+});
+
+test("combined arms is derived from the categories", () => {
+  assert.equal(isCombinedArms([]), false);
+  assert.equal(isCombinedArms(["Handgun"]), false);
+  assert.equal(isCombinedArms(["Handgun", "Duty Pistol"]), false);
+  assert.equal(isCombinedArms(["Handgun", "Rifle"]), true);
+  assert.equal(isCombinedArms(["Handgun", "Rifle", "Shotgun"]), true);
+});
+
+test("weapon options are the categories and their combinations, in order", () => {
+  assert.deepEqual(weaponOptions(["Handgun"]), ["Handgun"]);
+  assert.deepEqual(weaponOptions(["Handgun", "Rifle"]), ["Handgun", "Rifle", "Handgun / Rifle"]);
+  assert.deepEqual(weaponOptions(["Handgun", "Rifle", "Shotgun"]), [
+    "Handgun",
+    "Rifle",
+    "Shotgun",
+    "Handgun / Rifle",
+    "Handgun / Shotgun",
+    "Rifle / Shotgun",
+    "Handgun / Rifle / Shotgun",
+  ]);
+  const many = weaponOptions(["A", "B", "C", "D", "E"]);
+  assert.equal(many.length, 5 + 10 + 1);
+  assert.equal(many.at(-1), "A / B / C / D / E");
+  assert.deepEqual(weaponOptions([]), []);
+  assert.deepEqual(weaponOptions([" ", ""]), []);
+});
+
+test("a weapon cell splits in the order the rounds cell is read", () => {
+  assert.deepEqual(splitWeaponCell("Handgun / Rifle"), ["Handgun", "Rifle"]);
+  assert.deepEqual(splitWeaponCell(" Handgun /  / Rifle "), ["Handgun", "Rifle"]);
+  assert.deepEqual(splitWeaponCell(""), []);
+  assert.deepEqual(splitWeaponCell(null), []);
+});
+
+test("rounds parts follow the weapon count", () => {
+  assert.deepEqual(roundsPartsFor("4 / 2", 2), ["4", "2"]);
+  assert.deepEqual(roundsPartsFor("4 / 2", 1), ["4"]);
+  assert.deepEqual(roundsPartsFor("4", 3), ["4", "", ""]);
+  assert.deepEqual(roundsPartsFor(null, 2), ["", ""]);
+  assert.deepEqual(roundsPartsFor("6", 0), ["6"]);
+  assert.equal(joinRoundsParts(["4", "2"]), "4 / 2");
+  assert.equal(joinRoundsParts(["4", ""]), "4");
+  assert.equal(joinRoundsParts(["", ""]), "");
+  assert.equal(joinRoundsParts(["", "2"]), " / 2");
+});
+
+test("a weapon cell matches its option however it is spelled", () => {
+  const opts = weaponOptions(["Handgun", "Rifle"]);
+  assert.equal(matchWeaponOption("Handgun", opts), "Handgun");
+  assert.equal(matchWeaponOption("HANDGUN", opts), "Handgun");
+  assert.equal(matchWeaponOption("handgun / rifle", opts), "Handgun / Rifle");
+  assert.equal(matchWeaponOption("Handgun/Rifle", opts), "Handgun / Rifle");
+  assert.equal(matchWeaponOption("HG/RFL", opts), null);
+  assert.equal(matchWeaponOption("Rifle / Handgun", opts), null);
+  assert.equal(matchWeaponOption("", opts), null);
+  assert.equal(matchWeaponOption(null, opts), null);
 });

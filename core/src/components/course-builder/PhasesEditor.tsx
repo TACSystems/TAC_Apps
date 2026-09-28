@@ -6,6 +6,14 @@ import {
   computePhaseRounds,
   type CourseColumn,
   } from "@core/lib/cof-shared";
+import {
+  isCombinedArms,
+  joinRoundsParts,
+  matchWeaponOption,
+  roundsPartsFor,
+  splitWeaponCell,
+  weaponOptions,
+} from "@core/lib/course-categories";
 import { addLink, cellInput, input, moved, smallBtn, toNum, uid, type BPhase, type BRow } from "./model";
 
 export default function PhasesEditor({
@@ -13,13 +21,17 @@ export default function PhasesEditor({
   setPhases,
   columns,
   positionOptions,
+  categories = [],
 }: {
   phases: BPhase[];
   setPhases: Dispatch<SetStateAction<BPhase[]>>;
   columns: CourseColumn[];
   positionOptions: string[];
+  categories?: string[];
 }) {
   const { confirm } = useDialogs();
+  const weaponChoices = weaponOptions(categories);
+  const combinedArms = isCombinedArms(categories);
   function nextStringNumber() {
     let max = 0;
     for (const p of phases) for (const s of p.strings) if (s.string_number != null) max = Math.max(max, s.string_number);
@@ -39,9 +51,24 @@ export default function PhasesEditor({
   }
 
   function setCell(pid: string, rid: string, key: string, value: string) {
+    setCells(pid, rid, { [key]: value });
+  }
+
+  function setCells(pid: string, rid: string, patch: Record<string, string>) {
     updateRows(pid, (rows) =>
-      rows.map((r) => (r.uid === rid ? { ...r, values: { ...r.values, [key]: value } } : r))
+      rows.map((r) => (r.uid === rid ? { ...r, values: { ...r.values, ...patch } } : r))
     );
+  }
+
+  /**
+   * The weapon cell and the rounds cell are read in the same order, so the
+   * rounds boxes have to follow the weapon the moment it changes — otherwise
+   * "4 / 2" survives a switch to one weapon and reads as six rounds.
+   */
+  function setWeapon(pid: string, rid: string, row: BRow, value: string) {
+    const count = Math.max(1, splitWeaponCell(value).length);
+    const kept = roundsPartsFor(row.values.rounds, count);
+    setCells(pid, rid, { weapon: value, rounds: joinRoundsParts(kept) });
   }
 
   function addString(pid: string) {
@@ -188,6 +215,9 @@ export default function PhasesEditor({
                       {columns.map((c) => (
                         <th key={c.key} className={`px-2 py-2 ${c.key === "action" ? "w-[32%]" : ""}`}>
                           {c.label}
+                          {c.key === "rounds" && combinedArms && (
+                            <span className="ml-1 whitespace-nowrap font-normal normal-case text-neutral-500">· in weapon order</span>
+                          )}
                         </th>
                       ))}
                       <th className="px-2 py-2" />
@@ -226,17 +256,83 @@ export default function PhasesEditor({
                                 className={`${cellInput} !min-w-[5.5rem] w-24`}
                               />
                             </td>
-                            {columns.map((c) =>
-                              c.key === "action" ? (
-                                <td key={c.key} className="px-2 py-1.5">
-                                  <textarea
-                                    value={row.values[c.key] ?? ""}
-                                    onChange={(e) => setCell(phase.uid, row.uid, c.key, e.target.value)}
-                                    rows={1}
-                                    className={`${cellInput} !min-w-[12rem] resize-none [field-sizing:content]`}
-                                  />
-                                </td>
-                              ) : (
+                            {columns.map((c) => {
+                              if (c.key === "action") {
+                                return (
+                                  <td key={c.key} className="px-2 py-1.5">
+                                    <textarea
+                                      value={row.values[c.key] ?? ""}
+                                      onChange={(e) => setCell(phase.uid, row.uid, c.key, e.target.value)}
+                                      rows={1}
+                                      className={`${cellInput} !min-w-[12rem] resize-none [field-sizing:content]`}
+                                    />
+                                  </td>
+                                );
+                              }
+                              if (c.key === "weapon" && weaponChoices.length) {
+                                const raw = row.values.weapon ?? "";
+                                const matched = matchWeaponOption(raw, weaponChoices);
+                                const cur = matched ?? raw;
+                                const offList = Boolean(raw) && !matched;
+                                return (
+                                  <td key={c.key} className="px-2 py-1.5">
+                                    <select
+                                      value={cur}
+                                      onChange={(e) => setWeapon(phase.uid, row.uid, row, e.target.value)}
+                                      className={`${cellInput} !min-w-[11rem] ${offList ? "text-brand-amber" : ""}`}
+                                    >
+                                      <option value="">—</option>
+                                      {weaponChoices.map((v) => (
+                                        <option key={v} value={v}>
+                                          {v}
+                                        </option>
+                                      ))}
+                                      {offList && <option value={cur}>{cur} — off-list</option>}
+                                    </select>
+                                  </td>
+                                );
+                              }
+                              if (c.key === "rounds") {
+                                const weapons = splitWeaponCell(row.values.weapon);
+                                const parts = roundsPartsFor(row.values.rounds, weapons.length || 1);
+                                if (parts.length < 2) {
+                                  return (
+                                    <td key={c.key} className="px-2 py-1.5">
+                                      <input
+                                        value={row.values.rounds ?? ""}
+                                        onChange={(e) => setCell(phase.uid, row.uid, "rounds", e.target.value)}
+                                        autoComplete="off"
+                                        className={cellInput}
+                                      />
+                                    </td>
+                                  );
+                                }
+                                return (
+                                  <td key={c.key} className="px-2 py-1.5">
+                                    <div className="flex items-center gap-1">
+                                      {parts.map((v, i) => (
+                                        <div key={i} className="flex items-center gap-1">
+                                          {i > 0 && <span className="text-neutral-500">/</span>}
+                                          <input
+                                            value={v}
+                                            inputMode="numeric"
+                                            title={weapons[i]}
+                                            placeholder={weapons[i]}
+                                            onChange={(e) => {
+                                              const next = [...parts];
+                                              next[i] = e.target.value;
+                                              setCell(phase.uid, row.uid, "rounds", joinRoundsParts(next));
+                                            }}
+                                            autoComplete="off"
+                                            className={`${cellInput} !min-w-[3rem] w-14`}
+                                          />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </td>
+                                );
+                              }
+                              return (
                                 <td key={c.key} className="px-2 py-1.5">
                                   <input
                                     value={row.values[c.key] ?? ""}
@@ -246,8 +342,8 @@ export default function PhasesEditor({
                                     className={cellInput}
                                   />
                                 </td>
-                              )
-                            )}
+                              );
+                            })}
                           </>
                         )}
                         <td className="px-2 py-1.5">

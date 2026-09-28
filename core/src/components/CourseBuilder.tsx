@@ -16,6 +16,7 @@ import {
 } from "@core/lib/cof-shared";
 import TargetTypeEditor from "@core/components/TargetTypeEditor";
 import CategoryPicker from "@core/components/CategoryPicker";
+import { isCombinedArms } from "@core/lib/course-categories";
 import { clearUnsaved, useUnsaved } from "@core/components/UnsavedGuard";
 import HelpTip from "@core/components/HelpTip";
 import ColumnsEditor from "@core/components/course-builder/ColumnsEditor";
@@ -51,6 +52,7 @@ export default function CourseBuilder({
   const [code, setCode] = useState(initial?.code ?? "");
   const [categories, setCategories] = useState<string[]>(initial?.categories ?? []);
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  const combinedArms = isCombinedArms(categories);
   const [totalOverride, setTotalOverride] = useState(
     initial?.total_rounds != null ? String(initial.total_rounds) : ""
   );
@@ -262,7 +264,12 @@ export default function CourseBuilder({
           <div className="flex flex-col gap-1 text-sm sm:col-span-3">
             <span className="uppercase tracking-[0.06em]">Category</span>
             <CategoryPicker options={categoryOptions} value={categories} onChange={setCategories} />
-            <span className="text-xs text-neutral-500">Pick every type the course uses. Edit the list in Controls.</span>
+            <span className="text-xs text-neutral-500">
+              Pick every type the course uses. Edit the list in Controls.
+              {combinedArms && (
+                <span className="ml-1 text-brand-amber">Combined Arms Course — strings can name more than one weapon.</span>
+              )}
+            </span>
           </div>
           <label className="flex flex-col gap-1 text-sm sm:col-span-3">
             Description / Notes
@@ -321,7 +328,13 @@ export default function CourseBuilder({
 
       <ColumnsEditor columns={columns} setColumns={setColumns} />
 
-      <PhasesEditor phases={phases} setPhases={setPhases} columns={columns} positionOptions={positionOptions} />
+      <PhasesEditor
+        phases={phases}
+        setPhases={setPhases}
+        columns={columns}
+        positionOptions={positionOptions}
+        categories={categories}
+      />
 
       <ScorecardEditor scorecard={scorecard} setScorecard={setScorecard} previewCourse={previewCourse} />
 
