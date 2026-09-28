@@ -14,6 +14,7 @@ const NAV: NavEntry[] = [
     icon: "range",
     match: ["/courses", "/targets", "/timer", "/checklist"],
     items: [
+      { href: "/certifications", label: "Certifications", icon: "badge" },
       { href: "/courses", label: "Courses of Fire", icon: "course" },
       { href: "/targets", label: "Target Types", icon: "target" },
       { href: "/timer", label: "Par Timer", icon: "timer" },

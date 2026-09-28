@@ -85,6 +85,53 @@ const MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    // Certifications: a named, ordered set of courses a student must pass.
+    // Completion is computed from passing runs rather than recorded, so a
+    // credential earned across more than one class needs no special path.
+    // A certificate number is written at issue, which is what makes a
+    // reprint carry the same number.
+    id: 7,
+    name: "certifications-0.5.0",
+    up: (db) => {
+      db.exec(`
+        create table if not exists certifications (
+          id text primary key,
+          name text not null unique,
+          code text,
+          description text,
+          certificate_title text,
+          certificate_body text,
+          sort_order integer not null default 0
+        );
+
+        create table if not exists certification_courses (
+          id text primary key,
+          certification_id text not null references certifications(id) on delete cascade,
+          cof_id text not null references courses_of_fire(id) on delete cascade,
+          sort_order integer not null default 0,
+          unique (certification_id, cof_id)
+        );
+
+        create table if not exists certificates (
+          id text primary key,
+          number integer not null unique,
+          student_id text not null references students(id) on delete cascade,
+          certification_id text not null references certifications(id) on delete cascade,
+          class_id text references classes(id) on delete set null,
+          issued_on text not null,
+          issued_by text,
+          unique (student_id, certification_id)
+        );
+      `);
+      const cols = db.prepare(`pragma table_info(classes)`).all() as { name: string }[];
+      if (!cols.some((c) => c.name === "certification_id")) {
+        db.prepare(
+          `alter table classes add column certification_id text references certifications(id) on delete set null`
+        ).run();
+      }
+    },
+  },
 ];
 
 function closeLocalDb() {
