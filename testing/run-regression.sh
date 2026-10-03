@@ -27,6 +27,7 @@ run v071-settings v5
 run v080-sessions-ammo v71
 run v080-ammo-lines v71
 run v0110-weapon-rounds v5
+run v0110-run-tally v5
 for p in $(pgrep -f "^next-server|^node server.js"); do kill $p; done
 echo "TOTAL FAILURES: $total_fail"
 [ "$total_fail" = 0 ]

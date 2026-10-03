@@ -523,3 +523,83 @@ details[data-section] { scroll-margin-top: calc(var(--tac-nav-h, 0px) + 8px); }
 @media (max-width: 900px) {
   .run-body { grid-template-columns: 1fr; }
 }
+
+/* The end-of-run tally. It sits over the run rather than replacing it, so the
+   course you just shot is still behind the numbers you are confirming. */
+.run-tally-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: color-mix(in srgb, var(--tl-n950) 88%, transparent);
+}
+.run-tally {
+  width: min(44rem, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  background: var(--tl-n900);
+  border: 1px solid var(--tl-border);
+  border-top: 3px solid var(--tl-amber);
+  padding: 1.1rem 1.3rem 1rem;
+}
+.run-tally-head { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+.run-tally-head h2 { font-size: 1.3rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.run-tally-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9rem; margin-bottom: 1rem; }
+.run-tally-stats > div { background: var(--tl-n950); border: 1px solid var(--tl-border); padding: 0.55rem 0.8rem; }
+.run-tally-stats .run-v { font-size: 1.5rem; display: block; }
+.run-tally-stats .run-lbl { display: block; }
+.run-tally-warn { color: var(--tl-amber); }
+.run-tally-rounds { width: 100%; border-collapse: collapse; }
+.run-tally-rounds th {
+  text-align: left;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--tl-n500);
+  font-weight: 400;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--tl-border);
+}
+.run-tally-rounds td { padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--tl-border); }
+.run-tally-rounds input {
+  width: 5rem;
+  background: var(--tl-n950);
+  border: 1px solid var(--tl-border);
+  color: var(--tl-n100);
+  font: inherit;
+  font-family: var(--tl-font-mono, monospace);
+  padding: 0.2rem 0.45rem;
+}
+.run-tally-none { color: var(--tl-n500); }
+.run-tally-total td { font-weight: 700; border-bottom: 0; }
+.run-tally-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tl-n500);
+}
+.run-tally-foot kbd {
+  border: 1px solid currentColor;
+  padding: 0.1rem 0.35rem;
+  margin-right: 0.45rem;
+  font: inherit;
+}
+.run-tally-foot button {
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--tl-border);
+  background: transparent;
+  color: var(--tl-n300);
+  cursor: pointer;
+}
+.run-tally-go { background: var(--tl-amber); border-color: var(--tl-amber); color: var(--tl-on-primary, var(--tl-n950)); font-weight: 700; }

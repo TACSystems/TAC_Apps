@@ -16,6 +16,10 @@ export type RunString = {
   /** Seconds, or null for a string with no par ("SLOW FIRE"). */
   par: number | null;
   rounds: number | null;
+  /** The weapons this string is fired with, in the order its rounds cell is read. */
+  weapons?: string[];
+  /** One count per weapon, parallel to `weapons`. Their sum is `rounds`. */
+  roundParts?: (number | null)[];
   details: string[];
 };
 
@@ -121,6 +125,36 @@ export function totalRounds(strings: RunString[], outcomes: Record<string, Strin
     if (!o || o.skipped) return n;
     return n + (s.rounds ?? 0);
   }, 0);
+}
+
+export type WeaponTally = { weapon: string | null; rounds: number };
+
+/**
+ * Rounds split the way they will be posted: one bucket per weapon, in the
+ * order the weapons first appear in the course. A string with no weapon named
+ * falls in the unnamed bucket, which is the whole course on a single-weapon
+ * one. Skipped strings count for nothing, the same as the running tally.
+ */
+export function roundsByWeapon(strings: RunString[], outcomes: Record<string, StringOutcome>): WeaponTally[] {
+  const order: (string | null)[] = [];
+  const sums = new Map<string, number>();
+  const add = (weapon: string | null, n: number) => {
+    const key = weapon ?? "";
+    if (!sums.has(key)) order.push(weapon);
+    sums.set(key, (sums.get(key) ?? 0) + n);
+  };
+  for (const s of strings) {
+    const o = outcomes[s.id];
+    if (!o || o.skipped) continue;
+    const weapons = s.weapons ?? [];
+    if (weapons.length < 2) {
+      add(weapons[0] ?? null, s.rounds ?? 0);
+      continue;
+    }
+    const parts = s.roundParts ?? [];
+    weapons.forEach((w, i) => add(w, parts[i] ?? 0));
+  }
+  return order.map((weapon) => ({ weapon, rounds: sums.get(weapon ?? "") ?? 0 }));
 }
 
 export function nextIndex(strings: RunString[], from: number) {

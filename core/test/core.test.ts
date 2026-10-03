@@ -7,6 +7,7 @@ import { parseParSeconds } from "@core/lib/par";
 import {
   isCombinedArms,
   matchWeaponOption,
+  matchWeaponPart,
   joinRoundsParts,
   roundsPartsFor,
   splitWeaponCell,
@@ -32,6 +33,7 @@ import {
   schedule,
   standbyDelay,
   totalRounds,
+  roundsByWeapon,
 } from "../src/lib/run-clock.ts";
 
 test("form checks", () => {
@@ -280,4 +282,42 @@ test("a weapon cell matches its option however it is spelled", () => {
   assert.equal(matchWeaponOption("Rifle / Handgun", opts), null);
   assert.equal(matchWeaponOption("", opts), null);
   assert.equal(matchWeaponOption(null, opts), null);
+});
+
+test("a weapon part matches a declared category only", () => {
+  const cats = ["Handgun", "Rifle"];
+  assert.equal(matchWeaponPart("handgun", cats), "Handgun");
+  assert.equal(matchWeaponPart(" RIFLE ", cats), "Rifle");
+  assert.equal(matchWeaponPart("HG", cats), null);
+  assert.equal(matchWeaponPart("", cats), null);
+  assert.equal(matchWeaponPart(null, cats), null);
+});
+
+test("rounds split the way they will be posted", () => {
+  const strings = [
+    { id: "a", label: "", phase: "1", par: null, rounds: 2, weapons: ["Handgun"], roundParts: [], details: [] },
+    { id: "b", label: "", phase: "1", par: null, rounds: 4, weapons: ["Handgun", "Rifle"], roundParts: [2, 2], details: [] },
+    { id: "c", label: "", phase: "1", par: null, rounds: 8, weapons: ["Rifle"], roundParts: [], details: [] },
+    { id: "d", label: "", phase: "1", par: null, rounds: 5, weapons: [], roundParts: [], details: [] },
+    { id: "e", label: "", phase: "1", par: null, rounds: 6, weapons: ["HG", "RFL"], roundParts: [4, 2], details: [] },
+  ];
+  const all = Object.fromEntries(strings.map((s) => [s.id, { id: s.id, elapsed: 1, skipped: false, reruns: 0 }]));
+  assert.deepEqual(roundsByWeapon(strings, all), [
+    { weapon: "Handgun", rounds: 4 },
+    { weapon: "Rifle", rounds: 10 },
+    { weapon: null, rounds: 5 },
+    { weapon: "HG", rounds: 4 },
+    { weapon: "RFL", rounds: 2 },
+  ]);
+  assert.equal(
+    roundsByWeapon(strings, all).reduce((n, t) => n + t.rounds, 0),
+    totalRounds(strings, all)
+  );
+
+  const skipped = { ...all, b: { id: "b", elapsed: null, skipped: true, reruns: 0 } };
+  assert.deepEqual(roundsByWeapon(strings, skipped).slice(0, 2), [
+    { weapon: "Handgun", rounds: 2 },
+    { weapon: "Rifle", rounds: 8 },
+  ]);
+  assert.deepEqual(roundsByWeapon(strings, {}), []);
 });

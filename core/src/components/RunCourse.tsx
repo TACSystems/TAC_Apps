@@ -18,10 +18,13 @@ import {
   type RunMode,
   type RunPhase,
   type RunString,
+  roundsByWeapon,
+  type WeaponTally,
   type Scheduled,
   type StringOutcome,
 } from "@core/lib/run-clock";
 import { createAudioClock } from "@core/lib/run-audio";
+import RunTally from "@core/components/RunTally";
 
 export type RunCourseProps = {
   app: string;
@@ -35,6 +38,8 @@ export type RunCourseProps = {
   children?: ReactNode;
   exitHref: string;
   onFinish?: (summary: RunSummary) => void;
+  /** What each weapon's rounds post to, keyed by weapon ("" for an unnamed one). */
+  destinations?: Record<string, string>;
   dryFire?: boolean;
 };
 
@@ -42,6 +47,9 @@ export type RunSummary = {
   outcomes: StringOutcome[];
   courseSeconds: number;
   rounds: number;
+  /** As accepted on the tally, which is not always as counted. */
+  byWeapon: WeaponTally[];
+  corrected: boolean;
   options: Record<string, string>;
   dryFire: boolean;
 };
@@ -62,6 +70,7 @@ export default function RunCourse({
   children,
   exitHref,
   onFinish,
+  destinations = {},
   dryFire = false,
 }: RunCourseProps) {
   const clock = useMemo(() => createAudioClock(), []);
@@ -73,6 +82,7 @@ export default function RunCourse({
   const [outcomes, setOutcomes] = useState<Record<string, StringOutcome>>({});
   const [options, setOptions] = useState<Record<string, string>>({});
   const [paused, setPaused] = useState(false);
+  const [tally, setTally] = useState<{ seconds: number; byWeapon: WeaponTally[] } | null>(null);
   const [dry, setDry] = useState(dryFire);
   const [wall, setWall] = useState(() => new Date());
   const [showPrev, setShowPrev] = useState(false);
@@ -186,6 +196,7 @@ export default function RunCourse({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (tally) return;
       if (e.target instanceof HTMLElement && ["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
       const k = e.key.toLowerCase();
       if (k === " " || e.code === "Space") {
@@ -199,20 +210,37 @@ export default function RunCourse({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [advance, rerun, skip, togglePause]);
+  }, [advance, rerun, skip, tally, togglePause]);
 
   const finished = useRef(false);
   useEffect(() => {
     if (!done || finished.current) return;
     finished.current = true;
-    onFinish?.({
-      outcomes: strings.map((s) => outcomes[s.id]).filter(Boolean),
-      courseSeconds: courseElapsed(firstBeep, lastBeep, clock.now(), pausedTotal),
-      rounds: totalRounds(strings, outcomes),
+    setTally({
+      seconds: courseElapsed(firstBeep, lastBeep, clock.now(), pausedTotal),
+      byWeapon: roundsByWeapon(strings, outcomes),
+    });
+  }, [clock, done, firstBeep, lastBeep, outcomes, pausedTotal, strings]);
+
+  const counted = strings.map((s) => outcomes[s.id]).filter(Boolean);
+  const acceptTally = (edited: WeaponTally[]) => {
+    const before = tally?.byWeapon ?? [];
+    // Until the scoring handoff is wired, accepting still has to go somewhere
+    // rather than leave the tally on screen with nothing to press.
+    if (!onFinish) {
+      window.location.assign(exitHref);
+      return;
+    }
+    onFinish({
+      outcomes: counted,
+      courseSeconds: tally?.seconds ?? 0,
+      rounds: edited.reduce((n, t) => n + t.rounds, 0),
+      byWeapon: edited,
+      corrected: edited.some((t, i) => t.rounds !== before[i]?.rounds),
       options,
       dryFire: dry,
     });
-  }, [clock, done, dry, firstBeep, lastBeep, onFinish, options, outcomes, pausedTotal, strings]);
+  };
 
   const frame =
     phase === "live" ? "var(--run-live)" : phase === "over" ? "var(--run-over)" : phase === "standby" || phase === "paused" ? "var(--tl-amber)" : "transparent";
@@ -405,6 +433,22 @@ export default function RunCourse({
           ESC EXIT
         </a>
       </footer>
+
+      {tally ? (
+        <RunTally
+          courseName={courseName}
+          courseCode={courseCode}
+          elapsed={tally.seconds}
+          fired={counted.filter((o) => !o.skipped).length}
+          skipped={counted.filter((o) => o.skipped).length}
+          reruns={counted.reduce((n, o) => n + o.reruns, 0)}
+          tallies={tally.byWeapon}
+          destinations={destinations}
+          dryFire={dry}
+          onAccept={acceptTally}
+          onDiscard={() => window.location.assign(exitHref)}
+        />
+      ) : null}
     </div>
   );
 }

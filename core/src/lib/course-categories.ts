@@ -137,6 +137,17 @@ export function matchWeaponOption(cell: string | undefined | null, options: stri
   return options.find((o) => splitWeaponCell(o).join("|").toLowerCase() === key) ?? null;
 }
 
+/**
+ * One part of a weapon cell against the course's categories. Spelling and case
+ * are ignored; an abbreviation nobody declared as a category is not guessed at,
+ * so it stays itself and posts to nothing.
+ */
+export function matchWeaponPart(part: string | undefined | null, categories: string[]): string | null {
+  const v = String(part ?? "").trim().toLowerCase();
+  if (!v) return null;
+  return categories.find((c) => c.trim().toLowerCase() === v) ?? null;
+}
+
 export function roundsPartsFor(cell: string | undefined | null, count: number): string[] {
   const parts = String(cell ?? "")
     .split("/")

@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3-multiple-ciphers";
+import { firearmMatchesCategories, isCombinedArms } from "@core/lib/course-categories";
 
 export type PastRun = {
   id: string;
@@ -52,17 +53,31 @@ export function previousRuns(db: Database.Database, cofId: string, firearmId: st
   };
 }
 
-export type ArmoryPick = { id: string; label: string; caliber: string | null; shots_fired: number };
+export type ArmoryPick = { id: string; label: string; caliber: string | null; shots_fired: number; platform: string | null };
 
-export function armoryForRun(db: Database.Database, cofId: string) {
+/** One weapon of the course, with the firearms that fit it listed first. */
+export type ArmorySlot = { category: string | null; matched: ArmoryPick[]; others: ArmoryPick[] };
+
+export function armoryForRun(db: Database.Database, cofId: string, categories: string[] = []) {
   const list = db
     .prepare(
-      `select id, firearm_label(make_model, nickname) as label, caliber, shots_fired
+      `select id, firearm_label(make_model, nickname) as label, caliber, shots_fired, platform
          from firearms where status != 'sold' order by label`
     )
     .all() as ArmoryPick[];
   const lastUsed = db
     .prepare(`select firearm_id from range_log where cof_id = ? and firearm_id is not null order by date desc, rowid desc limit 1`)
     .get(cofId) as { firearm_id: string } | undefined;
-  return { list, lastUsed: lastUsed?.firearm_id ?? null };
+
+  // A combined arms course is fired with more than one firearm, and its rounds
+  // have to land on the right one, so it asks per weapon rather than once.
+  const slots: ArmorySlot[] = isCombinedArms(categories)
+    ? categories.map((category) => ({
+        category,
+        matched: list.filter((f) => firearmMatchesCategories(f.platform, [category])),
+        others: list.filter((f) => !firearmMatchesCategories(f.platform, [category])),
+      }))
+    : [{ category: null, matched: list, others: [] }];
+
+  return { list, slots, lastUsed: lastUsed?.firearm_id ?? null };
 }
