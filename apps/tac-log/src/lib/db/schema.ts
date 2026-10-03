@@ -226,6 +226,7 @@ create table if not exists course_runs (
   session_id text references range_sessions(id) on delete set null,
   date text not null,
   elapsed_seconds real,
+  paused_seconds real,
   combined_arms integer not null default 0,
   dry_fire integer not null default 0,
   strings_fired integer not null default 0,

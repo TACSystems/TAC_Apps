@@ -33,6 +33,7 @@ type Run = {
   final_score_percent: number | null;
   passing_score_percent: number | null;
   weather_conditions: string | null;
+  run_id: string | null;
 };
 
 type Practice = {
@@ -78,12 +79,36 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
        where p.session_id = ? order by p.created_at`
     )
     .all(id) as Practice[];
+  // A run that was accepted but never scored still happened: its rounds are in
+  // the practice entries, but without this the run itself is invisible.
+  const unscored = db
+    .prepare(
+      `select r.id, r.date, r.elapsed_seconds, r.combined_arms, r.strings_fired, r.strings_skipped,
+              r.cof_id, c.name as cof_name
+         from course_runs r
+         left join courses_of_fire c on c.id = r.cof_id
+        where r.session_id = ?
+          and not exists (select 1 from range_log l where l.run_id = r.id)
+        order by r.created_at`
+    )
+    .all(id) as {
+      id: string;
+      date: string;
+      elapsed_seconds: number | null;
+      combined_arms: number;
+      strings_fired: number;
+      strings_skipped: number;
+      cof_id: string | null;
+      cof_name: string | null;
+    }[];
+
   const others = sessionOptions(db, id);
   const open = pageSections(db, "session");
   const locations = getDropdownOptions(db, "range_location");
 
   const byFirearm = new Map<string, { firearm: string; firearm_id: string | null; rounds: number; ammo: Set<string> }>();
-  for (const e of [...runs.map((r) => ({ ...r, rounds: r.rounds_fired ?? 0 })), ...practice]) {
+  // A scored run's rounds are already counted in its practice entries.
+  for (const e of [...runs.filter((r) => !r.run_id).map((r) => ({ ...r, rounds: r.rounds_fired ?? 0 })), ...practice]) {
     const key = e.firearm_id ?? e.firearm ?? "none";
     const row = byFirearm.get(key) ?? { firearm: e.firearm ?? "No firearm linked", firearm_id: e.firearm_id, rounds: 0, ammo: new Set<string>() };
     row.rounds += e.rounds;
@@ -207,7 +232,27 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
               </div>
             );
           })}
-          {runs.length === 0 && (
+          {unscored.map((r) => (
+            <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 border border-dashed border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
+              <Link href={`/range-log/run/${r.id}`} className="flex-1 hover:text-brand-amber">
+                <span className="font-medium">{r.cof_name ?? "Course run"}</span>
+                <span className="text-neutral-400">
+                  {" "}
+                  · {r.combined_arms ? "Combined Arms Course" : "Course run"} · {r.strings_fired} strings
+                  {r.strings_skipped ? ` · ${r.strings_skipped} skipped` : ""}
+                </span>
+              </Link>
+              <span className="flex items-center gap-3">
+                <span className="text-xs uppercase tracking-widest text-neutral-500">Not scored</span>
+                {r.cof_id ? (
+                  <Link href={`/courses/${r.cof_id}/log?run=${r.id}`} className="text-brand-amber hover:text-brand-amber-light">
+                    Score it
+                  </Link>
+                ) : null}
+              </span>
+            </div>
+          ))}
+          {runs.length === 0 && unscored.length === 0 && (
             <p className="text-sm text-neutral-500">
               No course runs.{" "}
               <Link href={`/range-log/new?mode=course&${qs}`} className="text-brand-amber hover:text-brand-amber-light">

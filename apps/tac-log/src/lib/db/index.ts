@@ -253,6 +253,13 @@ export const MIGRATIONS: Migration[] = [
       `);
     },
   },
+  {
+    id: 8,
+    name: "0.11 a run remembers the time it spent paused",
+    up: (db) => {
+      addColumnIfMissing(db, "course_runs", "paused_seconds", "REAL");
+    },
+  },
 ];
 
 function initDb(): Database.Database {

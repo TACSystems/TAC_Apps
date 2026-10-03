@@ -42,15 +42,16 @@ export async function finishRun(cofId: string, picks: Record<string, string>, su
   db.transaction(() => {
     db.prepare(
       `insert into course_runs
-         (id, cof_id, date, elapsed_seconds, combined_arms, dry_fire, strings_fired, strings_skipped,
-          reruns, corrected, options_json)
-       values (@id, @cof_id, @date, @elapsed_seconds, @combined_arms, 0, @strings_fired, @strings_skipped,
-          @reruns, @corrected, @options_json)`
+         (id, cof_id, date, elapsed_seconds, paused_seconds, combined_arms, dry_fire, strings_fired,
+          strings_skipped, reruns, corrected, options_json)
+       values (@id, @cof_id, @date, @elapsed_seconds, @paused_seconds, @combined_arms, 0, @strings_fired,
+          @strings_skipped, @reruns, @corrected, @options_json)`
     ).run({
       id: runId,
       cof_id: cofId,
       date,
       elapsed_seconds: summary.courseSeconds,
+      paused_seconds: summary.pausedSeconds,
       combined_arms: combinedArms ? 1 : 0,
       strings_fired: fired,
       strings_skipped: skipped,

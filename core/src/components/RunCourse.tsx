@@ -46,6 +46,7 @@ export type RunCourseProps = {
 export type RunSummary = {
   outcomes: StringOutcome[];
   courseSeconds: number;
+  pausedSeconds: number;
   rounds: number;
   /** As accepted on the tally, which is not always as counted. */
   byWeapon: WeaponTally[];
@@ -82,7 +83,7 @@ export default function RunCourse({
   const [outcomes, setOutcomes] = useState<Record<string, StringOutcome>>({});
   const [options, setOptions] = useState<Record<string, string>>({});
   const [paused, setPaused] = useState(false);
-  const [tally, setTally] = useState<{ seconds: number; byWeapon: WeaponTally[] } | null>(null);
+  const [tally, setTally] = useState<{ seconds: number; paused: number; byWeapon: WeaponTally[] } | null>(null);
   const [dry, setDry] = useState(dryFire);
   const [wall, setWall] = useState(() => new Date());
   const [showPrev, setShowPrev] = useState(false);
@@ -218,6 +219,7 @@ export default function RunCourse({
     finished.current = true;
     setTally({
       seconds: courseElapsed(firstBeep, lastBeep, clock.now(), pausedTotal),
+      paused: pausedTotal,
       byWeapon: roundsByWeapon(strings, outcomes),
     });
   }, [clock, done, firstBeep, lastBeep, outcomes, pausedTotal, strings]);
@@ -234,6 +236,7 @@ export default function RunCourse({
     onFinish({
       outcomes: counted,
       courseSeconds: tally?.seconds ?? 0,
+      pausedSeconds: tally?.paused ?? 0,
       rounds: edited.reduce((n, t) => n + t.rounds, 0),
       byWeapon: edited,
       corrected: edited.some((t, i) => t.rounds !== before[i]?.rounds),

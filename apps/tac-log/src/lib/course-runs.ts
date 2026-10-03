@@ -8,6 +8,7 @@ export type CourseRun = {
   session_id: string | null;
   date: string;
   elapsed_seconds: number | null;
+  paused_seconds: number | null;
   combined_arms: number;
   dry_fire: number;
   strings_fired: number;

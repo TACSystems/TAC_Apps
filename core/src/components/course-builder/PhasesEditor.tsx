@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { useDialogs } from "@core/components/Dialogs";
 import {
   computePhaseRounds,
@@ -32,6 +32,7 @@ export default function PhasesEditor({
   const { confirm } = useDialogs();
   const weaponChoices = weaponOptions(categories);
   const combinedArms = isCombinedArms(categories);
+  const [offer, setOffer] = useState<{ from: string; to: string; count: number } | null>(null);
   function nextStringNumber() {
     let max = 0;
     for (const p of phases) for (const s of p.strings) if (s.string_number != null) max = Math.max(max, s.string_number);
@@ -66,9 +67,52 @@ export default function PhasesEditor({
    * "4 / 2" survives a switch to one weapon and reads as six rounds.
    */
   function setWeapon(pid: string, rid: string, row: BRow, value: string) {
-    const count = Math.max(1, splitWeaponCell(value).length);
-    const kept = roundsPartsFor(row.values.rounds, count);
-    setCells(pid, rid, { weapon: value, rounds: joinRoundsParts(kept) });
+    const was = (row.values.weapon ?? "").trim();
+    setCells(pid, rid, { weapon: value, rounds: weaponRounds(row.values.rounds, value) });
+
+    // A course spells a weapon the same way all the way down, so fixing one
+    // off-list cell almost always means fixing every other one like it. The
+    // offer is made, never taken on its own — decision 12 stands.
+    const fixable =
+      was && value && !matchWeaponOption(was, weaponChoices) && weaponChoices.includes(value)
+        ? countLike(was, rid)
+        : 0;
+    setOffer(fixable > 0 ? { from: was, to: value, count: fixable } : null);
+  }
+
+  function weaponRounds(rounds: string | undefined, weapon: string) {
+    return joinRoundsParts(roundsPartsFor(rounds, Math.max(1, splitWeaponCell(weapon).length)));
+  }
+
+  function sameSpelling(a: string, b: string) {
+    return a.trim().toLowerCase() === b.trim().toLowerCase();
+  }
+
+  function countLike(spelling: string, exceptRid: string) {
+    let n = 0;
+    for (const p of phases) {
+      for (const r of p.strings) {
+        if (r.uid === exceptRid || r.row_type !== "string") continue;
+        if (r.values.weapon && sameSpelling(r.values.weapon, spelling)) n++;
+      }
+    }
+    return n;
+  }
+
+  function applyOffer() {
+    if (!offer) return;
+    const { from, to } = offer;
+    setPhases((ps) =>
+      ps.map((p) => ({
+        ...p,
+        strings: p.strings.map((r) =>
+          r.row_type === "string" && r.values.weapon && sameSpelling(r.values.weapon, from)
+            ? { ...r, values: { ...r.values, weapon: to, rounds: weaponRounds(r.values.rounds, to) } }
+            : r
+        ),
+      }))
+    );
+    setOffer(null);
   }
 
   function addString(pid: string) {
@@ -125,6 +169,23 @@ export default function PhasesEditor({
 
   return (
       <section className="flex flex-col gap-4">
+        {offer ? (
+          <div className="flex flex-wrap items-center gap-3 border border-brand-amber/60 bg-neutral-900 px-3 py-2 text-sm">
+            <span>
+              {offer.count} other {offer.count === 1 ? "string says" : "strings say"}{" "}
+              <b className="text-brand-amber">{offer.from}</b>. Change {offer.count === 1 ? "it" : "them"} to{" "}
+              <b>{offer.to}</b> as well?
+            </span>
+            <span className="flex-1" />
+            <button type="button" className={smallBtn} onClick={applyOffer}>
+              Fix {offer.count === 1 ? "it" : "all " + offer.count}
+            </button>
+            <button type="button" className={smallBtn} onClick={() => setOffer(null)}>
+              Leave them
+            </button>
+          </div>
+        ) : null}
+
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-medium text-neutral-200">4 · Phases &amp; Strings</h2>
           <button type="button" className={smallBtn} onClick={renumber}>
