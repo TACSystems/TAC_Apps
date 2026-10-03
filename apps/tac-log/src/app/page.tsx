@@ -74,7 +74,7 @@ export default async function HomePage() {
   const roundsThisYear = (
     db
       .prepare(
-        `select coalesce((select sum(coalesce(rounds_fired, 0)) from range_log where substr(date, 1, 4) = ?), 0)
+        `select coalesce((select sum(coalesce(rounds_fired, 0)) from range_log where substr(date, 1, 4) = ? and run_id is null), 0)
            + coalesce((select sum(rounds) from rounds_fired_log where substr(date, 1, 4) = ?), 0) as n`
       )
       .get(year, year) as { n: number }

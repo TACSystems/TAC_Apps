@@ -8,6 +8,7 @@ import RunCourse from "@core/components/RunCourse";
 import PreviousRun from "@/components/PreviousRun";
 import { armoryForRun, previousRuns } from "@/lib/previous-runs";
 import RunSetup from "@/components/RunSetup";
+import { finishRun } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -121,6 +122,7 @@ export default async function RunCoursePage({
       phaseOptions={phaseOptions}
       exitHref={`/courses/${id}`}
       destinations={destinations}
+      onFinish={finishRun.bind(null, id, Object.fromEntries(picks))}
       contextLabel={`${context.length ? context.join(" · ") : "Not in Armory"} · ${rounds} rounds`}
     >
       <PreviousRun last={last} best={best} scope={scope} />

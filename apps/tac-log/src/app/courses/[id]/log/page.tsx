@@ -8,6 +8,7 @@ import { getSettings } from "@/lib/settings";
 import { getDropdownOptions } from "@/lib/db/dropdown-options";
 import { submitRangeLog } from "./actions";
 import { lastPicks, pickOptions } from "@/lib/ammo";
+import { runForScoring } from "@/lib/course-runs";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default async function LogRunPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ date?: string; location?: string }>;
+  searchParams: Promise<{ date?: string; location?: string; run?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -41,6 +42,12 @@ export default async function LogRunPage({
     weather_conditions: getDropdownOptions(db, "weather"),
     caliber: getDropdownOptions(db, "caliber"),
   };
+
+  const run = sp.run ? runForScoring(db, sp.run, id) : null;
+  if (run) {
+    defaults.date = run.date;
+    if (!defaults.weapon_used && run.weaponUsed) defaults.weapon_used = run.weaponUsed;
+  }
 
   const fields = [...course.scorecard.header, ...course.scorecard.signoff].filter(
     (f) => !f.printOnly && f.key !== "date"
@@ -80,6 +87,19 @@ export default async function LogRunPage({
           defaults={defaults}
           suggestions={suggestions}
           action={submitRangeLog.bind(null, id)}
+          fromRun={run?.fromRun}
+          initial={
+            run
+              ? {
+                  date: run.date,
+                  firearm_id: run.soleFirearmId,
+                  rounds_fired: run.rounds,
+                  counts: {},
+                  notes: null,
+                  passing: course.passing_score_percent,
+                }
+              : undefined
+          }
           ammoOptions={pickOptions(db)}
           lastPicks={lastPicks(db)}
         />

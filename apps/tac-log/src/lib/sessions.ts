@@ -153,7 +153,7 @@ export function listSessions(db: Database.Database) {
   return db
     .prepare(
       `select s.*,
-         coalesce((select sum(coalesce(rounds_fired, 0)) from range_log where session_id = s.id), 0)
+         coalesce((select sum(coalesce(rounds_fired, 0)) from range_log where session_id = s.id and run_id is null), 0)
            + coalesce((select sum(rounds) from rounds_fired_log where session_id = s.id), 0) as rounds,
          (select group_concat(label, ' | ') from (
             select distinct firearm_label(f.make_model, f.nickname) as label from (

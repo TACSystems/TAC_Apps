@@ -28,6 +28,7 @@ export default function ScoringForm({
   submitLabel = "Save Course Run",
   ammoOptions = [],
   lastPicks = {},
+  fromRun,
 }: {
   zones: ZoneDef[];
   fields: ScorecardField[];
@@ -52,6 +53,8 @@ export default function ScoringForm({
   submitLabel?: string;
   matchCategories?: string[];
   graderDateFollows?: boolean;
+  /** Opened from an accepted Run Course tally: its rounds are already posted. */
+  fromRun?: { id: string; elapsed: string; combinedArms: boolean; firearms: { weapon: string | null; label: string; rounds: number }[] };
 }) {
   const [sessionDate, setSessionDate] = useState(initial?.date ?? defaults.date ?? todayISO());
   const [graderDate, setGraderDate] = useState(defaults.grader_date ?? "");
@@ -72,6 +75,27 @@ export default function ScoringForm({
   return (
     <form action={action} className="flex flex-col gap-4">
       <UnsavedGuard />
+      {fromRun ? (
+        <>
+          <input type="hidden" name="run_id" value={fromRun.id} />
+          <div className="brk border border-brand-amber/50 bg-neutral-900/60 p-3 text-sm">
+            <div className="text-xs uppercase tracking-[0.18em] text-brand-amber">
+              {fromRun.combinedArms ? "Combined Arms Course run" : "Course run"} · {fromRun.elapsed}
+            </div>
+            <ul className="mt-1 text-neutral-300">
+              {fromRun.firearms.map((f) => (
+                <li key={`${f.weapon ?? ""}-${f.label}`}>
+                  {f.weapon ? `${f.weapon}: ` : ""}
+                  {f.label} — {f.rounds} rounds
+                </li>
+              ))}
+            </ul>
+            <p className="mt-1 text-xs text-neutral-500">
+              These rounds are already recorded against each firearm. Scoring them here will not count them twice.
+            </p>
+          </div>
+        </>
+      ) : null}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
           <span className="req">Date</span>
@@ -88,7 +112,7 @@ export default function ScoringForm({
           <span className="req">Firearm</span>
           <select
             name="firearm_id"
-            required
+            required={!fromRun?.combinedArms}
             value={firearmId}
             onChange={(e) => {
               setFirearmId(e.target.value);
@@ -96,7 +120,7 @@ export default function ScoringForm({
             }}
             className={inputCls}
           >
-            <option value="">— Select —</option>
+            <option value="">{fromRun?.combinedArms ? "— Recorded on the run —" : "— Select —"}</option>
             {matching.length > 0 ? (
               <>
                 <optgroup label={`Matches this course (${matchCategories.join(", ")})`}>

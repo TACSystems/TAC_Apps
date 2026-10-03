@@ -213,10 +213,36 @@ create table if not exists range_log (
   custom_fields_json text,
   notes text,
   session_id text references range_sessions(id) on delete set null,
+  run_id text references course_runs(id) on delete set null,
   ammo_type text,
   ammo_grain integer,
   ammo_manufacturer text,
   created_at text not null default (datetime('now'))
+);
+
+create table if not exists course_runs (
+  id text primary key,
+  cof_id text references courses_of_fire(id) on delete set null,
+  session_id text references range_sessions(id) on delete set null,
+  date text not null,
+  elapsed_seconds real,
+  combined_arms integer not null default 0,
+  dry_fire integer not null default 0,
+  strings_fired integer not null default 0,
+  strings_skipped integer not null default 0,
+  reruns integer not null default 0,
+  corrected integer not null default 0,
+  options_json text,
+  created_at text not null default (datetime('now'))
+);
+
+create table if not exists course_run_firearms (
+  id text primary key,
+  run_id text not null references course_runs(id) on delete cascade,
+  sort_order integer not null default 0,
+  weapon text,
+  firearm_id text references firearms(id) on delete set null,
+  rounds integer not null default 0
 );
 
 create table if not exists range_log_zone_counts (
@@ -247,6 +273,7 @@ create table if not exists rounds_fired_log (
   notes text,
   range_location text,
   session_id text references range_sessions(id) on delete set null,
+  run_id text references course_runs(id) on delete set null,
   ammo_type text,
   ammo_grain integer,
   ammo_manufacturer text,

@@ -156,6 +156,7 @@ export type RangeLog = {
   custom_fields_json: string | null;
   notes: string | null;
   session_id: string | null;
+  run_id: string | null;
   ammo_type: string | null;
   ammo_grain: number | null;
   ammo_manufacturer: string | null;

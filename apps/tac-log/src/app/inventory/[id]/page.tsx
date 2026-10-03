@@ -127,7 +127,7 @@ export default async function FirearmDetailPage({
   const sessions = db
     .prepare(
       `select s.id, s.number, s.date, s.location,
-         coalesce((select sum(coalesce(rounds_fired, 0)) from range_log where session_id = s.id and firearm_id = @id), 0)
+         coalesce((select sum(coalesce(rounds_fired, 0)) from range_log where session_id = s.id and firearm_id = @id and run_id is null), 0)
            + coalesce((select sum(rounds) from rounds_fired_log where session_id = s.id and firearm_id = @id), 0) as rounds
        from range_sessions s
        where exists (select 1 from range_log where session_id = s.id and firearm_id = @id)

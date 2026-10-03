@@ -208,6 +208,51 @@ export const MIGRATIONS: Migration[] = [
       `);
     },
   },
+  {
+    id: 7,
+    name: "0.11 Run Course keeps a run of its own",
+    up: (db) => {
+      // A combined arms run is fired with more than one firearm, and range_log
+      // holds exactly one. The run is the record; the score, when there is one,
+      // points at it.
+      db.exec(`
+        create table if not exists course_runs (
+          id TEXT PRIMARY KEY,
+          cof_id TEXT REFERENCES courses_of_fire(id) ON DELETE SET NULL,
+          session_id TEXT REFERENCES range_sessions(id) ON DELETE SET NULL,
+          date TEXT NOT NULL,
+          elapsed_seconds REAL,
+          combined_arms INTEGER NOT NULL DEFAULT 0,
+          dry_fire INTEGER NOT NULL DEFAULT 0,
+          strings_fired INTEGER NOT NULL DEFAULT 0,
+          strings_skipped INTEGER NOT NULL DEFAULT 0,
+          reruns INTEGER NOT NULL DEFAULT 0,
+          corrected INTEGER NOT NULL DEFAULT 0,
+          options_json TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        create table if not exists course_run_firearms (
+          id TEXT PRIMARY KEY,
+          run_id TEXT NOT NULL REFERENCES course_runs(id) ON DELETE CASCADE,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          weapon TEXT,
+          firearm_id TEXT REFERENCES firearms(id) ON DELETE SET NULL,
+          rounds INTEGER NOT NULL DEFAULT 0
+        );
+        create index if not exists course_runs_cof on course_runs(cof_id);
+        create index if not exists course_runs_session on course_runs(session_id);
+        create index if not exists course_run_firearms_run on course_run_firearms(run_id);
+        create index if not exists course_run_firearms_firearm on course_run_firearms(firearm_id);
+      `);
+      const ref = "TEXT REFERENCES course_runs(id) ON DELETE SET NULL";
+      addColumnIfMissing(db, "range_log", "run_id", ref);
+      addColumnIfMissing(db, "rounds_fired_log", "run_id", ref);
+      db.exec(`
+        create index if not exists range_log_run on range_log(run_id);
+        create index if not exists rounds_fired_run on rounds_fired_log(run_id);
+      `);
+    },
+  },
 ];
 
 function initDb(): Database.Database {

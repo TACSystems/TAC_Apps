@@ -10,6 +10,8 @@ import { passFail } from "@core/lib/cof-shared";
 import { fd } from "@/lib/display";
 import { getSession, sessionNo } from "@/lib/sessions";
 import { pickLabel } from "@/lib/ammo";
+import { getRun, runFirearms } from "@/lib/course-runs";
+import { fmtSeconds } from "@core/lib/run-clock";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,9 @@ export default async function RangeLogDetailPage({
     | undefined;
 
   if (!log) notFound();
+
+  const run = log.run_id ? getRun(db, log.run_id) ?? null : null;
+  const firedWith = run ? runFirearms(db, run.id) : [];
 
   const result = passFail(log.final_score_percent, log.passing_score_percent);
   const cpr = costPerRound(db, log.caliber);
@@ -88,8 +93,42 @@ export default async function RangeLogDetailPage({
           </form>
         </div>
       </div>
+      {run ? (
+        <section className="brk mb-4 border border-neutral-800 bg-neutral-900 p-4 text-sm">
+          <div className="flex flex-wrap items-baseline gap-3">
+            <span className="text-xs uppercase tracking-[0.18em] text-brand-amber">
+              {run.combined_arms ? "Combined Arms Course" : "Course run"}
+            </span>
+            <span className="text-neutral-400">
+              {run.elapsed_seconds != null ? `${fmtSeconds(run.elapsed_seconds)} on the clock` : "no time recorded"}
+              {` · ${run.strings_fired} strings fired`}
+              {run.strings_skipped ? ` · ${run.strings_skipped} skipped` : ""}
+              {run.reruns ? ` · ${run.reruns} re-run` : ""}
+              {run.corrected ? " · counts corrected" : ""}
+            </span>
+          </div>
+          <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+            {firedWith.map((f) => (
+              <li key={`${f.weapon ?? ""}-${f.firearm_id ?? "none"}`} className="flex justify-between gap-3 border-b border-neutral-800 py-1">
+                <span>
+                  {f.weapon ? <span className="text-neutral-500">{f.weapon}: </span> : null}
+                  {f.firearm_id ? (
+                    <Link href={`/inventory/${f.firearm_id}`} className="text-brand-amber hover:text-brand-amber-light">
+                      {f.label}
+                    </Link>
+                  ) : (
+                    <span className="text-neutral-500">Not recorded against a firearm</span>
+                  )}
+                </span>
+                <span>{f.rounds} rounds</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <p className="mb-4 text-sm text-neutral-400">
-        {log.firearm_make_model ?? log.weapon_used ?? "No firearm linked"}
+        {run ? (run.combined_arms ? "Firearms listed above" : log.firearm_make_model ?? "Firearm listed above") : log.firearm_make_model ?? log.weapon_used ?? "No firearm linked"}
         {log.firearm_make_model && log.weapon_used ? ` (${log.weapon_used})` : ""}
         {log.range_location ? ` · ${log.range_location}` : ""}
         {ammoUsed ? ` · ${ammoUsed}` : ""}
