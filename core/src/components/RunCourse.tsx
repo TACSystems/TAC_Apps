@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import {
   courseElapsed,
@@ -25,6 +25,7 @@ import {
 } from "@core/lib/run-clock";
 import { createAudioClock } from "@core/lib/run-audio";
 import RunTally from "@core/components/RunTally";
+import { clearRun, saveRun, snapshotRun, subscribeRun } from "@core/lib/run-resume";
 
 export type RunCourseProps = {
   app: string;
@@ -40,6 +41,8 @@ export type RunCourseProps = {
   onFinish?: (summary: RunSummary) => void;
   /** What each weapon's rounds post to, keyed by weapon ("" for an unnamed one). */
   destinations?: Record<string, string>;
+  /** Where an interrupted run is kept so it can be picked up again. */
+  resumeKey?: string;
   dryFire?: boolean;
 };
 
@@ -72,6 +75,7 @@ export default function RunCourse({
   exitHref,
   onFinish,
   destinations = {},
+  resumeKey,
   dryFire = false,
 }: RunCourseProps) {
   const clock = useMemo(() => createAudioClock(), []);
@@ -87,6 +91,13 @@ export default function RunCourse({
   const [dry, setDry] = useState(dryFire);
   const [wall, setWall] = useState(() => new Date());
   const [showPrev, setShowPrev] = useState(false);
+  const [resumeOffset, setResumeOffset] = useState(0);
+  const [dismissed, setDismissed] = useState(false);
+  const saved = useSyncExternalStore(
+    subscribeRun,
+    () => (resumeKey ? snapshotRun(resumeKey) : null),
+    () => null
+  );
 
   const [firstBeep, setFirstBeep] = useState<number | null>(null);
   const [lastBeep, setLastBeep] = useState<number | null>(null);
@@ -213,20 +224,51 @@ export default function RunCourse({
     return () => window.removeEventListener("keydown", onKey);
   }, [advance, rerun, skip, tally, togglePause]);
 
+  // A run is lost if the app goes away mid-course, which on a bay is a real
+  // thing that happens. The state is written after every string and dropped the
+  // moment the run is accepted or discarded, so it never outlives its run.
+  const elapsedNow = useCallback(
+    () => resumeOffset + courseElapsed(firstBeep, done ? lastBeep : null, now, pausedTotal),
+    [done, firstBeep, lastBeep, now, pausedTotal, resumeOffset]
+  );
+
+  const offered = !dismissed && saved && !Object.keys(outcomes).length ? saved : null;
+
+  useEffect(() => {
+    if (!resumeKey || offered || !Object.keys(outcomes).length || done) return;
+    saveRun(resumeKey, { v: 1, outcomes, options, idx, pausedTotal, elapsed: elapsedNow(), savedAt: Date.now() });
+  }, [done, elapsedNow, idx, offered, options, outcomes, pausedTotal, resumeKey]);
+
+  const resume = () => {
+    if (!saved) return;
+    setOutcomes(saved.outcomes);
+    setOptions(saved.options);
+    setIdx(Math.min(saved.idx, strings.length - 1));
+    setPausedTotal(saved.pausedTotal);
+    setResumeOffset(saved.elapsed);
+    setDismissed(true);
+  };
+
+  const startOver = () => {
+    if (resumeKey) clearRun(resumeKey);
+    setDismissed(true);
+  };
+
   const finished = useRef(false);
   useEffect(() => {
     if (!done || finished.current) return;
     finished.current = true;
     setTally({
-      seconds: courseElapsed(firstBeep, lastBeep, clock.now(), pausedTotal),
+      seconds: resumeOffset + courseElapsed(firstBeep, lastBeep, clock.now(), pausedTotal),
       paused: pausedTotal,
       byWeapon: roundsByWeapon(strings, outcomes),
     });
-  }, [clock, done, firstBeep, lastBeep, outcomes, pausedTotal, strings]);
+  }, [clock, done, firstBeep, lastBeep, outcomes, pausedTotal, resumeOffset, strings]);
 
   const counted = strings.map((s) => outcomes[s.id]).filter(Boolean);
   const acceptTally = (edited: WeaponTally[]) => {
     const before = tally?.byWeapon ?? [];
+    if (resumeKey) clearRun(resumeKey);
     // Until the scoring handoff is wired, accepting still has to go somewhere
     // rather than leave the tally on screen with nothing to press.
     if (!onFinish) {
@@ -361,7 +403,7 @@ export default function RunCourse({
             <div className="run-box">
               <div className="run-lbl">Course elapsed</div>
               <div className="run-v">
-                {fmtClock(courseElapsed(firstBeep, done ? lastBeep : null, now, pausedTotal))}
+                {fmtClock(elapsedNow())}
               </div>
             </div>
           </div>
@@ -437,6 +479,31 @@ export default function RunCourse({
         </a>
       </footer>
 
+      {offered && !tally ? (
+        <div className="run-tally-wrap" role="dialog" aria-label="Unfinished run">
+          <div className="run-tally brk">
+            <div className="run-tally-head">
+              <span className="run-lbl">Unfinished run</span>
+              <h2>{courseName}</h2>
+            </div>
+            <p className="text-sm">
+              {Object.keys(offered.outcomes).length} of {strings.length} strings were already shot, with{" "}
+              {fmtSeconds(offered.elapsed)} on the clock. Pick it up where it stopped, or start the course again.
+            </p>
+            <div className="run-tally-foot">
+              <span>Starting again throws the shot strings away.</span>
+              <span className="run-spacer" />
+              <button type="button" className="run-tally-ghost" onClick={startOver}>
+                Start again
+              </button>
+              <button type="button" className="run-tally-go" onClick={resume}>
+                Resume
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {tally ? (
         <RunTally
           courseName={courseName}
@@ -449,7 +516,10 @@ export default function RunCourse({
           destinations={destinations}
           dryFire={dry}
           onAccept={acceptTally}
-          onDiscard={() => window.location.assign(exitHref)}
+          onDiscard={() => {
+            if (resumeKey) clearRun(resumeKey);
+            window.location.assign(exitHref);
+          }}
         />
       ) : null}
     </div>

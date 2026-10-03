@@ -25,11 +25,12 @@ const NAV: NavEntry[] = [
     label: "Range",
     tour: "nav-range",
     icon: "range",
-    match: ["/range-log", "/range-day", "/courses", "/targets", "/timer", "/checklist"],
+    match: ["/range-log", "/range-day", "/courses", "/targets", "/run", "/timer", "/checklist"],
     items: [
       { href: "/range-log", label: "Range Log", icon: "range" },
       { href: "/range-log/new", label: "Log a Range Session", icon: "plus" },
       { href: "/courses", label: "Courses of Fire", icon: "course" },
+      { href: "/run", label: "Run Course", icon: "timer" },
       { href: "/targets", label: "Target Types", icon: "target" },
       { href: "/timer", label: "Par Timer", icon: "timer" },
       { href: "/checklist", label: "Range Bag Checklist", icon: "checklist" },

@@ -122,6 +122,7 @@ export default async function RunCoursePage({
       phaseOptions={phaseOptions}
       exitHref={`/courses/${id}`}
       destinations={destinations}
+      resumeKey={`taclog:run:${id}`}
       onFinish={finishRun.bind(null, id, Object.fromEntries(picks))}
       contextLabel={`${context.length ? context.join(" · ") : "Not in Armory"} · ${rounds} rounds`}
     >

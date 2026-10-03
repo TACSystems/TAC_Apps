@@ -29,6 +29,9 @@ export default async function RangeLogPage() {
           <Link href="/checklist" className="btn btn-secondary">
             Range Bag Checklist
           </Link>
+          <Link href="/run" className="btn btn-secondary">
+            Run Course
+          </Link>
           <Link href="/timer" className="btn btn-secondary">
             Par Timer
           </Link>

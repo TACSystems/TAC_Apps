@@ -57,14 +57,15 @@ export default function HelpPage() {
         </ul>
       </Guide>
 
-      <Guide id="range" title="Logging Range Time" keywords="range session log course score run practice range day rounds fired merge move number par timer checklist">
+      <Guide id="range" title="Logging Range Time" keywords="range session log course score run practice range day rounds fired merge move number par timer run course combined arms tally checklist">
         <ul>
           <li><b>Sessions:</b> a session is one trip: a date and a location, numbered #0001, #0002, and so on. Every course run and practice entry with the same date and location joins it automatically, and the Range Log shows one line per session.</li>
           <li><b>Course of fire:</b> Log a Range Session › Course of fire › pick the course › enter hits per zone. The score, PASS/FAIL, round count, and ammo all update.</li>
           <li><b>Practice only:</b> one screen for every firearm you shot, with rounds and the ammo used. You can also type a quick score for a course.</li>
           <li><b>Adding to a session:</b> open it and use + Course Run or + Practice; the date and location are filled in for you. Update Rounds Fired on a firearm also joins the session for its date and location.</li>
           <li><b>Fixing sessions:</b> on a session page, Move sends an entry to another session (or splits it into a new one). Edit Session changes the date or location for everything in it, merges it into another session, or deletes it.</li>
-          <li><b>Par Timer:</b> run a course string by string with start and par beeps, or use the free timer for dry fire. Press Space to start or stop.</li>
+          <li><b>Run Course:</b> Range › Run Course, or Run on a course page. The whole course runs on one screen: Space arms the next string, <b>R</b> re-runs it, <b>S</b> skips it, <b>P</b> pauses, <b>D</b> is dry fire. It ends on a tally of rounds, time and skips that you accept before anything is recorded — and the counts are editable there. A course using more than one weapon asks for a firearm for each.</li>
+          <li><b>Par Timer:</b> a free timer for dry fire and drills, separate from Run Course. Press Space to start or stop.</li>
           <li><b>Range Bag Checklist:</b> tick items off as you pack, print it, and press Uncheck All for the next trip.</li>
         </ul>
       </Guide>
@@ -146,6 +147,7 @@ export default function HelpPage() {
           <li><b>Cmd/Ctrl+K:</b> quick search for firearms, serials, courses, documents, sessions, and settings.</li>
           <li><b>Cmd/Ctrl+L:</b> lock TAC-LOG (when a PIN or password is set).</li>
           <li><b>Cmd/Ctrl+Shift+B:</b> back up now (needs an automatic-backup folder).</li>
+          <li><b>Run Course:</b> Space arms the next string, R re-runs, S skips, P pauses, D dry fire, V shows the previous run, Esc leaves. On the tally, Enter accepts and Esc (twice) throws the run away.</li>
           <li><b>Par Timer:</b> Space starts or stops, ← → change string.</li>
           <li><b>Photo viewer:</b> ← → next or previous, Esc closes.</li>
         </ul>

@@ -2,6 +2,52 @@
 
 All notable changes to TAC-LOG, newest first.
 
+## [0.11.0] — 2026-10-03
+
+**Run Course.** Run a course of fire from the first beep to the last, on a
+full-bleed screen that shows the live state and nothing else. Range › Run
+Course, or Run on any course page.
+
+### Added
+- **Run Course.** The course sits on the left with the active string raised and
+  finished ones ticked off with their actual times; the clock, the par panel and
+  the mode selector sit on the right. Space arms the next string, `R` re-runs,
+  `S` skips, `P` pauses, `D` is dry fire. Every tone is scheduled on the audio
+  clock rather than a timer, so the recorded time of a string agrees with the
+  beep you actually heard. The screen is kept awake while a run is up.
+- **Three modes:** par, countdown and stopwatch. A phase that offers more than
+  one option carries the picker in its header, and the option you choose is
+  written into the run.
+- **An end-of-run tally.** Every run ends on a summary — course time, strings
+  fired, skipped and re-run, and the rounds split by weapon — and nothing is
+  recorded until you accept it. The counts are editable there, because a skipped
+  string or a re-run makes them non-obvious. Escape warns once, then throws the
+  run away whole.
+- **A run of its own in the Range Log.** A run is recorded as a run, not as a
+  score with a firearm attached: open it to see the time, the strings, and every
+  weapon with what it fired. A run you shoot but never score still shows up, with
+  Score this run on it.
+- **A firearm per weapon.** A course whose categories span more than one weapon
+  type is a Combined Arms Course, and asks for a firearm for each, listing the
+  ones whose platform fits first. Its rifle rounds stop landing on a handgun's
+  record. "Not in my Armory" is still a real answer, per weapon.
+- **Rounds post when you accept the tally**, not when you later score. Shoot a
+  course and never score it and your round counts are still right; score it
+  afterwards and they are not counted twice.
+- **Multi-weapon strings in the Course Builder.** The Weapon cell is a dropdown
+  of the course's categories and their combinations, and the Rounds cell becomes
+  one box per weapon. `Handgun / Rifle` with `4 / 2` can only mean four handgun
+  and two rifle. A cell already in your data is never rewritten — one spelled
+  differently is offered as off-list, and fixing one offers to fix every other
+  row spelled the same.
+- **An interrupted run can be picked up.** If the app goes away mid-course, the
+  strings already shot are offered back when you return to that course.
+
+### Fixed
+- A rounds cell written `2 / 2` was read as twenty-two, so a two-string tally
+  showed 24 rounds fired. Rounds now add up across the parts of a cell,
+  everywhere they are counted.
+
 ## [0.10.0] — 2026-09-26
 
 A new look, shared with TAC-QUAL 0.3.0. No feature changes.

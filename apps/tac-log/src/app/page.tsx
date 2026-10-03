@@ -117,6 +117,9 @@ export default async function HomePage() {
         <Link href="/ammo?open=purchase" className="btn btn-secondary">
           Log Ammo Purchase
         </Link>
+        <Link href="/run" className="btn btn-secondary">
+          Run Course
+        </Link>
         <Link href="/timer" className="btn btn-secondary">
           Par Timer
         </Link>
